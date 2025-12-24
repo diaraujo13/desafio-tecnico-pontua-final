@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Text } from '../components/ui/Text';
+import { Card } from '../components/ui/Card';
 import { useTheme } from '../theme/ThemeProvider';
 
 const loginSchema = z.object({
@@ -17,6 +18,13 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+// Demo accounts for development/testing
+const DEMO_ACCOUNTS = [
+  { email: 'joao@empresa.com', password: 'Senha@123', role: 'ADMIN', name: 'João Silva' },
+  { email: 'maria@empresa.com', password: 'Senha@123', role: 'MANAGER', name: 'Maria Santos' },
+  { email: 'pedro@empresa.com', password: 'Senha@123', role: 'COLLABORATOR', name: 'Pedro Oliveira' },
+] as const;
+
 export function LoginScreen() {
   const { login, isAuthLoading } = useAuth();
   const theme = useTheme();
@@ -24,6 +32,7 @@ export function LoginScreen() {
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -34,6 +43,15 @@ export function LoginScreen() {
   });
 
   const [submitError, setSubmitError] = React.useState<string | null>(null);
+
+  const handleDemoAccountPress = React.useCallback(
+    (email: string, password: string) => {
+      setValue('email', email);
+      setValue('password', password);
+      setSubmitError(null);
+    },
+    [setValue],
+  );
 
   const onSubmit = React.useCallback(
     async (values: LoginFormValues) => {
@@ -64,6 +82,47 @@ export function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.container}>
+            {__DEV__ && (
+              <Card style={styles.demoBanner}>
+                <Text
+                  variant="label"
+                  style={[styles.demoBannerTitle, { color: theme.colors.primary }]}
+                >
+                  Contas de Demonstração
+                </Text>
+                <Text variant="caption" style={[styles.demoBannerSubtitle, { color: theme.colors.textSecondary }]}>
+                  Toque em uma conta para preencher automaticamente
+                </Text>
+                {DEMO_ACCOUNTS.map((account) => (
+                  <Pressable
+                    key={account.email}
+                    onPress={() => handleDemoAccountPress(account.email, account.password)}
+                    style={({ pressed }) => [
+                      styles.demoAccountItem,
+                      { backgroundColor: theme.colors.surfaceVariant },
+                      pressed && styles.demoAccountItemPressed,
+                    ]}
+                    testID={`LoginScreen_DemoAccount_${account.role}`}
+                    accessible={true}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Usar conta de demonstração ${account.name}, ${account.role}`}
+                  >
+                    <View style={styles.demoAccountContent}>
+                      <Text variant="body" style={{ color: theme.colors.textPrimary }}>
+                        {account.name}
+                      </Text>
+                      <Text variant="caption" style={{ color: theme.colors.textSecondary }}>
+                        {account.email} • {account.role}
+                      </Text>
+                    </View>
+                    <Text variant="caption" style={{ color: theme.colors.primary }}>
+                      {account.password}
+                    </Text>
+                  </Pressable>
+                ))}
+              </Card>
+            )}
+
             <Text variant="h2" style={styles.title}>
               Entrar
             </Text>
@@ -139,6 +198,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 32,
+  },
+  demoAccountContent: {
+    flex: 1,
+  },
+  demoAccountItem: {
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    padding: 12,
+  },
+  demoAccountItemPressed: {
+    opacity: 0.7,
+  },
+  demoBanner: {
+    marginBottom: 24,
+    padding: 16,
+  },
+  demoBannerSubtitle: {
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  demoBannerTitle: {
+    marginBottom: 4,
   },
   errorText: {
     marginTop: 8,
