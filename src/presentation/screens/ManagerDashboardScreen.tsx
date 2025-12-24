@@ -3,7 +3,7 @@ import { View, StyleSheet, FlatList, RefreshControl, Pressable } from 'react-nat
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../hooks/useAuth';
-import { useManagerDashboard } from '../hooks/vacations/useManagerDashboard';
+import { usePendingVacations } from '../hooks/vacations/usePendingVacations';
 import { Text } from '../components/ui/Text';
 import { Card } from '../components/ui/Card';
 import { ListSkeleton } from '../components/ui/ListSkeleton';
@@ -72,7 +72,10 @@ export function ManagerDashboardScreen() {
   const managerId = user?.id ?? '';
   const departmentId = user?.departmentId ?? '';
 
-  const { data, isLoading, error, refetch } = useManagerDashboard(managerId, departmentId);
+  const { data, isLoading, isFetching, error, refetch } = usePendingVacations(
+    managerId,
+    departmentId,
+  );
 
   const isEmpty = useMemo(
     () => !isLoading && data.length === 0 && !error,
@@ -117,7 +120,7 @@ export function ManagerDashboardScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <PendingVacationItem vacation={item} />}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
           testID="ManagerDashboardScreen_VacationsList"
         />
       )}
