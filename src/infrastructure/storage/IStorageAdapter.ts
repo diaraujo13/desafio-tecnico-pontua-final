@@ -37,3 +37,5 @@ export interface IStorageAdapter {
    */
   getAllKeys(): Promise<string[]>;
 }
+
+
