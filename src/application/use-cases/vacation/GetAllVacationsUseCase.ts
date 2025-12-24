@@ -3,31 +3,58 @@ import { IUserRepository } from '../../../domain/repositories/IUserRepository';
 import { VacationRequest } from '../../../domain/entities/VacationRequest';
 import { Result } from '../../../domain/shared/Result';
 import { VacationStatus } from '../../../domain/enums/VacationStatus';
+import { NotFoundError } from '../../../domain/errors/NotFoundError';
+import { UnauthorizedError } from '../../../domain/errors/UnauthorizedError';
+import { InvalidInputError } from '../../../domain/errors/InvalidInputError';
 import { DomainError } from '../../../domain/errors/DomainError';
 import { UnexpectedDomainError } from '../../../domain/errors/UnexpectedDomainError';
 
 /**
  * Use Case for administrators to view all vacation requests across the company
- * Only admins can execute this use case
+ * Enforces RBAC: only admins can execute this use case
  */
 export class GetAllVacationsUseCase {
-  constructor(
+  constructor (
     private readonly vacationRepository: IVacationRepository,
     private readonly userRepository: IUserRepository,
   ) {}
 
   /**
    * Executes the query to get all vacation requests
+   * @param callerId - ID of the user making the request (must be admin)
    * @param filters - Optional filters for the query
    * @returns Result containing an array of VacationRequest entities
    */
-  async execute(filters?: {
-    departmentId?: string;
-    status?: VacationStatus;
-    startDate?: Date;
-    endDate?: Date;
-  }): Promise<Result<VacationRequest[]>> {
+  async execute (
+    callerId: string,
+    filters?: {
+      departmentId?: string;
+      status?: VacationStatus;
+      startDate?: Date;
+      endDate?: Date;
+    },
+  ): Promise<Result<VacationRequest[]>> {
     try {
+      // Validate callerId
+      if (!callerId || callerId.trim().length === 0) {
+        return Result.fail(new InvalidInputError('callerId', 'Caller ID is required'));
+      }
+
+      // Fetch the caller to verify admin role
+      const callerResult = await this.userRepository.findById(callerId);
+      if (callerResult.isFailure) {
+        return Result.fail(new NotFoundError('User', callerId));
+      }
+
+      const caller = callerResult.getValue();
+
+      // Enforce RBAC: only admins can view all vacation requests
+      if (!caller.isAdmin()) {
+        return Result.fail(
+          new UnauthorizedError('Only administrators can view all vacation requests'),
+        );
+      }
+
       // Fetch all vacation requests
       const result = await this.vacationRepository.findAll();
 
@@ -39,22 +66,6 @@ export class GetAllVacationsUseCase {
 
       // Apply filters in memory (for MVP)
       // In a production system, these filters would be applied at the repository/database level
-      if (filters?.departmentId) {
-        // Get all users in the specified department
-        const departmentUsersResult = await this.userRepository.findByDepartmentId(
-          filters.departmentId,
-        );
-
-        if (departmentUsersResult.isFailure) {
-          return Result.fail(departmentUsersResult.getError());
-        }
-
-        const departmentUserIds = new Set(departmentUsersResult.getValue().map((user) => user.id));
-
-        // Filter requests to include only those from users in the department
-        vacationRequests = vacationRequests.filter((req) => departmentUserIds.has(req.requesterId));
-      }
-
       if (filters?.status) {
         vacationRequests = vacationRequests.filter((req) => req.status === filters.status);
       }
