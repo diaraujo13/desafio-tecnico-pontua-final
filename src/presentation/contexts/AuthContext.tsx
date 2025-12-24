@@ -71,6 +71,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         // If restore fails or returns null, user remains null (not authenticated)
       } catch {
         // Silently fail - user is not authenticated
+        
       } finally {
         setIsAuthLoading(false);
       }
