@@ -109,7 +109,7 @@ export function RejectionModal({
             placeholder="Digite o motivo da reprovação..."
             multiline
             numberOfLines={4}
-            errorMessage={error}
+            errorMessage={error ?? undefined}
             containerStyle={styles.inputContainer}
             testID="RejectionModal_ReasonInput"
           />
