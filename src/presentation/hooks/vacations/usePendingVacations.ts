@@ -16,6 +16,7 @@ export function usePendingVacations(managerId: string, departmentId: string) {
   const {
     data = [],
     isLoading,
+    isFetching,
     error,
     refetch,
   } = useQuery<VacationRequest[], DomainError>({
@@ -41,7 +42,10 @@ export function usePendingVacations(managerId: string, departmentId: string) {
   return {
     data,
     isLoading,
+    isFetching,
     error: error ? error.message : null,
     refetch,
   };
 }
+
+
