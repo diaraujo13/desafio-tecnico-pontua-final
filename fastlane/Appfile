@@ -1,0 +1,12 @@
+# Appfile for Fastlane
+# This file contains configuration that is shared across all lanes
+
+# App identifier (bundle identifier)
+app_identifier("com.feriascontroltemp")
+
+# Apple Developer Team ID (if needed for iOS)
+# apple_team_id("YOUR_TEAM_ID")
+
+# Apple Developer email (if needed for iOS)
+# apple_id("your-email@example.com")
+

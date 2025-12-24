@@ -1,0 +1,115 @@
+# Fastfile for Root - Version Management and Orchestration
+# This file orchestrates version bumping across package.json, Android, and iOS
+
+require 'json'
+
+# Helper method to read version from package.json
+def read_package_version
+  package_json = JSON.parse(File.read(File.join(__dir__, '..', 'package.json')))
+  package_json['version']
+end
+
+# Helper method to bump version in package.json
+def bump_package_version(bump_type)
+  package_path = File.join(__dir__, '..', 'package.json')
+  package_json = JSON.parse(File.read(package_path))
+  current_version = package_json['version']
+  
+  version_parts = current_version.split('.').map(&:to_i)
+  
+  case bump_type
+  when :patch
+    version_parts[2] += 1
+  when :minor
+    version_parts[1] += 1
+    version_parts[2] = 0
+  when :major
+    version_parts[0] += 1
+    version_parts[1] = 0
+    version_parts[2] = 0
+  end
+  
+  new_version = version_parts.join('.')
+  package_json['version'] = new_version
+  
+  File.write(package_path, JSON.pretty_generate(package_json))
+  
+  UI.success("✅ Bumped package.json version: #{current_version} → #{new_version}")
+  new_version
+end
+
+# Lane to bump version across all platforms
+lane :version do |options|
+  bump_type = options[:bump_type] || :patch
+  
+  UI.message("🔄 Bumping version (#{bump_type})...")
+  
+  # Bump version in package.json
+  new_version = bump_package_version(bump_type)
+  
+  # Call platform-specific version lanes
+  android_fastlane_dir = File.join(__dir__, '..', 'android', 'fastlane')
+  ios_fastlane_dir = File.join(__dir__, '..', 'ios', 'fastlane')
+  
+  Dir.chdir(android_fastlane_dir) do
+    sh("bundle exec fastlane increment_version version:#{new_version}")
+  end
+  
+  Dir.chdir(ios_fastlane_dir) do
+    sh("bundle exec fastlane increment_version version:#{new_version}")
+  end
+  
+  UI.success("✅ Version bumped to #{new_version} across all platforms")
+end
+
+# Lane to bump patch version
+lane :bump_patch do
+  version(bump_type: :patch)
+end
+
+# Lane to bump minor version
+lane :bump_minor do
+  version(bump_type: :minor)
+end
+
+# Lane to bump major version
+lane :bump_major do
+  version(bump_type: :major)
+end
+
+# Lane to build Android
+lane :build_android do |options|
+  build_type = options[:build_type] || 'debug'
+  
+  UI.message("🤖 Building Android (#{build_type})...")
+  
+  android_fastlane_dir = File.join(__dir__, '..', 'android', 'fastlane')
+  Dir.chdir(android_fastlane_dir) do
+    if build_type == 'release'
+      sh('bundle exec fastlane build_release')
+    else
+      sh('bundle exec fastlane build_debug')
+    end
+  end
+  
+  UI.success("✅ Android build completed")
+end
+
+# Lane to build iOS
+lane :build_ios do |options|
+  build_type = options[:build_type] || 'debug'
+  
+  UI.message("🍎 Building iOS (#{build_type})...")
+  
+  ios_fastlane_dir = File.join(__dir__, '..', 'ios', 'fastlane')
+  Dir.chdir(ios_fastlane_dir) do
+    if build_type == 'release'
+      sh('bundle exec fastlane build_release')
+    else
+      sh('bundle exec fastlane build_debug')
+    end
+  end
+  
+  UI.success("✅ iOS build completed")
+end
+
