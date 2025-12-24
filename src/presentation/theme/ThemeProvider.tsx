@@ -16,7 +16,7 @@ const ThemeContext = createContext<Theme | undefined>(undefined);
  * Falls back to light theme if color scheme is null
  */
 export function ThemeProvider({ children }: PropsWithChildren) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme(); // 'light' | 'dark' | null
 
   const theme = useMemo(() => {
     // Fallback to light theme if colorScheme is null
@@ -40,3 +40,4 @@ export function useTheme(): Theme {
 
   return theme;
 }
+
