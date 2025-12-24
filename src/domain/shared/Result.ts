@@ -15,7 +15,7 @@ export class Result<T> {
   private readonly _error?: DomainError;
   private readonly _isSuccess: boolean;
 
-  private constructor(isSuccess: boolean, value?: T, error?: DomainError) {
+  private constructor (isSuccess: boolean, value?: T, error?: DomainError) {
     this._isSuccess = isSuccess;
     this._value = value;
     this._error = error;
@@ -26,7 +26,7 @@ export class Result<T> {
    * @param value - The success value (optional)
    * @returns A Result representing success
    */
-  static ok<U>(value?: U): Result<U> {
+  static ok<U> (value?: U): Result<U> {
     return new Result<U>(true, value);
   }
 
@@ -40,15 +40,15 @@ export class Result<T> {
    * @param error - A DomainError instance
    * @returns A Result representing failure
    */
-  static fail(error: DomainError): Result<never> {
-    return new Result<never>(false, undefined, error);
+  static fail (error: DomainError): Result<never> {
+    return new Result<never>(false, undefined as never, error);
   }
 
   /**
    * Checks if the Result represents a success
    * @returns true if successful, false otherwise
    */
-  get isSuccess(): boolean {
+  get isSuccess (): boolean {
     return this._isSuccess;
   }
 
@@ -56,7 +56,7 @@ export class Result<T> {
    * Checks if the Result represents a failure
    * @returns true if failed, false otherwise
    */
-  get isFailure(): boolean {
+  get isFailure (): boolean {
     return !this._isSuccess;
   }
 
@@ -65,7 +65,7 @@ export class Result<T> {
    * @returns The success value
    * @throws Error if the Result represents a failure
    */
-  getValue(): T {
+  getValue (): T {
     if (this.isFailure) {
       throw new Error('Cannot get value from a failed Result');
     }
@@ -77,7 +77,7 @@ export class Result<T> {
    * @returns The DomainError instance
    * @throws Error if the Result represents a success
    */
-  getError(): DomainError {
+  getError (): DomainError {
     if (this.isSuccess) {
       throw new Error('Cannot get error from a successful Result');
     }
