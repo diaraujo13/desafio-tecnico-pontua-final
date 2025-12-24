@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getManagerDashboardUseCase } from '../../../main/container';
 import { VacationRequest } from '../../../domain/entities/VacationRequest';
+import { DomainError } from '../../../domain/errors';
 
 /**
  * Hook for fetching pending vacation requests for managers
@@ -17,7 +18,7 @@ export function usePendingVacations(managerId: string, departmentId: string) {
     isLoading,
     error,
     refetch,
-  } = useQuery<VacationRequest[], string>({
+  } = useQuery<VacationRequest[], DomainError>({
     queryKey: ['pendingVacations', managerId, departmentId],
     queryFn: async () => {
       if (!managerId || !departmentId) {
@@ -27,7 +28,8 @@ export function usePendingVacations(managerId: string, departmentId: string) {
       const result = await getManagerDashboardUseCase.execute(managerId, departmentId);
 
       if (result.isFailure) {
-        throw new Error(result.getError().message);
+        // O erro já é um DomainError
+        throw result.getError();
       }
 
       return result.getValue();
@@ -39,8 +41,7 @@ export function usePendingVacations(managerId: string, departmentId: string) {
   return {
     data,
     isLoading,
-    error: error ? error : null,
+    error: error ? error.message : null,
     refetch,
   };
 }
-
