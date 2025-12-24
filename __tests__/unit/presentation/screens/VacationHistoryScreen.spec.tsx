@@ -78,7 +78,7 @@ describe('VacationHistoryScreen', () => {
         <NavigationContainer>
           <VacationHistoryScreen />
         </NavigationContainer>
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     await waitFor(() => {
@@ -102,7 +102,7 @@ describe('VacationHistoryScreen', () => {
         <NavigationContainer>
           <VacationHistoryScreen />
         </NavigationContainer>
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     await waitFor(() => {
@@ -123,7 +123,7 @@ describe('VacationHistoryScreen', () => {
         <NavigationContainer>
           <VacationHistoryScreen />
         </NavigationContainer>
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     expect(screen.getByText('Histórico de Férias')).toBeTruthy();
@@ -143,7 +143,7 @@ describe('VacationHistoryScreen', () => {
         <NavigationContainer>
           <VacationHistoryScreen />
         </NavigationContainer>
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     await waitFor(() => {
@@ -164,7 +164,7 @@ describe('VacationHistoryScreen', () => {
         <NavigationContainer>
           <VacationHistoryScreen />
         </NavigationContainer>
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     await waitFor(() => {
@@ -173,7 +173,7 @@ describe('VacationHistoryScreen', () => {
 
     // Find and press the first vacation card using the period text
     const firstVacationPeriod = screen.getByText('2025-01-10 → 2025-01-20');
-    
+
     // Navigate up to find the Pressable parent
     const pressable = firstVacationPeriod.parent?.parent?.parent;
     if (pressable) {
@@ -200,7 +200,7 @@ describe('VacationHistoryScreen', () => {
         <NavigationContainer>
           <VacationHistoryScreen />
         </NavigationContainer>
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     await waitFor(() => {
