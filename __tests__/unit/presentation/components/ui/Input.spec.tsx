@@ -77,3 +77,5 @@ describe('Input Component', () => {
     expect(getByPlaceholderText('Enter text')).toBeTruthy();
   });
 });
+
+
