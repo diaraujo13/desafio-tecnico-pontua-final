@@ -306,9 +306,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   centerContainer: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: 24,
   },
   container: {
