@@ -1,0 +1,113 @@
+---
+description: 'Lint & Formatting Rules — Non-Negotiable'
+globs:
+  - '**/*.{ts,tsx,js,jsx}'
+alwaysApply: true
+---
+
+# Lint & Formatting Rules (MANDATORY)
+
+These rules are NOT suggestions.
+Any violation is considered a tooling or architectural error.
+
+This document exists to prevent:
+
+- Tool churn
+- AI-induced formatting noise
+- ESLint / Prettier conflicts
+- Accidental architecture drift
+
+---
+
+## 1. Responsibility Separation (CRITICAL)
+
+Linting and formatting are separate concerns.
+
+### ESLint
+
+ESLint is responsible for:
+
+- Code correctness
+- Architectural rules
+- React / React Native best practices
+- Anti-pattern detection
+
+### Prettier
+
+Prettier is responsible for:
+
+- Formatting ONLY
+- Whitespace, indentation, line breaks, quotes
+
+---
+
+## 2. Prettier Policy (IDE-ONLY)
+
+Prettier MUST be used ONLY as an editor formatter.
+
+### Allowed
+
+- Prettier formatting on save (IDE)
+- Manual Prettier CLI usage
+
+### Forbidden
+
+- `eslint-plugin-prettier`
+- `prettier/prettier` ESLint rule
+- ESLint failing CI or commits due to formatting
+- AI tools reintroducing Prettier into ESLint
+
+If formatting is required:
+→ Let the IDE handle it.
+
+---
+
+## 3. ESLint Policy (BLOCKING)
+
+ESLint is a blocking gate in:
+
+- Husky pre-commit
+- lint-staged
+- CI pipelines
+
+### Rule severity meaning
+
+- `error` → MUST be fixed before commit
+- `warn` → Does NOT block commit
+
+AI tools MUST NOT downgrade errors to warnings.
+
+---
+
+## 4. React Native–Specific Rules
+
+### react-native/sort-styles
+
+- Severity: `error`
+- MUST be enforced
+- Style properties MUST be ordered consistently
+
+### react-native/no-inline-styles
+
+- Severity: `warn`
+- Inline styles are tolerated in:
+  - MVP phase
+  - Simple UI components
+  - Non-performance-critical paths
+
+AI tools MUST NOT refactor inline styles unless explicitly requested.
+
+---
+
+## 5. Husky & lint-staged Rules
+
+- lint-staged failures MUST block commits
+- lint-staged reverting files is expected behavior
+
+### Forbidden actions
+
+AI tools MUST NOT:
+
+- Disable lint rules to pass commits
+- Suggest `--no-verify`
+- Bypass Husky hooks

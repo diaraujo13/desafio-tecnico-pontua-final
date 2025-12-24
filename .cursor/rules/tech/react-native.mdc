@@ -1,0 +1,923 @@
+---
+description: "React Native Development Best Practices"
+globs: 
+  - "**/*.{tsx,jsx}"
+  - "**/components/**/*"
+  - "**/hooks/**/*"
+alwaysApply: true
+---
+# React Native Development Guidelines
+
+## Project Configuration
+- React Native version: 0.83.1
+- Navigation: React Navigation v7
+- Storage: react-native-mmkv
+- Testing: Detox + @testing-library/react-native
+- CI/CD: Fastlane
+- Design System: Design tokens approach
+
+## Core Principles
+
+### Performance
+- **React 19 Compiler**: Let the new compiler handle automatic memoization. Avoid excessive manual `useMemo` and `useCallback` unless needed to break referential equality for external libraries or to prevent unnecessary effects
+- **Concurrent Features**: Leverage `useTransition` and `useDeferredValue` to prioritize user interactions (like search typing) over heavy UI updates
+- Use `React.memo()` only when the compiler doesn't optimize automatically or for heavy components
+- Prefer `FlatList` over `ScrollView` for long lists with `getItemLayout` when possible
+- Use `@shopify/flash-list` for extreme cases with thousands of items (better performance than FlatList)
+- Use `removeClippedSubviews` on Android for long lists
+- Optimize images: use proper dimensions, WebP format, and `resizeMode`
+- Avoid anonymous functions in JSX render methods
+- Use `InteractionManager.runAfterInteractions()` for non-critical updates
+- Profile with React DevTools Profiler and Flipper regularly
+- Implement code splitting with `React.lazy()` for heavy screens
+- Use `react-native-reanimated` for complex animations (runs on UI thread)
+
+### Accessibility
+- Always add `accessible={true}` and `accessibilityLabel` to interactive elements
+- Use `accessibilityRole` to indicate element type (button, header, link, etc.)
+- Provide `accessibilityHint` for complex interactions
+- Use `accessibilityState` for toggles, checkboxes, selected states
+- Ensure minimum touch target size of 44x44 points
+- Support dynamic font sizing with `allowFontScaling`
+- Test with screen readers (TalkBack on Android, VoiceOver on iOS)
+- Use semantic color tokens that work in both light/dark modes
+- Maintain color contrast ratios (WCAG AA: 4.5:1 for text)
+
+## React Navigation v7
+
+### Setup & Configuration
+```typescript
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+// Define strict types for all navigation
+type RootStackParamList = {
+  Home: undefined;
+  Profile: { userId: string };
+  Settings: { section?: string };
+};
+
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
+}
+```
+
+### Navigation Patterns
+- Prefer `Native Stack Navigator`
+- Uses `freezeOnBlur: true` to prevent the screen prevent inactive screens from re-rendering or call `enableFreeze()` from `react-native-screens` package is run at the top of the application.
+- Use typed navigation hooks: `useNavigation<NavigationProp<RootStackParamList>>()`
+- Prefer `popTo()` for navigating back to a specific screen if it exists in the stack, otherwise navigate to it. This is the React Navigation 7 pattern for handling existing vs new screen navigation. Otherwise, use `navigation.push()` to navigate to a new screen.
+- Implement deep linking configuration at app initialization
+- Use `useFocusEffect` for screen-specific effects, not `useEffect`
+- Store navigation reference for outside-component navigation sparingly
+- Implement proper back handler with `useNavigationState`
+- Use `navigationRef.isReady()` before navigation actions
+- Lazy load screens: `component={() => <LazyScreen />}`
+
+### Performance Optimization
+- Enable `detachInactiveScreens` on navigators for memory efficiency
+- Use `lazy: true` for tabs that aren't immediately needed
+- Implement `freezeOnBlur` with react-native-screens
+- Optimize header with `headerMode="screen"` for stack navigators
+- Always use **Native Stack Navigator** for better performance with native primitives
+- Configure strict typing for all navigation params and routes
+
+## React Native MMKV
+
+### Storage Patterns
+```typescript
+import { MMKV } from 'react-native-mmkv';
+
+// Initialize storage instance
+export const storage = new MMKV({
+  id: 'app-storage',
+  encryptionKey: 'your-encryption-key' // For sensitive data
+});
+
+// Create type-safe storage utilities
+export const StorageKeys = {
+  USER_TOKEN: 'user_token',
+  THEME: 'theme',
+  SETTINGS: 'settings',
+} as const;
+
+export const storageUtils = {
+  set: (key: string, value: any) => {
+    storage.set(key, JSON.stringify(value));
+  },
+  get: <T,>(key: string): T | undefined => {
+    const value = storage.getString(key);
+    return value ? JSON.parse(value) : undefined;
+  },
+  delete: (key: string) => storage.delete(key),
+  clear: () => storage.clearAll(),
+};
+```
+
+### Best Practices
+- Use separate MMKV instances for different data domains
+- Enable encryption for sensitive data (tokens, credentials)
+- Never store large objects (>1MB); use file system instead
+- Implement migration strategy for storage schema changes
+- Use primitive types directly: `storage.set('count', 42)` instead of JSON
+- Clear stale data on app update with version checking
+- Avoid synchronous reads on app launch; defer non-critical data
+
+## React Native Reanimated
+
+### Setup & Usage
+```typescript
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  withSequence,
+  withRepeat,
+  Easing,
+  runOnJS,
+} from 'react-native-reanimated';
+
+// Animated component example
+const AnimatedBox = () => {
+  const offset = useSharedValue(0);
+  const opacity = useSharedValue(1);
+
+  const animatedStyles = useAnimatedStyle(() => ({
+    transform: [{ translateX: offset.value }],
+    opacity: opacity.value,
+  }));
+
+  const handlePress = () => {
+    offset.value = withSpring(offset.value + 50);
+  };
+
+  return (
+    <Animated.View style={[styles.box, animatedStyles]}>
+      <Pressable onPress={handlePress}>
+        <Text>Animate</Text>
+      </Pressable>
+    </Animated.View>
+  );
+};
+```
+
+### Animation Patterns
+- **Shared Values**: Use `useSharedValue` for animated values (runs on UI thread)
+- **Animated Styles**: Use `useAnimatedStyle` to derive styles from shared values
+- **Gestures**: Combine with `react-native-gesture-handler` for complex interactions
+- **Spring Physics**: Use `withSpring` for natural, physics-based animations
+- **Timing**: Use `withTiming` for precise, duration-based animations
+- **Sequences**: Chain animations with `withSequence` for multi-step effects
+- **Loops**: Use `withRepeat` for infinite or counted animation loops
+- **Layout Animations**: Use `Layout` presets (e.g., `Layout.springify()`) for automatic layout transitions
+- **JS Callbacks**: Use `runOnJS` to call JS functions from UI thread
+- **Performance**: All calculations run on UI thread at 60fps (or higher)
+
+### Best Practices
+- Prefer Reanimated over `Animated` API for complex animations
+- Use `entering`/`exiting` props for mount/unmount animations
+- Avoid heavy computations in `useAnimatedStyle`
+- Use `useDerivedValue` for complex calculations
+- Leverage `useAnimatedGestureHandler` for gesture-based animations
+- Test animations on low-end devices
+- Use `ReduceMotion` accessibility setting for motion-sensitive users
+
+## @shopify/flash-list
+
+### When to Use FlashList
+- Lists with **thousands of items** (5,000+)
+- Lists with complex item layouts
+- When FlatList shows performance issues
+- Heterogeneous lists with varying item heights
+- When `getItemLayout` is difficult to implement
+
+### Setup & Usage
+```typescript
+import { FlashList } from '@shopify/flash-list';
+
+// Basic implementation
+<FlashList
+  data={items}
+  renderItem={({ item }) => <ItemCard item={item} />}
+  estimatedItemSize={100} // REQUIRED: approximate item height
+  keyExtractor={(item) => item.id}
+  testID="VacationHistory_FlashList"
+/>
+
+// With optimizations
+<FlashList
+  data={items}
+  renderItem={({ item }) => <MemoizedItemCard item={item} />}
+  estimatedItemSize={100}
+  drawDistance={400} // Render items 400px off screen
+  estimatedListSize={{ height: 600, width: 400 }}
+  keyExtractor={(item) => item.id}
+  getItemType={(item) => item.type} // For heterogeneous lists
+  ListEmptyComponent={<EmptyState />}
+  onLoad={({ elapsedTimeInMs }) => {
+    // Monitor performance
+    if (elapsedTimeInMs > 500) {
+      logPerformanceIssue('FlashList slow load', elapsedTimeInMs);
+    }
+  }}
+/>
+```
+
+### Migration from FlatList
+1. Replace `FlatList` import with `FlashList`
+2. Add `estimatedItemSize` prop (critical for performance)
+3. Remove `getItemLayout` if present (not needed)
+4. Test thoroughly - FlashList has different recycling behavior
+5. Wrap in container with defined dimensions if layout issues occur
+
+### Best Practices
+- **Always provide `estimatedItemSize`** - accuracy impacts performance
+- Use `getItemType` for lists with different item layouts
+- Memoize `renderItem` components with `React.memo`
+- Set `drawDistance` based on scroll speed (default: 250)
+- Avoid `ScrollView` wrapper - FlashList manages scrolling
+- For nested lists, stick with FlatList for inner lists
+- Monitor with `onLoad` callback for performance tracking
+- Test on low-end Android devices for real performance validation
+
+### Extreme Cases Pattern
+```typescript
+// For 10,000+ items with complex cards
+const VacationHistoryScreen = () => {
+  const { data, isLoading } = useVacationHistory();
+  
+  // Memoize item component
+  const renderItem = useCallback(({ item }: { item: Vacation }) => (
+    <MemoizedVacationCard vacation={item} />
+  ), []);
+
+  // Optimize item type detection
+  const getItemType = useCallback((item: Vacation) => {
+    return item.status; // 'pending' | 'approved' | 'rejected'
+  }, []);
+
+  if (isLoading) return <VacationCardSkeleton />;
+
+  return (
+    <FlashList
+      data={data}
+      renderItem={renderItem}
+      estimatedItemSize={120}
+      getItemType={getItemType}
+      drawDistance={500}
+      keyExtractor={(item) => item.id}
+      testID="VacationHistory_FlashList"
+    />
+  );
+};
+
+// Memoized card component
+const MemoizedVacationCard = React.memo(VacationCard, (prev, next) => {
+  return prev.vacation.id === next.vacation.id &&
+         prev.vacation.status === next.vacation.status;
+});
+```
+
+## Concurrent React Features
+
+### useDeferredValue
+```typescript
+// Prioritize user input over expensive filtering
+const SearchableVacationList = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const deferredQuery = useDeferredValue(searchQuery);
+  
+  // Expensive filtering uses deferred value
+  const filteredVacations = useMemo(() => {
+    return vacations.filter(v => 
+      v.userName.toLowerCase().includes(deferredQuery.toLowerCase())
+    );
+  }, [vacations, deferredQuery]);
+
+  return (
+    <>
+      <Input
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholder="Search vacations..."
+        testID="SearchableVacationList_SearchInput"
+      />
+      {/* UI stays responsive while typing */}
+      <FlashList
+        data={filteredVacations}
+        renderItem={({ item }) => <VacationCard vacation={item} />}
+        estimatedItemSize={100}
+      />
+    </>
+  );
+};
+```
+
+### useTransition
+Para evitar que a interface trave enquanto o usuário navega e o app carrega dados pesados, deve-se utilizar o hook `startTransition`
+
+- **Priorização**: Atualizações urgentes (a animação da tela deslizando) recebem prioridade imediata, enquanto atualizações não urgentes (como filtrar uma lista extensa de produtos na nova tela) são processadas em segundo plano.
+
+- **Feedback Visual**: Utilize o `isPending` para mostrar indicadores de carregamento discretos durante a transição sem bloquear a interatividade da página.
+
+
+```typescript
+// Mark expensive state updates as non-urgent
+const UserListScreen = () => {
+  const [isPending, startTransition] = useTransition();
+  const [filter, setFilter] = useState('all');
+  const [users, setUsers] = useState([]);
+
+  const handleFilterChange = (newFilter: string) => {
+    // Update filter immediately (urgent)
+    setFilter(newFilter);
+    
+    // Filter users in transition (non-urgent)
+    startTransition(() => {
+      const filtered = allUsers.filter(u => 
+        newFilter === 'all' || u.role === newFilter
+      );
+      setUsers(filtered);
+    });
+  };
+
+  return (
+    <>
+      <FilterButtons onFilterChange={handleFilterChange} />
+      {isPending && <LoadingSpinner />}
+      <FlashList data={users} {...listProps} />
+    </>
+  );
+};
+```
+
+### When to Use Concurrent Features
+- **useDeferredValue**: Search inputs, live filtering, expensive computations triggered by fast-changing inputs
+- **useTransition**: Tab switching, pagination, sorting, filtering that can be delayed
+- Combine both for optimal UX: deferred values for inputs, transitions for deliberate actions
+- Monitor with `isPending` to show loading indicators
+- Use for non-critical updates that shouldn't block user interaction
+
+## React Native 0.83.1 Features
+
+### New Architecture (Fabric & TurboModules)
+- Enable new architecture in `android/gradle.properties`: `newArchEnabled=true`
+- Enable on iOS in Podfile: `RCT_NEW_ARCH_ENABLED=1`
+- Use `requireNativeComponent` for Fabric native components
+- Implement TurboModules with proper type safety
+- Test thoroughly; some libraries may not be compatible yet
+
+### Core APIs
+- Use `Appearance` API for dark mode detection
+- Implement `BackHandler` for Android back button logic
+- Use `Keyboard` API for keyboard-aware views
+- Prefer `Pressable` over `TouchableOpacity` (better feedback)
+- Use `StatusBar` component, not imperative API
+- Implement `PermissionsAndroid` for runtime permissions
+- Use `Platform.select()` for platform-specific values
+
+## Component Patterns
+
+### Reusable Components Structure
+```typescript
+// components/Button/Button.tsx
+import { Pressable, Text, StyleSheet } from 'react-native';
+import { tokens } from '@/presentation/theme/tokens';
+
+interface ButtonProps {
+  onPress: () => void;
+  title: string;
+  variant?: 'primary' | 'secondary';
+  disabled?: boolean;
+  accessibilityLabel?: string;
+  testID?: string;
+}
+
+export const Button = React.memo<ButtonProps>(({ 
+  onPress, 
+  title, 
+  variant = 'primary',
+  disabled = false,
+  accessibilityLabel,
+  testID,
+}) => {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.base,
+        styles[variant],
+        pressed && styles.pressed,
+        disabled && styles.disabled,
+      ]}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel || title}
+      accessibilityState={{ disabled }}
+      testID={testID}
+    >
+      <Text style={styles.text}>{title}</Text>
+    </Pressable>
+  );
+});
+
+Button.displayName = 'Button';
+
+const styles = StyleSheet.create({
+  base: {
+    paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
+    borderRadius: tokens.borderRadius.md,
+    minHeight: 44, // Accessibility minimum
+  },
+  primary: {
+    backgroundColor: tokens.colors.primary,
+  },
+  secondary: {
+    backgroundColor: tokens.colors.secondary,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  text: {
+    color: tokens.colors.textOnPrimary,
+    fontSize: tokens.fontSize.md,
+    fontFamily: tokens.fontFamily.medium,
+    textAlign: 'center',
+  },
+});
+```
+
+### Component Guidelines
+- Export components with named exports, not default
+- Place styles at bottom of file using `StyleSheet.create()`
+- Co-locate tests: `Button.test.tsx` next to `Button.tsx`
+- Create index file for clean imports: `components/Button/index.ts`
+- Document props with JSDoc comments
+- Provide sensible defaults for all optional props
+- Use composition over prop drilling
+- Implement error boundaries for critical sections
+- **Always add `testID` prop**: Follow pattern `{ScreenName}_{ElementName}` for E2E automation
+- Example: `<Button testID="LoginScreen_SubmitButton" />`, `<Input testID="RequestVacationScreen_StartDateInput" />`
+
+## Design Tokens
+
+### Token Structure
+```typescript
+// presentation/theme/tokens.ts
+export const tokens = {
+  colors: {
+    // Semantic colors
+    primary: '#007AFF',
+    secondary: '#5856D6',
+    success: '#34C759',
+    warning: '#FF9500',
+    error: '#FF3B30',
+    
+    // Neutral colors
+    background: '#FFFFFF',
+    surface: '#F2F2F7',
+    border: '#C6C6C8',
+    
+    // Text colors
+    textPrimary: '#000000',
+    textSecondary: '#3C3C43',
+    textTertiary: '#8E8E93',
+    textOnPrimary: '#FFFFFF',
+  },
+  
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
+  },
+  
+  fontSize: {
+    xs: 12,
+    sm: 14,
+    md: 16,
+    lg: 18,
+    xl: 24,
+    xxl: 32,
+  },
+  
+  fontFamily: {
+    regular: 'System',
+    medium: 'System-Medium',
+    bold: 'System-Bold',
+  },
+  
+  borderRadius: {
+    sm: 4,
+    md: 8,
+    lg: 12,
+    xl: 16,
+    full: 9999,
+  },
+  
+  shadows: {
+    sm: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    md: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+  },
+} as const;
+
+// presentation/theme/darkTheme.ts
+export const darkTheme = {
+  ...tokens,
+  colors: {
+    ...tokens.colors,
+    background: '#000000',
+    surface: '#1C1C1E',
+    border: '#38383A',
+    textPrimary: '#FFFFFF',
+    textSecondary: '#EBEBF5',
+    textTertiary: '#8E8E93',
+  },
+};
+
+// presentation/theme/lightTheme.ts
+export const lightTheme = tokens;
+```
+
+### Using Tokens
+- Never use hardcoded values in styles
+- Use tokens for all spacing, colors, typography, shadows
+- Create theme context for dynamic theme switching
+- Generate platform-specific tokens when needed
+- Version tokens file for design system updates
+- Import from `@/presentation/theme/tokens` or use theme context
+
+## Testing
+
+### @testing-library/react-native
+```typescript
+// Button.test.tsx
+import { render, fireEvent, screen } from '@testing-library/react-native';
+import { Button } from './Button';
+
+describe('Button', () => {
+  it('renders correctly with title', () => {
+    render(<Button title="Press me" onPress={jest.fn()} />);
+    expect(screen.getByText('Press me')).toBeTruthy();
+  });
+
+  it('calls onPress when pressed', () => {
+    const onPressMock = jest.fn();
+    render(<Button title="Press me" onPress={onPressMock} />);
+    
+    fireEvent.press(screen.getByText('Press me'));
+    expect(onPressMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('is disabled when disabled prop is true', () => {
+    const onPressMock = jest.fn();
+    render(<Button title="Press me" onPress={onPressMock} disabled />);
+    
+    const button = screen.getByText('Press me').parent;
+    expect(button?.props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('has correct accessibility attributes', () => {
+    render(<Button title="Press me" onPress={jest.fn()} />);
+    
+    const button = screen.getByRole('button');
+    expect(button.props.accessible).toBe(true);
+    expect(button.props.accessibilityLabel).toBe('Press me');
+  });
+});
+```
+
+### Testing Best Practices
+- Test user interactions, not implementation details
+- Use `screen` queries: `getByText`, `getByRole`, `getByLabelText`
+- Prefer `getBy*` over `queryBy*` when element should exist
+- Use `findBy*` for asynchronous operations
+- Mock navigation: `jest.mock('@react-navigation/native')`
+- Test accessibility attributes on interactive elements
+- **Use standardized `testID` pattern**: `{ScreenName}_{ElementName}` (e.g., `LoginScreen_EmailInput`, `DashboardScreen_VacationsList`)
+- Prefer semantic queries over `testID`, but use `testID` for E2E automation
+- Aim for 80%+ coverage on business logic
+- Run tests in CI pipeline before merge
+
+### Detox E2E Tests
+```typescript
+// e2e/login.test.ts
+describe('Login Flow', () => {
+  beforeAll(async () => {
+    await device.launchApp();
+  });
+
+  beforeEach(async () => {
+    await device.reloadReactNative();
+  });
+
+  it('should login successfully with valid credentials', async () => {
+    await element(by.id('LoginScreen_EmailInput')).typeText('user@example.com');
+    await element(by.id('LoginScreen_PasswordInput')).typeText('password123');
+    await element(by.id('LoginScreen_LoginButton')).tap();
+    
+    await waitFor(element(by.id('DashboardScreen_Container')))
+      .toBeVisible()
+      .withTimeout(5000);
+  });
+
+  it('should show error with invalid credentials', async () => {
+    await element(by.id('LoginScreen_EmailInput')).typeText('invalid@example.com');
+    await element(by.id('LoginScreen_PasswordInput')).typeText('wrong');
+    await element(by.id('LoginScreen_LoginButton')).tap();
+    
+    await expect(element(by.text('Invalid credentials'))).toBeVisible();
+  });
+});
+```
+
+### BDD Tests with Detox + Cucumber
+```gherkin
+# e2e/features/solicitar-ferias.feature
+# language: pt
+Funcionalidade: Solicitar Férias
+  Como um funcionário
+  Eu quero solicitar minhas férias
+  Para planejar meu período de descanso
+
+  Cenário: Solicitar férias com sucesso
+    Dado que estou logado como funcionário
+    E estou na tela de Dashboard
+    Quando eu toco no botão "Solicitar Férias"
+    E preencho a data de início "01/06/2025"
+    E preencho a data de fim "15/06/2025"
+    E toco no botão "Enviar Solicitação"
+    Então devo ver a mensagem "Solicitação enviada com sucesso"
+    E devo ver minha solicitação na lista com status "Pendente"
+
+  Cenário: Validar período mínimo de férias
+    Dado que estou na tela de Solicitação de Férias
+    Quando eu preencho a data de início "01/06/2025"
+    E preencho a data de fim "05/06/2025"
+    E toco no botão "Enviar Solicitação"
+    Então devo ver a mensagem de erro "Período mínimo de 5 dias"
+    E o botão de enviar deve estar desabilitado
+```
+
+```typescript
+// e2e/step-definitions/solicitar-ferias.steps.ts
+import { Given, When, Then } from '@cucumber/cucumber';
+import { by, element, waitFor } from 'detox';
+
+Given('que estou logado como funcionário', async () => {
+  await element(by.id('LoginScreen_EmailInput')).typeText('funcionario@empresa.com');
+  await element(by.id('LoginScreen_PasswordInput')).typeText('senha123');
+  await element(by.id('LoginScreen_LoginButton')).tap();
+  await waitFor(element(by.id('DashboardScreen_Container')))
+    .toBeVisible()
+    .withTimeout(5000);
+});
+
+Given('estou na tela de Dashboard', async () => {
+  await expect(element(by.id('DashboardScreen_Container'))).toBeVisible();
+});
+
+When('eu toco no botão {string}', async (buttonText: string) => {
+  const testID = `${buttonText.replace(/\s+/g, '')}Button`;
+  await element(by.id(testID)).tap();
+});
+
+When('preencho a data de início {string}', async (date: string) => {
+  await element(by.id('RequestVacationScreen_StartDateInput')).typeText(date);
+});
+
+When('preencho a data de fim {string}', async (date: string) => {
+  await element(by.id('RequestVacationScreen_EndDateInput')).typeText(date);
+});
+
+Then('devo ver a mensagem {string}', async (message: string) => {
+  await expect(element(by.text(message))).toBeVisible();
+});
+
+Then('devo ver minha solicitação na lista com status {string}', async (status: string) => {
+  await expect(element(by.id('VacationHistoryScreen_Container'))).toBeVisible();
+  await expect(element(by.text(status))).toBeVisible();
+});
+```
+
+### BDD Best Practices
+- Write scenarios in Portuguese for business stakeholders
+- Keep scenarios focused on business rules, not implementation
+- Use `testID` pattern for reliable element selection
+- Implement reusable step definitions
+- Run BDD tests on critical user journeys only
+- Combine with unit tests for comprehensive coverage
+- Use tags for scenario organization: `@smoke`, `@regression`, `@critical`
+- Generate living documentation from feature files
+- Run BDD suite in CI for every release candidate
+
+### Detox Configuration
+- Configure `.detoxrc.js` with build and test commands
+- **Use standardized `testID` props**: Follow `{ScreenName}_{ElementName}` pattern for all interactive elements
+- Run E2E tests on CI with emulators/simulators
+- Test critical user journeys only (login, checkout, etc.)
+- Keep E2E tests fast; use mocked backends when possible
+- Implement custom matchers for common patterns
+- Use `device.reloadReactNative()` between tests for isolation
+- Integrate Cucumber for BDD scenarios in Portuguese
+
+## Fastlane
+
+### Fastlane Setup
+```ruby
+# fastlane/Fastfile
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and deploy to TestFlight"
+  lane :beta do
+    increment_build_number(xcodeproj: "YourApp.xcodeproj")
+    build_app(scheme: "YourApp", export_method: "app-store")
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+    slack(message: "iOS Beta deployed successfully!")
+  end
+
+  desc "Run tests"
+  lane :test do
+    run_tests(scheme: "YourApp", devices: ["iPhone 15"])
+  end
+end
+
+platform :android do
+  desc "Build and deploy to Play Store beta"
+  lane :beta do
+    gradle(task: "clean bundleRelease")
+    upload_to_play_store(
+      track: 'beta',
+      release_status: 'draft'
+    )
+    slack(message: "Android Beta deployed successfully!")
+  end
+
+  desc "Run tests"
+  lane :test do
+    gradle(task: "test")
+  end
+end
+```
+
+### Fastlane Best Practices
+- Store credentials in environment variables or match
+- Use `match` for iOS code signing management
+- Automate version bumping: `increment_build_number`
+- Implement separate lanes for beta, production, screenshots
+- Add notifications (Slack, Discord) for build status
+- Run unit tests before building: `scan` (iOS) or `gradle(task: "test")`
+- Store Fastlane in version control, exclude `.env` files
+- Document lanes with `desc` blocks
+- Use `dotenv` for environment-specific configuration
+
+## Project Structure
+
+```
+src/
+├── presentation/
+│   ├── theme/                # Design system
+│   │   ├── tokens.ts         # Base design tokens
+│   │   ├── lightTheme.ts     # Light theme configuration
+│   │   └── darkTheme.ts      # Dark theme configuration
+│   ├── components/
+│   │   ├── ui/               # Reusable UI components
+│   │   │   ├── Button/
+│   │   │   │   ├── Button.tsx
+│   │   │   │   ├── Button.test.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── Input/
+│   │   │   ├── Card/
+│   │   │   ├── Badge/
+│   │   │   ├── Text/
+│   │   │   ├── Skeleton/
+│   │   │   └── EmptyState/
+│   │   └── domain/           # Domain-specific components
+│   │       ├── VacationCard/
+│   │       ├── VacationCardSkeleton/
+│   │       ├── UserAvatar/
+│   │       └── UserCard/
+│   ├── screens/              # Screen components
+│   │   ├── LoginScreen/
+│   │   │   ├── LoginScreen.tsx
+│   │   │   ├── LoginScreen.test.tsx
+│   │   │   └── index.ts
+│   │   ├── DashboardScreen/
+│   │   ├── RequestVacationScreen/
+│   │   ├── VacationHistoryScreen/
+│   │   ├── VacationDetailsScreen/
+│   │   ├── ReviewVacationScreen/
+│   │   ├── UserListScreen/
+│   │   ├── CreateUserScreen/
+│   │   └── ApproveUserScreen/
+│   ├── hooks/                # Custom hooks
+│   │   ├── useAuth.ts
+│   │   ├── useRequestVacation.ts
+│   │   ├── useVacationDetails.ts
+│   │   ├── useVacationHistory.ts
+│   │   ├── useApproveVacation.ts
+│   │   ├── useRejectVacation.ts
+│   │   ├── usePendingVacations.ts
+│   │   ├── useDashboardPermissions.ts
+│   │   ├── useCreateUser.ts
+│   │   └── useApproveUser.ts
+│   ├── navigation/           # Navigation configuration
+│   │   ├── AppNavigator.tsx
+│   │   ├── types.ts          # Navigation types
+│   │   └── screens.ts        # Screen registry
+│   └── contexts/             # React contexts
+│       └── AuthContext.tsx
+├── domain/                   # Business logic
+│   ├── entities/
+│   ├── usecases/
+│   └── repositories/
+├── data/                     # Data layer
+│   ├── api/
+│   ├── storage/
+│   └── models/
+├── utils/                    # Helper functions
+└── constants/                # App constants
+
+e2e/                          # E2E tests
+├── features/                 # BDD feature files (Portuguese)
+│   ├── login.feature
+│   ├── solicitar-ferias.feature
+│   └── aprovar-ferias.feature
+└── step-definitions/         # Cucumber step definitions
+    ├── login.steps.ts
+    ├── solicitar-ferias.steps.ts
+    └── common.steps.ts
+
+fastlane/                     # Fastlane configuration
+```
+
+## Additional Best Practices
+
+### TypeScript
+- Enable strict mode in `tsconfig.json`
+- Define prop types as interfaces, not types
+- Use `as const` for readonly objects
+- Avoid `any`; use `unknown` and type guards instead
+- Export types alongside components
+
+### State Management
+- Use Context + useReducer for simple global state
+- Consider Zustand for more complex state needs
+- Keep state as local as possible
+- Implement optimistic updates for better UX
+- Use React Query for server state management
+
+### Error Handling
+- Implement error boundaries for critical sections
+- Log errors to crash reporting (Sentry, Crashlytics)
+- Show user-friendly error messages
+- Retry failed network requests with exponential backoff
+- Validate user input before submission
+
+### Security
+- Encrypt sensitive data in MMKV storage
+- Use HTTPS for all network requests
+- Implement certificate pinning for critical APIs
+- Store API keys in environment variables, not code
+- Use Keychain (iOS) and Keystore (Android) for credentials
+- Implement jailbreak/root detection for sensitive apps
+
+### Code Quality
+- Run ESLint and Prettier on pre-commit hooks
+- Use TypeScript strict mode
+- Maintain test coverage above 80%
+- Review and update dependencies monthly
+- Use conventional commits for clear history
+- Implement proper code review process
+
+## Performance Monitoring
+- Integrate Firebase Performance Monitoring or Datadog
+- Track screen render times
+- Monitor app start time (cold/warm)
+- Track API response times
+- Monitor memory usage and detect leaks
+- Set up alerting for performance regressions

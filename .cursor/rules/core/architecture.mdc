@@ -1,0 +1,1068 @@
+---
+description: Guidelines rules to ensure consistency and effectivines for creating and maintaining architectureeness.
+globs:
+alwaysApply: true
+---
+
+## AI Tooling Rules and Project Architecture Guide
+
+This document defines mandatory architectural rules for all AI tools (Gemini, Cursor, Copilot, etc.) generating or modifying code in this project.
+
+**These rules are NOT suggestions.**
+**Violations must be treated as architectural errors.**
+
+## 1. Core Architectural Principles
+
+### 1.1 Clean Architecture (Non-Negotiable)
+
+The project follows Clean Architecture, adapted for React Native.
+
+**Layer order and dependency direction:**
+
+Domain → Application → Infrastructure → Presentation
+
+**Rules:**
+
+- **Dependencies MUST always point inward.**
+- **Inner layers MUST NOT import from outer layers.**
+- **UI frameworks (React, React Native) MUST NOT influence Domain or Application.**
+
+- **Infrastructure is replaceable without changing Domain or Application.**
+
+### 1.2 Domain First
+
+- **Business rules live in Domain and Application only.**
+- **UI, hooks, and repositories must NEVER decide business behavior.**
+- **Domain code must be framework-agnostic and fully testable in isolation.**
+
+### 1.3 Railway Oriented Programming (ROP)
+
+**All Use Cases return Result<T, E>.**
+
+**Errors are values, not exceptions.**
+
+**No throw inside Use Cases (except to catch and convert immediately).**
+
+**Failure paths are explicit and testable.**
+
+### 1.4 Explicit Contracts Over Defensive Programming
+
+**No unknown is allowed to cross Use Case boundaries.**
+
+**No late error normalization.**
+
+**No runtime guessing (instanceof) in Presentation.**
+
+## 2. Layer-by-Layer Guide
+
+### 2.1 Presentation Layer
+
+Responsibility
+
+**Responsibility:**
+
+- Render UI
+- Handle user input
+- Display loading, error, empty states
+- Translate UI events into Use Case execution
+
+**Contains:**
+
+- Components (UI + domain-aware)
+- Screens
+
+### 2.2 Hooks
+
+**Responsibility:**
+
+- Call UseCase.execute()
+- Manage loading / error / caching (TanStack Query)
+- Expose UI-ready data (useQuery)
+
+**Rules:**
+
+- NO business logic
+- NO permission checks
+- NO filtering for security
+- NO error interpretation
+
+❌ NO business logic
+
+❌ NO permission checks
+
+❌ NO filtering for security
+
+❌ NO error interpretation
+
+❌ NO repository usage
+
+❌ NO Use Case instantiation
+
+Hooks (Critical Rules)
+
+Hooks are adapters, not logic holders.
+
+Hooks MAY:
+
+- Call UseCase.execute()
+- Manage loading / error / caching (TanStack Query)
+- Expose UI-ready data
+
+- Hooks MUST NOT:
+
+Use instanceof on errors
+
+- Convert errors to strings
+- Decide error messages
+- Apply business filtering
+
+**Hooks consume errors as:**
+
+- result.error.message
+
+### 2.3 Domain Layer
+
+**Responsibility:**
+
+- Business entities
+- Invariants
+- Rules
+- Domain-specific errors
+
+**Contains:**
+
+- Entities
+- Value Objects
+- Domain Errors
+- Enums
+- Repository interfaces (ports)
+- Shared primitives (Result, Entity)
+
+Rules (Strict)
+❌ NO React
+❌ NO HTTP
+❌ NO storage
+❌ NO external libraries (except language utilities)
+❌ NO mutation leaks
+
+**Errors:**
+
+- All domain errors extend DomainError
+  DomainError MUST provide:
+  message: string
+  code?: string
+- Errors are UI-safe by design
+  No generic error wrappers
+
+- **Domain Permission Helpers**: All permission and access rules MUST be implemented as explicit methods on Domain Entities.
+  - If a Use Case needs to check permissions and no Domain helper exists, the AI MUST create one instead of checking roles directly.
+    • **Permission logic** MUST live in the Domain layer
+    • Use Cases MUST delegate authorization decisions to entities
+    • Hooks and UI MUST NOT evaluate permissions or roles
+
+### 2.4 Application Layer
+
+**Responsibility:**
+
+- Orchestrate business rules through Use Cases
+- Enforce permissions, visibility, state transitions
+- Coordinate repositories
+  **Contains:**
+- Use Cases (implementation) - Use Cases MUST delegate authorization decisions to entities - Use Cases MUST call semantic permission methods (e.g. canViewAllVacations) - Permission methods MUST express intent, not role comparison
+
+- DTOs
+- Mappers
+
+**Error Handling Rules:**
+Use Cases return Result<T, DomainError>: fail or ok
+
+Use Cases NEVER return:
+
+- unknown
+- native Error
+- strings
+  Use Cases NEVER let exceptions escape
+
+### 2.5 Infrastructure Layer
+
+**Responsibility:**
+
+- Technical implementation
+- External communication
+
+**Contains:**
+
+- API clients
+- In-memory repositories
+- Storage adapters
+- Persistence
+
+**Rules (Strict):**
+❌ NO business logic
+❌ NO permission checks
+❌ NO filtering for security
+
+Can simulate latency/errors (for MVP)
+
+### 2.6 Dependency Injection (DI) `src/main/container.ts`
+
+Decision (Non-Negotiable)
+
+Dependency Injection is done via a `Composition Root` implemented as a module-level singleton.
+
+**Rules:**
+DI happens at bootstrap time
+Single file: src/main/container.ts
+
+**Container:**
+
+- Instantiates repositories
+- Instantiates Use Cases
+- Exports ready-to-use Use Cases
+
+**Explicitly Forbidden:**
+
+- React Context for DI
+- Service Locator
+- Runtime wiring
+- UI deciding implementations
+
+### 2.7 Data Flow & Event Flow
+
+```mermaid
+UI → Domain Flow
+User Action
+  ↓
+UI Component
+  ↓
+Hook
+  ↓
+Use Case
+  ↓
+Repository
+  ↓
+Infrastructure
+
+Error Flow
+Infrastructure Error
+  ↓
+Converted to DomainError
+  ↓
+Returned as Result.fail
+  ↓
+Hook reads error.message
+  ↓
+UI displays message
+```
+
+No step interprets or guesses error semantics.
+
+### 2.6 Testing Strategy (Mandatory)
+
+```mermaid
+Test Pyramid
+    E2E (Detox + Cucumber)
+    ↑
+    UI Component Tests (RNTL)
+    ↑
+    Application Tests (Use Cases)
+    ↑
+    Domain Tests (Entities, Rules)
+```
+
+**What to test :**
+**Domain:**
+
+- High coverage (>80%)
+- Test invariants and edge cases
+
+**Application:**
+
+- Test permissions
+- Test invalid flows
+- Test error paths
+
+**Presentation:**
+RNTL for components
+Test render + interaction only
+❌ No business logic tests
+
+**Infrastructure:**
+
+- Minimal tests
+- Focus on correctness, not coverage %
+
+- Não altere nada “para fazer o teste passar”
+- O teste deve se alinhar ao contrato, não o contrário.
+
+### 2.7 Code Style & Safety Rules
+
+**Rules:**
+
+TypeScript strict: true
+
+isolatedModules: true
+
+Always use `export type` for types on barrel files.
+
+Prefer explicit over clever
+
+No barrel files hiding mixed exports without type separation
+
+### 2.8 Unknowns and Defensive Coding (Explicitly Forbidden)
+
+The following are NOT allowed:
+
+Accepting unknown in Use Case results
+
+Normalizing arbitrary errors
+
+Late error conversion helpers
+
+instanceof checks in hooks
+
+String(error) or JSON.stringify(error)
+
+“Just in case” abstractions
+
+If an error requires guessing, the architecture is broken upstream.
+
+### 2.9 Contextual Files for AI Tools (MANDATORY INPUTS)
+
+When generating or modifying code, ALWAYS include:
+
+This file (architecture.md)
+
+PRD:
+
+prd.txt
+
+Task context:
+
+taskmaster_tasks.md
+
+Rules:
+
+cursor_rules.md
+
+taskmaster_rules.md
+
+Core Architecture Directories
+
+./src/domain/entities/
+
+./src/domain/value-objects/
+
+./src/domain/errors/
+
+./src/domain/enums/
+
+./src/domain/repositories/
+
+./src/domain/shared/
+
+./src/application/use-cases/
+
+./src/infrastructure/api/
+
+./src/infrastructure/storage/
+
+./src/infrastructure/database/
+
+./src/presentation/
+
+9. Final Enforcement Rule
+
+If there is doubt, STOP.
+Do NOT guess.
+Ask for clarification or create a new ADR.
+
+This document exists to prevent ambiguity for both humans and AI tools.
+
+Any deviation must be intentional, explicit, and documented.
+
+If you want next, I can:
+
+generate a short “AI-only” version
+
+create a PR checklist derived from this
+
+or convert this into Cursor rule syntax
+
+Just say.
+
+The project follows a clean, feature-based architecture with a strict separation of layers.
+
+Durante a implementação inicial, surgiram duas decisões arquiteturais críticas que precisavam ser explicitadas para evitar deriva:
+
+1. **Tratamento de erros entre Domain, Application e Presentation**
+2. **Forma de realizar Dependency Injection (DI)**
+
+Tentativas iniciais introduziram:
+
+- Normalização defensiva de erros (`AppError`, `toAppError(unknown)`)
+- Camadas de serviço/facade (`application/services`)
+- Ambiguidade sobre uso de React Context para DI
+  Essas abordagens **não estão alinhadas ao PRD** e enfraquecem a arquitetura.
+
+Este ADR documenta as decisões finais.
+
+---
+
+## Decision 1 — Error Handling Contract
+
+### Decision
+
+**`DomainError` é o único contrato de erro da aplicação.**
+• ❌ NÃO existe AppError
+• ❌ NÃO existe conversão implícita de erro
+• ❌ NÃO usar string como erro
+• ❌ NÃO usar unknown como erro
+
+- Todos os Use Cases **DEVEM** retornar `Result<T, DomainError>`
+- Nenhum Use Case pode:
+  - lançar exceções
+  - retornar `unknown`
+  - retornar `Error` nativo
+- Hooks e UI **NÃO** interpretam erros
+- Hooks apenas consomem `result.error.message`
+
+### Consequences
+
+✅ Erros são valores explícitos
+✅ Nenhuma normalização defensiva é necessária
+✅ Hooks permanecem “dumb”
+✅ Testes ficam determinísticos
+✅ ROP permanece íntegro
+
+### Rejected Alternatives
+
+#### ❌ `AppError` + `toAppError(error: unknown)`
+
+Rejeitado porque:
+
+- Aceita `unknown` como erro válido
+- Introduz interpretação tardia de erros
+- Enfraquece o contrato do Use Case
+- Move responsabilidade semântica para a borda errada
+
+#### ❌ Tratamento de erro no hook (`instanceof`, `String(error)`)
+
+Rejeitado porque:
+
+- Viola separação de responsabilidades
+- Escala mal com novos tipos de erro
+- Torna hooks semânticos
+
+---
+
+## Decision 2 — Dependency Injection Strategy
+
+### Decision
+
+**Dependency Injection é feita via Composition Root como singleton de módulo.**
+
+- DI is done ONLY via `src/main/container.ts`
+- Container is a module-level singleton
+- Hooks import Use Cases directly from the container
+- NO React Context for DI
+- NO runtime wiring
+- Um único arquivo (`src/main/container.ts`) é responsável por:
+  - instanciar repositórios
+  - instanciar Use Cases
+  - conectar Infrastructure → Application
+- O container é:
+  - estático
+  - sem estado
+  - sem React
+    Hooks
+- Hooks are UI adapters ONLY
+- Hooks may:
+  - call UseCase.execute()
+  - manage loading / caching (TanStack Query)
+- Hooks MUST NOT:
+  - implement business logic
+  - perform permission checks
+  - interpret errors
+  - use instanceof
+  - access repositories
+
+**Tests**
+
+- Domain & Use Cases MUST be tested
+- New code MUST include unit tests
+- Do NOT change existing tests unless they are objectively wrong
+- Constructor/import failures must follow the debug checklist in the ADR
+
+### Consequences
+
+✅ DI ocorre em bootstrap
+✅ UI não decide implementações
+✅ Testes não dependem de React
+✅ Não há necessidade de Context para DI
+✅ Arquitetura permanece previsível
+
+### Rejected Alternatives
+
+#### ❌ React Context para DI
+
+Rejeitado porque:
+
+- Context é runtime/UI concern
+- Cria acoplamento Presentation ↔ Application
+- Complica testes
+- Viola Dependency Inversion
+
+#### ❌ Application-level service/facade
+
+Rejeitado porque:
+
+- Duplica o papel dos Use Cases
+- Oculta intenção de negócio
+- Introduz camada sem responsabilidade clara
+- Não está no PRD
+
+---
+
+## Implementation Notes
+
+### Error Handling
+
+- `DomainError` implementa `message` e `code`
+- `Result.fail()` aceita apenas `DomainError`
+- Hooks acessam apenas `result.error.message`
+
+### Dependency Injection
+
+- `container.ts` é o único local de wiring
+- Não existe `application/services`
+- Não existe DI via Context
+
+---
+
+## Enforcement
+
+As seguintes práticas são **proibidas**:
+
+- Criar helpers de normalização de erro
+- Aceitar `unknown` como erro após Use Case
+- Usar `instanceof` em hooks
+- Criar camada `application/services`
+- Usar React Context para DI
+
+Qualquer violação deve ser tratada como **erro arquitetural**, não preferência de estilo.
+
+---
+
+## Result
+
+Esta decisão:
+
+- Reduz complexidade
+- Elimina abstrações defensivas
+- Mantém o core explícito e testável
+- Torna o sistema resistente a deriva futura (humana ou automatizada)
+
+## Error Contract Invariants (CRITICAL — NON-NEGOTIABLE)
+
+This project follows Railway Oriented Programming (ROP).
+
+Errors are **values**, not exceptions, and must obey strict invariants.
+
+### Single Error Contract Rule
+
+- The ONLY valid error type across the Application boundary is `DomainError`.
+- All Use Cases MUST return `Result<T, DomainError>`.
+- No other error shape is permitted.
+
+### Forbidden Error Practices
+
+The following are explicitly FORBIDDEN anywhere in the codebase:
+
+- Accepting `unknown` as an error type after a Use Case boundary
+- Normalizing errors at runtime
+- Creating helper functions that convert arbitrary values into errors
+  (e.g. `toAppError`, `normalizeError`, `mapError`, etc.)
+- Re-wrapping or re-materializing error objects during propagation
+- Adding optional properties conditionally (e.g. `code: undefined`)
+- Using `instanceof` to interpret error types outside the Domain layer
+- Converting errors to strings (`String(error)`, `JSON.stringify(error)`)
+
+### Error Shape Stability Invariant
+
+Once a `DomainError` instance is created:
+
+- Its object shape MUST remain stable
+- It MUST be propagated unchanged
+- Re-propagation MUST preserve deep equality
+- `{ message: 'x' }` and `{ message: 'x', code: undefined }`
+  are considered DIFFERENT and this is a BUG
+
+Any logic that causes the same logical error to change shape
+during propagation is an ARCHITECTURAL ERROR.
+
+### Correct Error Propagation
+
+Correct:
+
+```ts
+return Result.fail(error); // ✅ Correct!
+```
+
+Incorrect:
+
+```ts
+return Result.fail(toAppError(error)); // ❌ Wrong!
+return Result.fail({ ...error }); // ❌ Wrong!
+return Result.fail(normalize(error)); // ❌ Wrong!
+```
+
+### Hooks and Presentation
+
+• Hooks MUST treat errors as UI-ready values.
+• Hooks may only read:
+result.error.message
+• Hooks MUST NOT interpret, classify, or transform errors.
+
+- **Abstract error** classes are forbidden unless they introduce concrete behavior or invariants.
+- **All errors** used in the system MUST be concrete subclasses of DomainError.
+
+### Enforcement Rule
+
+If an error requires normalization, conversion, or guessing,
+THEN THE USE CASE CONTRACT IS WRONG.
+
+Fix the Use Case contract.
+DO NOT add adapters or helpers.
+
+## Error Contract (FINAL — NON-NEGOTIABLE)
+
+- `DomainError` is the ONLY error contract in the application.
+- All Use Cases MUST return `Result<T, DomainError>`:
+
+```ts
+Result.fail(error: DomainError)
+```
+
+or
+
+```ts
+Result.ok<T>(value: T)
+```
+
+✔️ DomainError → propagar intacto
+✔️ Erro inesperado → mapear explicitamente
+
+- No error normalization or adaptation is allowed.
+- `AppError` does NOT exist in this architecture.
+- Errors are created once and propagated unchanged.
+- Hooks and UI consume only `error.message`.
+
+Any attempt to introduce:
+
+- generic error interfaces
+- runtime error adapters
+- object-literal errors
+- `unknown` error types
+
+is considered an architectural violation.
+
+### AI Enforcement Rule
+
+If an AI tool proposes:
+
+- accepting `unknown` as an error
+- adding an error-normalization helper
+- modifying error shape during propagation
+
+It MUST STOP and ask for clarification.
+Proceeding is considered a violation of this architecture.
+
+# ADR-001 — Clean Architecture, Error Handling, Dependency Injection and React Query Integration
+
+## Status
+
+Accepted
+
+## Context
+
+This project is a React Native application for corporate vacation management, built under strict architectural constraints defined in the PRD.
+
+During implementation, several **architecture-breaking patterns** emerged that required explicit decisions to prevent future drift, especially when using AI-assisted coding tools.
+
+The most critical sources of ambiguity were:
+
+1. **Error handling across Domain, Application, Hooks, and UI**
+2. **Dependency Injection strategy**
+3. **Integration of TanStack Query with Railway Oriented Programming (ROP)**
+4. **Boundaries of responsibility for hooks**
+5. **Avoiding service/facade layers**
+6. **Preventing error normalization and late interpretation**
+
+This ADR consolidates all final decisions into a single authoritative reference.
+
+---
+
+## Decision 1 — Clean Architecture (Non-Negotiable)
+
+### Decision
+
+The system follows **Clean Architecture**, adapted for React Native.
+
+**Layer order and dependency direction:**
+
+Domain → Application → Infrastructure → Presentation
+
+### Rules
+
+- Dependencies MUST always point inward.
+- Inner layers MUST NOT import from outer layers.
+- UI frameworks MUST NOT influence Domain or Application.
+- Infrastructure is replaceable without changes to Domain or Application.
+
+### Consequences
+
+- Business logic remains isolated and testable.
+- UI changes never impact core logic.
+- Infrastructure can be swapped (API, storage, mocks).
+
+---
+
+## Decision 2 — Error Handling Contract (CRITICAL)
+
+### Decision
+
+**`DomainError` is the ONLY error contract in the entire application.**
+
+There is:
+
+- ❌ NO `AppError`
+- ❌ NO `toAppError`
+- ❌ NO error normalization helpers
+- ❌ NO string or `unknown` errors crossing Use Case boundaries
+
+### Rules
+
+- All Use Cases MUST return:
+
+  ```ts
+  Result<T, DomainError>
+
+  •	Use Cases MUST NOT:
+  •	throw errors
+  •	return unknown
+  •	return native Error
+  •	return strings
+  •	Errors are values, not exceptions.
+  ```
+
+**Error Propagation:**
+• **DomainError instances are created once**
+• They MUST be propagated unchanged
+• Object shape MUST remain stable
+• A Result.fail(error) must not mutate, wrap, clone, or reinterpret error
+• **Passing a Result through layers must be referentially stable**
+• If propagation breaks, hooks and UI become unreliable
+
+❌ { message: 'x' }
+❌ { message: 'x', code: undefined }
+These are considered different errors and this is a bug.
+
+Correct
+
+```
+return Result.fail(error); // ✅ Correct!
+```
+
+Incorrect
+
+```
+return Result.fail(toAppError(error)); // ❌ Wrong!
+return Result.fail({ ...error }); // ❌ Wrong!
+return Result.fail(String(error)); // ❌ Wrong!
+```
+
+Consequences
+• Deterministic tests
+• No runtime guessing
+• No defensive adapters
+• Full ROP integrity
+
+⸻
+
+#### 3. Decision 3 — Use Case Error Catching
+
+Decision
+
+Use Cases may catch exceptions only to convert truly unexpected failures.
+
+Rules
+
+try {
+// business logic
+} catch (error) {
+if (error instanceof DomainError) {
+return Result.fail(error);
+}
+return Result.fail(new UnexpectedDomainError());
+}
+
+Forbidden
+• Wrapping DomainError inside UnexpectedDomainError
+• Losing the original error type or code
+
+⸻
+
+#### 4. Decision 4 — Dependency Injection Strategy
+
+Decision
+
+Dependency Injection is done via a Composition Root implemented as a module-level singleton.
+
+Rules
+• Single file: src/main/container.ts
+• DI happens at bootstrap time
+• Container:
+• Instantiates repositories
+• Instantiates Use Cases
+• Wires Infrastructure → Application
+• Hooks import Use Cases directly from the container
+
+Explicitly Forbidden
+• React Context for DI
+• Service Locator
+• Runtime wiring
+• UI deciding implementations
+• application/services or facades
+
+Consequences
+• Predictable wiring
+• Testability without React
+• No hidden indirection
+
+⸻
+
+Decision 5 — Hooks Responsibility (CRITICAL)
+
+Decision
+
+Hooks are UI adapters, not logic holders.
+
+Hooks MAY
+• Call UseCase.execute()
+• Manage loading / error / caching
+• Use TanStack Query
+
+Hooks MUST NOT
+• Contain business logic
+• Perform permission checks
+• Filter data for security
+• Instantiate repositories or Use Cases
+• Normalize or interpret errors
+• Use instanceof on errors
+• Create DomainError
+
+Error Consumption
+
+Hooks may ONLY read:
+
+error.message
+
+⸻
+
+#### 5. Decision 6 — TanStack Query Integration (IMPORTANT)
+
+Decision
+
+TanStack Query adapts to ROP — not the opposite.
+
+Rules
+• Use Cases return Result<T, DomainError>
+• Hooks:
+• Convert Result.fail → throw DomainError
+• Convert success → plain value or void
+• Hooks MUST NOT return Result
+
+Correct Pattern
+
+const mutation = useMutation({
+mutationFn: async (dto) => {
+const result = await useCase.execute(dto);
+if (result.isFailure) throw result.getError();
+}
+});
+
+Forbidden
+• Returning Result from hooks
+• Wrapping TanStack Query results into Result
+• Creating fallback errors in hooks
+
+Consequences
+• No type conflicts (never, void)
+• No Result leakage into UI
+• Clear separation of concerns
+
+⸻
+
+### Decision 7 — Railway Oriented Programming (ROP)
+
+Decision
+
+The application follows ROP strictly.
+
+Rules
+• All business flows return Result
+• No exceptions escape Use Cases
+• Failure paths are explicit
+• No defensive programming at the edges
+
+⸻
+
+### Decision 8 — Testing Strategy
+
+#### Test Pyramid
+
+E2E (Detox + Cucumber)
+↑
+UI Component Tests (RNTL)
+↑
+Application Tests (Use Cases)
+↑
+Domain Tests (Entities, Rules)
+
+Rules
+• Domain: high coverage (>80%)
+• Application: test permissions, invalid flows, errors
+• Presentation: render + interaction only
+• Infrastructure: correctness over coverage
+
+⸻
+
+### Decision 9 — Forbidden Practices (Global)
+
+The following are architectural violations:
+• Error normalization helpers
+• unknown or string errors
+• instanceof checks in hooks
+• Service/facade layers
+• DI via React Context
+• Runtime guessing
+• Defensive abstractions
+
+If an error requires guessing, the contract is wrong upstream.
+
+⸻
+
+### Enforcement Rule (For Humans and AI)
+
+If there is doubt:
+• STOP
+• Do NOT guess
+• Ask for clarification or create a new ADR
+
+Any deviation must be explicit, intentional, and documented.
+
+⸻
+
+## 🧯 Debug & Test Failure Protocol (MANDATORY)
+
+When a test fails, AI tools MUST follow this protocol strictly.
+
+### 🚫 Absolute Prohibitions
+
+When a test fails, it is FORBIDDEN to:
+• Recreate an existing file
+• Rewrite a Use Case from scratch
+• Duplicate logic in a new file
+• Change architecture to “make the test pass”
+• Assume the file is missing without verification
+
+Recreating files is considered an ARCHITECTURAL VIOLATION.
+
+### ✅ Mandatory Debug Order (Non-Negotiable)
+
+When a test fails, AI tools MUST proceed in this exact order:
+
+1. Verify file existence
+   - Confirm the file exists
+   - Confirm it is exported correctly
+   - Confirm import paths in the test
+
+2. Verify constructor and exports
+   - Ensure the class/function is exported
+   - Ensure the constructor signature matches the test
+   - Never assume a constructor mismatch without inspection
+
+3. Verify test expectations
+   • Check if the test expects:
+   - different parameters
+   - different error type
+   - different behavior due to recent refactors
+
+4. Verify dependency wiring
+   - Check container.ts
+   - Ensure the correct instance is being injected
+   - Ensure mocks align with repository interfaces
+
+5. Only then modify minimal code
+   - Small, surgical changes
+   - No rewrites
+   - No new abstractions
+
+If the root cause is still unclear after step 4:
+
+- STOP and ask for clarification.
+
+⸻
+
+🧪 Test Failure Checklist (Required)
+Before changing any production code, AI MUST answer:
+
+- Does the file already exist? (yes/no)
+- Is the class exported correctly?
+- Is the test importing the correct path?
+- Did a recent refactor change:
+  - method signature?
+  - constructor parameters?
+  - required arguments?
+  - Is the failure TypeScript-level or runtime-level?
+
+**Only after this checklist may code be modified.**
+
+### 🧠 Root Cause Principle
+
+Tests do not fail randomly.
+
+If a test fails after a refactor:
+
+- The contract changed
+- The test is outdated
+- Or the wiring is broken
+
+The solution is NEVER to recreate the file.
+
+### 🔒 Enforcement Rule
+
+If an AI tool:
+• recreates a Use Case file
+• reimplements logic without checking the existing file
+• duplicates business logic to satisfy a test
+
+This must be treated as a hard architectural failure.
+
+The correct action is to roll back and re-debug.
+
+---
+
+### Conclusion
+
+This ADR:
+
+- Eliminates ambiguity
+- Prevents architectural drift
+- Keeps Domain explicit and testable
+- Makes hooks predictable and dumb
+- Allows safe use of TanStack Query
+- Enables AI tools to operate without guessing
+
+This document is the single source of truth for architecture decisions in this project.

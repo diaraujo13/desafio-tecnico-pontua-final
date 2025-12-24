@@ -1,0 +1,1442 @@
+---
+description: "Application Global Development Rules"
+alwaysApply: true
+scope: "global"
+agent_capabilities:
+  - terminal_access: true
+  - planning_mode: structured
+  - memory_enabled: true
+mcp_servers:
+  - name: "task-master"
+  - name: "ios-simulator"
+
+---
+# Overview  
+Este produto é um aplicativo móvel desenvolvido em React Native para facilitar e centralizar o processo de solicitação, análise e aprovação de férias corporativas. Ele resolve o problema de processos manuais, descentralizados ou baseados em e-mail, oferecendo transparência e agilidade.
+
+O público-alvo abrange três perfis: Colaboradores (COLABORATOR), Gestores (MANAGER) e Administradores (ADMIN). O valor principal é a redução de atrito burocrático e a clareza no status das solicitações, com foco em uma experiência de usuário fluida, offline-first e tecnicamente robusta.
+
+1.2 Objetivo do Desafio
+Avaliar a capacidade do candidato de projetar, arquitetar e desenvolver uma aplicação mobile profissional, demonstrando:
+✅ Domínio técnico: React Native, TypeScript, ecossistema JS
+✅ Arquitetura de software: Clean Architecture, SOLID, separation of concerns
+✅ Engenharia de qualidade: Testes automatizados, CI/CD, code quality
+✅ Visão de produto: UX, acessibilidade, edge cases
+✅ Comunicação técnica: Documentação clara, decisões fundamentadas
+Este não é apenas um teste de código funcional — espera-se decisões arquiteturais maduras, código sustentável e capacidade de escalar a solução.
+
+# Core Features  
+## Autenticação e Controle de Acesso
+- **Login**: Autenticação segura (simulada inicialmente) com persistência de sessão.
+- **Role-Based Access Control (RBAC)**: Interface e permissões adaptadas dinamicamente para COLLABORATOR, MANAGER e ADMIN.
+- **Tela de login com email e senha**:
+    - **Validação  (formato de email, senha mínima)**:
+    - **Persistência de sessão (usuário não precisa logar toda vez)**:
+    - **Role-Based Access Control (RBAC) para 3 perfis**:
+        - COLLABORATOR: Solicita e visualiza próprias férias (só vê as próprias solicitações, por isso GetVacationDetailsUseCase deve ter o requesterId igual ao id do usuário logado)
+        - MANAGER: Todas de COLLABORATOR subordinados + aprova/rejeita solicitações da equipe
+        - ADMIN: Todas de MANAGER + gerencia usuários
+- **Logout**: Logout do usuário, removendo o token da sessão.
+
+- **Critérios de Aceitação (e2e tests)**:
+```gherkin
+Scenario: Login com sucesso
+  Given que estou na tela de login
+  When eu preencho o email "joao@empresa.com" e senha "Senha@123"
+  And eu toco no botão "Entrar"
+  Then eu devo ver a mensagem de boas-vindas ou a dashboard
+
+Scenario: Login com credenciais inválidas
+  Given que estou na tela de login
+  When eu preencho o email "joao@empresa.com" e senha "Senha@123"
+  And eu toco no botão "Entrar"
+  Then eu devo ver a mensagem de erro "Credenciais inválidas"
+```
+
+### Perfis
+#### Colaborador
+- **Solicitar Férias**: Formulário para inserção de Data Início, Data Término e Observação + Botão "Solicitar". Validação de regras de negócio:
+    - Status do colaborador deve ser ativo 
+    - Data fim > data início
+    - Dias de férias inválidos
+    - Data início e data término não podem ser no mesmo dia
+    - Verificar se já consumiu todos os dias de férias permitidos pela empresa.
+- **Histórico de Solicitações**: Listagem de solicitações passadas e futuras, com o badge de status da solicitação, data de criação e data de atualização, dias de férias solicitados, nome do colaborador no topo do Card. Ao clicar na solicitação, o usuário deve ser redirecionado para a tela de detalhes da solicitação.
+- **Status em Tempo Real**: Visualização clara dos estados: Pendente, Aprovada, Reprovada.
+- **Detalhes**: Visualização completa de uma solicitação específica, incluindo motivo de reprovação (se houver).
+#### Gestor
+- **Dashboard de Pendências**: Listagem filtrada apenas com solicitações aguardando análise, ordenadas por data de solicitação ou mais próximas de iniciar (mais próximas de iniciar devem ser exibidas primeiro).
+- **Análise de Solicitação**: Visualização detalhada do pedido do colaborador, incluindo nome do colaborador, data de solicitação, data de início, data de término, dias de férias solicitados, motivo da solicitação, status da solicitação e motivo de reprovação (se houver).
+- **Aprovação/Reprovação**: Ação de decisão, com o botão de aprovação ou rejeição, e o campo "Motivo/Observação" para motivo da aprovação ou reprovação.
+- **Regra**: Ao reprovar, o campo "Motivo/Observação" torna-se obrigatório, e o status da solicitação deve ser alterado para "Reprovada".
+#### Administrador
+- **Supervisão Total**: Acesso a todas as funcionalidades de Gestor e Colaborador.
+- **Aprovação de Cadastros**: Fluxo para aprovar novos colaboradores registrados na plataforma antes que possam acessar o sistema.
+- **Cadastro de Colaborador/Gestor**: Fluxo para criar um novo colaborador (nome, email, senha, matrícula, cargo, setor, status, data de admissão) na plataforma.
+
+# User Experience  
+## Personas
+- (Colaborador): Quer garantir suas férias com antecedência e ter certeza que o chefe aprovou suas férias.
+- (Gestor): Precisa ver rapidamente quem quer sair e aprovar/reprovar com poucos toques, precisando aceitar ou rejeitar a solicitação de férias.
+- (Administrador): Precisa gerenciar os colaboradores e os gestores.
+
+## UI/UX Considerations
+- Feedback Visual:
+    - Loading state durante submit
+    - Success message com redirecionamento para histórico
+    - Helper text para inputs com mensagens de erro descritivas
+    - Error handling com mensagens específicas
+    - Empty States: Telas amigáveis quando não há histórico ou pendências (simulados).
+    - Error Handling: Tratamento gracioso de erros (ex: falha de rede, erro na API) com opção de "Tentar Novamente".
+    - Offline-First: O app deve permitir visualização de dados cacheados quando sem internet e enfileirar ações (sync) quando a conexão retornar.
+    - Ícones com react-native-vector-icons
+- Todos os design tokens devem ser usados, não criar cores, fontes, etc. no código.
+</context>
+<PRD>
+
+# Technical Architecture  
+## Estilo Arquitetural: Clean Architecture
+A aplicação seguirá a Clean Architecture, mas adotará uma abordagem pragmática baseada em CQRS (Command Query Responsibility Segregation) para evitar boilerplate desnecessário em operações de leitura, integrando-se eficientemente com o TanStack Query.
+
+Segue as regras:
+1. **Domain First:** Lógica de negócio pura, testável sem dependências
+2. **Test-Driven:** TDD em Domain e Application
+3. **Dependency Inversion:** Infrastructure depende de Domain
+4. **Single Responsibility:** Cada módulo tem uma responsabilidade clara
+5. **Pragmatismo:** Simplicidade sobre complexidade desnecessária
+
+### Regras de Fluxo de Dados (Decision Log)
+
+1.  **Fluxo de Escrita (Commands/Mutations):**
+    *   **Sempre via Use Case**.
+    *   **Caminho:** UI -> React Query Mutation -> **UseCase** -> Repository -> API.
+    *   **Justificativa:** Operações de escrita (Solicitar Férias, Aprovar, Reprovar) contêm regras de negócio críticas, validações de domínio e orquestração. O **UseCase** é obrigatório aqui para encapsular essa lógica e garantir testabilidade independente do React.
+
+2.  **Fluxo de Leitura (Queries):**
+    *   **Caminho:** UI -> React Query -> **Repository Interface** -> API.
+    *   **Justificativa:** Operações de leitura (Listar Histórico, Ver Detalhes) são projeções de dados. Criar UseCases que apenas repassam chamadas para o repositório ("Pass-through") é considerado anti-padrão neste projeto. A UI pode consumir diretamente a interface do repositório via hook, focando em *Data Fetching* e *Caching*.
+
+#### 3. Fluxo de Leitura com Regra de Negócio (Smart Queries)
+*   **Via Use Case.**
+*   **Critério:** A leitura envolve:
+    *   **RBAC Complexo:** "Gestor só vê subordinados, RH vê todos". 
+    *   **RBAC:** RBAC é tratado como regra de negócio e aplicado exclusivamente em Use Cases ou Entities. Repositories não conhecem roles.
+    *   **Derivação de Estado:** "Calcular se a solicitação está 'Atrasada' baseada na data atual vs data de início".
+    *   **Agregação:** Buscar dados de múltiplas fontes para montar uma visualização.
+*   *Exemplo:* `GetManagerDashboardUseCase`.
+    *   *Lógica:* Recebe o usuário -> Verifica se é Gestor -> Busca o Departamento -> Busca solicitações do Departamento -> Filtra apenas as Pendentes -> Ordena por prioridade (regra de negócio).
+
+
+## Clean Architecture com Domain, Application, Infra e Presentation
+### Domain (Core)
+Todas as regras devem estar no Domain
+
+- **Entities Design**: As entidades devem refletir a realidade do negócio e garantir a integridade dos dados. O usuário precisa de mais do que apenas nome e email. Para que o sistema de aprovação funcione, precisamos saber quem manda em quem ou a qual grupo o usuário pertence. As entidades se relacionam através de IDs. As regras de negócio podem ficar encapsuladas nas entities. Utilizar Factory Method para criar novas instâncias de entidades. Getters para garantir encapsulamento. Entities com comportamento rico
+✅ Encapsulamento: Props privadas, apenas getters públicos
+✅ Imutabilidade externa: Não há setters, apenas métodos de comportamento
+✅ Validações no domínio: Regras de negócio invariantes vivem nas Entities e Value Objects
+✅ Factory Method: Garante que entidade sempre é criada válida
+✅ Testável: Não depende de infraestrutura
+- `entities/`: **Entities**:
+    - **User** 
+        - `id`: string
+        - `registrationNumber`: string // Matrícula do colaborador
+        - `name`: string
+        - `email`: Email // Value Object
+        // Password: Value Object separado
+        - `role`: COLLABORATOR, MANAGER, ADMIN
+        - `status`: ACTIVE, INACTIVE, PENDING_APPROVAL
+        - `departmentId`: string
+        - `managerId`: string
+        - `createdAt`: date
+        - `updatedAt`: date
+    - **Department**
+        - `id`
+        - `name`: string
+        - `managerId`: string
+        - `createdAt`: date
+        - `updatedAt`: date
+    - **VacationRequest**
+        - Atributos: 
+            - `id`
+            - `requesterId`: string
+            - `reviewerId`?: string // ID do gestor que analisou a solicitação (se aprovou ou reprovou)
+            - `startDate`: date
+            - `endDate`: date
+            - `observation`? : string // Observação do colaborador
+            -  `status`: PENDING_APPROVAL, APPROVED, REJECTED, CANCELLED
+            - `createdAt`: date
+            - `updatedAt`: date
+            - `reviewedAt`: date        // Data da análise
+            - `rejectionReason`?: string // / Obrigatório se status == REJECTED
+        - Comportamentos de domínio:
+            - Factory Method para criar uma nova solicitação de férias, tendo validações de regras de negócio no momento da criação.
+            - `private validate()`    // Validação básica de construção
+            - `approve(reviewerId: string): void`   
+                - Aprova a solicitação.
+                - Regra: Só pode aprovar se estiver pendente.
+                - Regra: Deve registrar quem aprovou e quando.
+            -` reject(reviewerId: string, reason: string): void`
+                - Rejeita a solicitação de férias, alterando o status para REJECTED.
+                - Reprova a solicitação.
+                - Regra: Motivo é obrigatório.
+            - `cancel(): void `
+                - Cancela a solicitação (pelo próprio colaborador).
+                - Regra: Só pode cancelar se ainda não foi analisada.
+            - `private canBeApproved(): boolean`
+            - 
+- `value-objects/`: **Value Objects**: Value Objects garantem invariantes
+    - **Email**: Value Object para email, com validação de formato de email.
+    - **Password**: Value Object para senha, com validação de formato de senha.
+    - **DateRange**: Value Object para intervalo de datas, com validação de datas válidas.
+- `errors/`: **Errors**: 
+    - DomainError: Erro genérico de domínio, base para todos os outros erros.
+    - ValidationError: Erro de validação de dados, base para todos os outros erros de validação.
+    - InvalidUserRoleError: Erro de papel de usuário inválido.
+    - InvalidEmailFormatError: Erro de formato de email inválido.
+    - WeakPasswordError: Erro de senha fraca.
+    - UserNotApprovedError: Erro de usuário não aprovado para acessar o sistema.
+    - VacationRequestExpiredError: No contexto de VacationRequest, erro de solicitação de férias expirada. A solicitação de férias não pode ser mais editada ou cancelada após a data de término, ou se HOJE > data de início.
+    - InvalidDateRangeError: No contexto de VacationRequest, erro de intervalo de datas inválido.
+    - MinimumPeriodNotMetError: No contexto de VacationRequest, erro de período mínimo não atendido.
+    - MaximumPeriodExceededError: No contexto de VacationRequest, erro de período máximo excedido.
+    - MaximumDepartmentEmployeesError: No contexto de Department, o período máximo de férias permitido para o setor é excedido.
+    - InvalidStatusTransitionError: No contexto de VacationRequest, erro de transição de status inválida (Erros: de CANCELLED para APPROVED, ou de APPROVED para REJECTED, ou de CANCELLED para REJECTED. Não é possível transitar de REJECTED para APPROVED ou de REJECTED para CANCELLED).
+    - VacationRequestNotEditableError: No contexto de VacationRequest, erro de solicitação de férias não editável. Apenas solicitações pendentes podem ser editadas.
+    - RejectionReasonRequiredError: No contexto de VacationRequest, erro de motivo de reprovação obrigatório. O motivo da reprovação é obrigatório se o status da solicitação for REJECTED.
+- `repositories/`: **Repositories Contracts**: Repository Pattern com contratos (interfaces) para acesso aos dados.
+    - **Regras**: Lógica pura de negócio (ex: validação de datas, regras de transição de status). Sem dependência de React.
+
+### Application:
+- `use-cases/`: **Use Cases**:
+   - Responsabilidades:
+        ✅ Single Responsibility: Use Cases orquestram decisões, permissões e fluxos entre entidades.
+        ✅ Dependency Inversion: Depende de interfaces, não de implementações
+        ✅ Testável: Pode mockar repositories facilmente
+        ✅ Regras de domínio delegadas: vacationRequest.approve() faz a validação
+        - Fluxo:
+            - Carrega a `Entity`
+                - `verifica:`
+                    - role
+                    - ownership
+                    - relação hierárquica
+                - Decide: retorna dados
+                - Ou lança `UnauthorizedAccessError`
+    - Tem decisão de negócio → cria Use Case, não o contrário.
+    - Use Cases Disparam Ações Diretamente (Recomendado para MVP): Buscar dado, aplicar regras de negócio, disparar ações diretamente.
+    - Casos de uso:
+        - `RequestVacationUseCase`: Orquestra a criação, validação de datas e persistência.
+        - `ReviewVacationUseCase`: Orquestra a aprovação/reprovação e validação de permissões do gestor.
+        - `LoginUseCase`: Orquestra a autenticação e persistência de sessão
+        - `GetManagerDashboardUseCase` (Leitura com Regra de Negócio/Segurança)
+        - `GetVacationDetailsUseCase`: Use Case para buscar detalhes de uma solicitação de férias (requesterId igual ao id do usuário logado)
+        - `GetDashboardPermissionsUseCase`: Use Case para buscar as capacidades do dashboard do usuário logado. Avalia role + ownership + hierarquia e retorna as capacidades permitidas.
+
+- `dtos/`: ** São contratos de dados. O que sai e entra dos Use Cases. Input DTOs e Output DTOs. São os objetos que os Use Cases usam na assinatura de seus métodos.**
+    - `UserDTO.ts`: DTO para usuário.
+    - `VacationRequestDTO.ts`: DTO para solicitação de férias.
+    - `LoginDTO.ts`: DTO para login.
+    - `DepartmentDTO.ts`: DTO para setor.
+    - Obrigatórios tanto para leitura quanto para escrita para garantir que a UI nunca dependa do formato bruto da API.
+- `mappers/`: **Mappers**: Mappers para converter **DTOs** em **Entities** e vice-versa. Uma ferramenta utilitária acessível tanto para os Use Cases quanto para a Infraestrutura.
+    - `UserMapper.ts`: Mapper para converter UserDTO em User.
+    - `VacationRequestMapper.ts`: Mapper para converter VacationRequestDTO em VacationRequest.
+    - `DepartmentMapper.ts`: Mapper para converter DepartmentDTO em Department.
+    - `LoginMapper.ts`: Mapper para converter LoginDTO em Login.
+    - Cenários:
+      - **Cenário A: Leitura (Repository -> Application)**
+        - O Repositório (Infra) busca um JSON bruto da API. Ele precisa entregar uma `Entidade` pura para o sistema.
+        - O Repositório importa `VacationMapper` da Application layer.
+        - Chama `VacationRequestMapper.toDomain(json)`.
+        - Retorna a `Entidade`.
+        ✅ Válido: Infra pode importar `Application`.
+      - **Cenário B: Escrita (UseCase -> Repository)**
+        - O Use Case recebe um `DTO` da UI e precisa salvar.
+        - O Use Case chama `VacationRequestMapper.toDomain(dto) (se necessário) ou cria a entidade via construtor.
+        - Ou, se o Use Case precisa devolver dados para a UI, ele chama `VacationRequestMapper.toDTO(entity)`.
+        - ✅ Válido: `Application` usa suas próprias classes.
+
+### Infrastructure:
+- `repositories/`: **Repository contracts completos/implementações concretas**: Implementação concreta dos repositórios contracts. Devem retornar **Entities** ou **DTOs de Leitura**, nunca o JSON bruto do Axios. O TanStack Query consumirá esses métodos.
+        - **AuthRepository**: Implementação concreta do repositório contract IAuthRepository.
+        - **VacationRepository**: Implementação concreta do repositório contract IVacationRepository.
+        - **UserRepository**: Implementação concreta do repositório contract IUserRepository.
+        - **DepartmentRepository**: Implementação concreta do repositório contract IDepartmentRepository.
+- `api/`: **API Client**: Configuração do Axios/Fetch.
+  - API Client isolado
+  - Usado apenas por Repository Implementations
+  - Substituível (mock / real)
+  - `mock-server/`: **Mock Server com latência simulada**: Implementação de uma API Fake (JSON Server ou In-Memory) que simula latência e erros, facilmente substituível por uma API Real via Injeção de Dependência.
+  - `storage/`: **Storage com persistência local**: Persistência local (AsyncStorage/MMKV). Sync queue para offline-first. 
+    - **AsyncStorageAdapter**: Implementação concreta do storage contract IStorage.
+    - **SecureStorageAdapter**: Implementação concreta do storage contract ISecureStorage.
+
+
+### **Presentation (UI)**:
+- Responsabilidades:
+    - UI acessa a lógica via hooks, não deve ter lógica de negócio (no máximo para validações de formulários ou utilizar hooks para gerenciar o estado de UI).
+    - **Design System componentizado**: Design System componentizado para a aplicação. 
+    - Hooks para conectar a UI aos Use Cases e gerenciar o estado de UI (Loading, Error) usando TanStack Query.
+    - Loading/Error/Empty states
+    - **Responsável por exibir os dados na tela**.
+        - O Core (Domain/Application) devolve “capacidades” (capabilities)
+        - A UI renderiza com base nessas capacidades
+        - O Core expõe explicitamente as ações permitidas para o usuário (capabilities).
+        - A Presentation Layer apenas renderiza ou oculta elementos com base nessas capacidades.
+    - **Elementos**:
+        - **Components**: Componentes visuais "burros" (reutilizáveis).
+        - **Contexts**: 
+        - **Hooks**: Custom Hooks que conectam a UI aos Use Cases e gerenciam estado de UI (Loading, Error) usando TanStack Query. 
+             - **TanStack Query (React Query):**
+                    - Atua como o "Controller" da UI.
+                    - Hooks de Queries Simples ("Dumb Queries") acessam interfaces de repositório.
+                    - Hooks de Queries com regra de visibilidade ("Smart Queries") chamam Use Cases.
+                    - Mutations sempre chamam Use Cases.
+                    - Responsável por `Loading`, `Error` e `Caching`.
+                    - **Proibido:** Lógica de filtragem de segurança (ex: `data.filter(item => user.role === 'MANAGER')`) dentro do componente ou do hook. O dado já deve chegar filtrado do Core.
+        - **Screens**:
+            - **LoginScreen**: Tela de login (email e senha).
+            - **DashboardScreen**: Tela de dashboard 
+            
+                - Botão para tela de solicitação de férias.
+                - Botão para tela de detalhes de uma solicitação de férias.
+                - Botão para tela de histórico de solicitações de férias.
+                - Botão para tela de aprovação de uma solicitação de férias.
+            - **VacationRequestScreen**: Tela de solicitação de férias (data início, data fim, observação, submit).
+            - **VacationRequestDetailsScreen**: Tela de detalhes de uma solicitação de férias (data início, data fim, observação, status).
+            - **VacationRequestHistoryScreen**: Tela de histórico de solicitações de férias (lista de solicitações de férias).
+            - **VacationRequestApprovalScreen**: Tela de aprovação de uma solicitação de férias (data início, data fim, observação, status).
+
+**Testing**:
+    - **Unit tests (Domain) > 80% coverage**: Jest (foco em Domain, Entities, Errors, UseCases, Repositories, Mapper, DTOs, Validators).
+    - **Integration tests (Use Cases)**: React Native Testing Library (RNTL).
+    - **E2E críticos (fluxo completo)**: Cucumber (Gherkin syntax) + Detox (automação).
+    - **Visual regression (Storybook)**: Storybook.
+
+## Stack Tecnológica
+- Linguagem: TypeScript (Strict Mode).
+- Framework: React Native (Expo ou CLI) 0.83.1
+- **State Management**: TanStack Query (React Query) para server state + cache
+- **Zustand**: Para client state global simples
+- **Context API**: Apenas para auth/theme
+- **Network**: Axios ou Fetch API com interceptors.
+- **Forms**: React Hook Form integrado com Zod para validação de schemas.
+- **Testes**:
+    - **Unitários**: Jest (foco em Domain, Entities, Errors, UseCases, Repositories, Mapper, DTOs, Validators).
+    - **Integração/Componente**: React Native Testing Library (RNTL).
+    - **E2E**: Cucumber (Gherkin syntax) + Detox (automação).
+    - **CI/CD**: Fastlane para automação de build (APK/IPA) e deploy.
+    - **Linting/Formatting**: ESLint + Prettier.
+
+## Validações
+
+### Estratégia de Validação
+
+Este MVP utiliza **Domain-Driven Validation** onde:
+
+1. **Domain Layer (React Native)** é a **única fonte de verdade**
+   - Todas as validações de negócio vivem aqui
+   - Email, Password, DateRange como Value Objects
+   - Entities validam invariantes na criação
+   - Domain puro e testável
+   - Sem duplicação de lógica
+   - Fácil de manter
+
+
+2. **UI Layer** apenas **exibe erros do Domain**
+   - NÃO duplica lógica de validação
+   - React Hook Form + Zod valida apenas presença e tipo (Qualquer regra semântica (formato, força, datas) é validada exclusivamente no Domain)
+   - Mensagens de erro vêm do Domain
+
+3. **Backend (JSON Server)** é **storage passivo**
+   - Nenhuma validação
+   - Apenas CRUD
+   - ⚠️ Limitação conhecida do MVP
+
+
+## Tipos de dados
+- Na camada de Presentation e Infrastructure (API), as datas devem trafegar como string (ISO 8601). A conversão para objetos Date deve ocorrer exclusivamente nos Mappers ao entrar no Domínio. Isso evita erros de "Non-serializable data" no Redux/Context ou na
+passagem de props.
+
+
+# Development Roadmap  
+## Fase 1: Fundação e Arquitetura (Foundation)
+### 1.1 Setup Inicial do Projeto
+**Ações:**
+1. Criar projeto React Native com TypeScript
+2. Configurar ESLint + Prettier (regras para TypeScript e React Native)
+3. Configurar Husky:
+   - Pre-commit: lint-staged (ESLint + Prettier)
+   - Pre-push: testes unitários
+4. Configurar Commitlint (conventional commits)
+5. Configurar Jest para testes unitários
+6. Criar estrutura de pastas Clean Architecture:
+```
+src/
+├── domain/
+│   ├── entities/
+│   │   ├── User.ts
+│   │   ├── VacationRequest.ts
+│   │   └── Department.ts
+│   ├── value-objects/
+│   │   ├── Email.ts
+│   │   ├── Password.ts
+│   │   └── DateRange.ts
+│   ├── errors/
+│   │   ├── DomainError.ts
+│   │   ├── ValidationError.ts
+│   │   ├── InvalidEmailError.ts
+│   │   ├── WeakPasswordError.ts
+│   │   ├── InvalidDateRangeError.ts
+│   ├── enums/
+│   │   ├── VacationStatus.ts
+│   │   ├── UserRole.ts
+│   │   └── UserStatus.ts
+│   └── repositories/
+│       ├── IAuthRepository.ts
+│       ├── IVacationRepository.ts
+│       └── IUserRepository.ts
+├── application/
+│   ├── use-cases/
+│   │   ├── auth/
+│   │   │   ├── LoginUseCase.ts
+│   │   │   └── LogoutUseCase.ts
+│   │   ├── vacation/
+│   │   │   ├── RequestVacationUseCase.ts
+│   │   │   ├── GetVacationHistoryUseCase.ts
+│   │   │   ├── GetVacationDetailsUseCase.ts
+│   │   │   ├── CancelVacationUseCase.ts
+│   │   │   ├── ApproveVacationUseCase.ts
+│   │   │   └── RejectVacationUseCase.ts
+│   │   └── user/
+│   │       ├── CreateUserUseCase.ts
+│   │       └── ApproveUserUseCase.ts
+│   ├── dtos/
+│   │   ├── UserDTO.ts
+│   │   ├── VacationRequestDTO.ts
+│   │   └── LoginDTO.ts
+│   ├── repositories/
+│   │   ├── AuthRepositoryImpl.ts
+│   │   ├── VacationRepositoryImpl.ts
+│   │   └── UserRepositoryImpl.ts
+│   └── mappers/
+│       ├── UserMapper.ts
+│       └── VacationMapper.ts
+├── infrastructure/
+│   ├── api/
+│   │   ├── client.ts
+│   │   └── mock-server/
+│   │       ├── db.json
+│   │       ├── routes.json
+│   │       └── middlewares.ts
+│   └── storage/
+│       ├── AsyncStorageAdapter.ts
+│       └── SecureStorageAdapter.ts
+└── presentation/
+    ├── theme/
+    │   ├── tokens.ts
+    │   ├── lightTheme.ts
+    │   └── darkTheme.ts
+    ├── components/
+    │   ├── ui/
+    │   │   ├── Button.tsx
+    │   │   ├── Input.tsx
+    │   │   ├── Card.tsx
+    │   │   ├── Badge.tsx
+    │   │   ├── Text.tsx
+    │   │   ├── Skeleton.tsx
+    │   │   └── EmptyState.tsx
+    │   └── domain/
+    │       ├── VacationCard.tsx
+    │       ├── VacationCardSkeleton.tsx
+    │       └── UserAvatar.tsx
+    │       └── UserCard.tsx
+    ├── screens/
+    │   ├── LoginScreen.tsx
+    │   ├── DashboardScreen.tsx
+    │   ├── RequestVacationScreen.tsx
+    │   ├── VacationHistoryScreen.tsx
+    │   ├── VacationDetailsScreen.tsx
+    │   ├── ReviewVacationScreen.tsx
+    │   ├── UserListScreen.tsx
+    │   └── CreateUserScreen.tsx
+    │   └── ApproveUserScreen.tsx
+    ├── hooks/
+    │   ├── useAuth.ts
+    │   ├── useRequestVacation.ts
+    │   ├── useVacationDetails.ts
+    │   ├── useVacationHistory.ts
+    │   ├── useApproveVacation.ts
+    │   ├── useRejectVacation.ts
+    │   ├── usePendingVacations.ts
+    │   ├── useDashboardPermissions.ts
+    │   ├── useCreateUser.ts
+    │   └── useApproveUser.ts
+    ├── navigation/
+    │   ├── AppNavigator.tsx
+    │   ├── types.ts
+    │   └── screens.ts
+    └── contexts/
+        └── AuthContext.tsx
+
+```
+**Entregáveis:**
+- [ ] Projeto inicializado e configurado
+- [ ] Linters e formatters funcionando
+- [ ] Hooks de commit configurados
+- [ ] Jest configurado
+- [ ] Estrutura de pastas criada
+---
+### 1.2 Enums e Types Base
+**Ações:**
+1. Criar `src/domain/enums/VacationStatus.ts`:
+   - PENDING_APPROVAL
+   - APPROVED
+   - REJECTED
+   - CANCELLED
+
+2. Criar `src/domain/enums/UserRole.ts`:
+   - COLLABORATOR
+   - MANAGER
+   - ADMIN
+
+3. Criar `src/domain/enums/UserStatus.ts`:
+   - ACTIVE
+   - INACTIVE
+   - PENDING_APPROVAL
+
+4. Criar `src/domain/shared/Result.ts`:
+   - Implementar Result Type para Railway Oriented Programming
+   - Métodos: `ok()`, `fail()`, `isSuccess`, `isFailure`, `getValue()`, `getError()`
+
+**Entregáveis:**
+- [ ] Enums criados
+- [ ] Result Type implementado e testado
+
+
+## Fase 2: Core Clean Architecture (Domain + Application + Infrastructure)
+- **Implementação das da camada Domain: Entities, Value Objects, Errors**.
+- **Testes Unitários do domínio criados, com cobertura de 80%**.
+- **Implementação das da camada Application: Use Cases, Implementações Concretas dos Repositórios Contracts, DTO, Mappers Domain <-> DTO**.
+- **Testes Unitários da camada Application criados, com cobertura de 80%**.
+- **Implementação das da camada Infrastructure: API Client, Mock Server com latência simulada, Storage com persistência local, Queue para offline-first**.
+- **Testes Unitários da camada Infrastructure criados, com cobertura de 80%**.
+- **Escrita dos cenários Gherkin (.feature)**.
+## Fase 3: Autenticação e Base UI
+- **Tela de Login com validação (RHF + Zod)**.
+- **Contexto de Autenticação e Rotas Protegidas**.
+- **Setup do Fastlane (Lane inicial de build)**.
+
+## Fase 3: Funcionalidades do Colaborador (MVP Core)
+- **Tela de Solicitação de Férias**.
+- **Tela de Histórico (Listagem com TanStack Query)**.
+- **Tela de Detalhes de Solicitação de Férias**.
+- **Testes Unitários dos UseCases criados**.
+
+## 📋 Fase 4: Design System & UI Foundation
+
+### 4.1 Design Tokens
+**Ações:**
+1. Criar `src/presentation/theme/tokens.ts`:
+```typescript
+export const tokens = {
+  colors: {
+    primary: {
+      50: '#E3F2FD',
+      100: '#BBDEFB',
+      500: '#2196F3',
+      700: '#1976D2',
+      900: '#0D47A1',
+    },
+    neutral: {
+      0: '#FFFFFF',
+      50: '#FAFAFA',
+      100: '#F5F5F5',
+      500: '#9E9E9E',
+      900: '#212121',
+    },
+    status: {
+      pending: '#FF9800',
+      approved: '#4CAF50',
+      rejected: '#F44336',
+      cancelled: '#9E9E9E',
+    },
+    semantic: {
+      success: '#4CAF50',
+      error: '#F44336',
+      warning: '#FF9800',
+      info: '#2196F3',
+    },
+  },
+
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
+  },
+
+  borderRadius: {
+    sm: 4,
+    md: 8,
+    lg: 16,
+    full: 9999,
+  },
+
+  typography: {
+    fontFamily: {
+      regular: 'Inter-Regular',
+      medium: 'Inter-Medium',
+      semibold: 'Inter-SemiBold',
+      bold: 'Inter-Bold',
+    },
+    fontSize: {
+      xs: 12,
+      sm: 14,
+      base: 16,
+      lg: 18,
+      xl: 20,
+      '2xl': 24,
+      '3xl': 30,
+    },
+    lineHeight: {
+      tight: 1.2,
+      normal: 1.5,
+      relaxed: 1.75,
+    },
+  },
+
+  shadows: {
+    sm: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    md: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+  },
+};
+```
+
+**Entregáveis:**
+- [ ] Tokens definidos
+- [ ] Documentação dos tokens
+
+---
+
+### 4.2 Theme System
+**Ações:**
+1. Criar `src/presentation/theme/ThemeProvider.tsx`:
+```typescript
+interface Theme {
+  colors: typeof tokens.colors;
+  spacing: typeof tokens.spacing;
+  typography: typeof tokens.typography;
+}
+
+const ThemeContext = createContext<Theme | undefined>(undefined);
+
+export function ThemeProvider({ children }: PropsWithChildren) {
+  const colorScheme = useColorScheme();
+  
+  const theme = useMemo(() => {
+    return colorScheme === 'dark' ? darkTheme : lightTheme;
+  }, [colorScheme]);
+
+  return (
+    <ThemeContext.Provider value={theme}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme() {
+  const theme = useContext(ThemeContext);
+  if (!theme) throw new Error('useTheme must be within ThemeProvider');
+  return theme;
+}
+```
+
+**Entregáveis:**
+- [ ] Theme Provider implementado
+- [ ] Hook useTheme() criado
+
+---
+
+### 4.3 Typography Components
+**Ações:**
+1. Criar `src/presentation/components/ui/Text.tsx`:
+```typescript
+type TextVariant = 'heading1' | 'heading2' | 'body' | 'caption';
+type TextColor = 'primary' | 'secondary' | 'error';
+
+interface TextProps {
+  variant?: TextVariant;
+  color?: TextColor;
+  weight?: 'regular' | 'medium' | 'semibold' | 'bold';
+  children: ReactNode;
+}
+
+export function Text({ variant = 'body', color = 'primary', weight, children }: TextProps) {
+  const theme = useTheme();
+  const styles = getTextStyles(theme, variant, color, weight);
+  return <RNText style={styles}>{children}</RNText>;
+}
+```
+
+**Testes:**
+```typescript
+describe('Text Component', () => {
+  it('should render with heading1 variant');
+  it('should apply error color');
+  it('should apply bold weight');
+});
+```
+
+**Entregáveis:**
+- [ ] Text component implementado
+
+---
+
+### 4.4 Button Component
+**Ações:**
+1. Criar `src/presentation/components/ui/Button.tsx`:
+```typescript
+type ButtonVariant = 'primary' | 'secondary' | 'outline';
+
+interface ButtonProps {
+  variant?: ButtonVariant;
+  disabled?: boolean;
+  loading?: boolean;
+  onPress: () => void;
+  children: ReactNode;
+}
+
+export function Button({
+  variant = 'primary',
+  disabled,
+  loading,
+  onPress,
+  children,
+}: ButtonProps) {
+  const theme = useTheme();
+  const styles = getButtonStyles(theme, variant, disabled);
+
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.container, pressed && styles.pressed]}
+      onPress={onPress}
+      disabled={disabled || loading}
+      accessible
+      accessibilityRole="button"
+      accessibilityState={{ disabled, busy: loading }}
+    >
+      {loading ? (
+        <ActivityIndicator color={styles.text.color} />
+      ) : (
+        <Text style={styles.text}>{children}</Text>
+      )}
+    </Pressable>
+  );
+}
+```
+
+**Testes:**
+```typescript
+describe('Button Component', () => {
+  it('should render with primary variant');
+  it('should show loading indicator');
+  it('should be disabled when disabled prop');
+  it('should call onPress');
+  it('should have accessibility attributes');
+});
+```
+
+**Entregáveis:**
+- [ ] Button component implementado
+- [ ] Testes com 100% de cobertura
+
+---
+
+### 4.5 Input Component
+**Ações:**
+1. Criar `src/presentation/components/ui/Input.tsx`:
+```typescript
+interface InputProps {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder?: string;
+  error?: string;
+  secureTextEntry?: boolean;
+}
+
+export function Input({
+  label,
+  value,
+  onChangeText,
+  error,
+  ...rest
+}: InputProps) {
+  const [isFocused, setIsFocused] = useState(false);
+  const theme = useTheme();
+  const styles = getInputStyles(theme, isFocused, !!error);
+
+  return (
+    <View style={styles.container}>
+      <Text variant="label">{label}</Text>
+      <TextInput
+        style={styles.input}
+        value={value}
+        onChangeText={onChangeText}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        {...rest}
+      />
+      {error && <Text variant="caption" color="error">{error}</Text>}
+    </View>
+  );
+}
+```
+
+**Entregáveis:**
+- [ ] Input component implementado
+- [ ] Testes com 100% de cobertura
+
+---
+
+### 4.6 Card Component
+**Ações:**
+1. Criar `src/presentation/components/ui/Card.tsx`:
+```typescript
+export function Card({ children, onPress }: CardProps) {
+  const Wrapper = onPress ? Pressable : View;
+  return <Wrapper style={styles.container} onPress={onPress}>{children}</Wrapper>;
+}
+
+Card.Header = ({ children }: PropsWithChildren) => <View>{children}</View>;
+Card.Body = ({ children }: PropsWithChildren) => <View>{children}</View>;
+```
+
+**Entregáveis:**
+- [ ] Card component implementado
+- [ ] Subcomponents (Header, Body) criados
+
+---
+
+### 4.7 Badge Component
+**Ações:**
+1. Criar `src/presentation/components/ui/Badge.tsx`:
+```typescript
+type BadgeStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
+export function Badge({ status, children }: BadgeProps) {
+  const theme = useTheme();
+  const styles = getBadgeStyles(theme, status);
+  return <View style={styles.container}><Text style={styles.text}>{children}</Text></View>;
+}
+```
+
+**Entregáveis:**
+- [ ] Badge component implementado
+
+---
+
+### 4.8 Loading Skeleton
+**Ações:**
+1. Criar `src/presentation/components/ui/Skeleton.tsx`
+2. Criar `src/presentation/components/VacationCardSkeleton.tsx`
+
+**Entregáveis:**
+- [ ] Skeleton components implementados
+
+---
+
+### 4.9 Empty State
+**Ações:**
+1. Criar `src/presentation/components/EmptyState.tsx`:
+```typescript
+interface EmptyStateProps {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  action?: { label: string; onPress: () => void };
+}
+```
+
+**Entregáveis:**
+- [ ] Empty State component implementado
+
+---
+
+**✅ Checkpoint Fase 4:**
+- [ ] Design Tokens definidos
+- [ ] Theme System implementado
+- [ ] Typography components testados
+- [ ] Button testado
+- [ ] Input testado
+- [ ] Card implementado
+- [ ] Badge implementado
+- [ ] Skeleton/Empty State implementados
+
+---
+
+## 📋 Fase 5: Navigation & State Management
+
+### 5.1 React Navigation Setup
+**Ações:**
+1. Instalar dependências:
+```bash
+npm install @react-navigation/native @react-navigation/native-stack
+npm install react-native-screens react-native-safe-area-context
+```
+
+2. Criar `src/presentation/navigation/types.ts`:
+```typescript
+export type RootStackParamList = {
+  Login: undefined;
+  Dashboard: undefined;
+  RequestVacation: undefined;
+  VacationHistory: undefined;
+  VacationDetails: { requestId: string };
+  ManagerDashboard: undefined;
+  ReviewVacation: { requestId: string };
+};
+
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
+}
+```
+
+3. Criar `src/presentation/navigation/AppNavigator.tsx`:
+```typescript
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export function AppNavigator() {
+  const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <Stack.Navigator>
+        <Stack.Screen name="Login" component={LoginScreen} />
+      </Stack.Navigator>
+    );
+  }
+
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      {/* outras telas */}
+    </Stack.Navigator>
+  );
+}
+```
+
+**Entregáveis:**
+- [ ] Navigation configurada
+- [ ] Types definidos
+- [ ] Protected routes implementadas
+
+---
+
+### 5.2 TanStack Query Setup
+**Ações:**
+1. Instalar:
+```bash
+npm install @tanstack/react-query
+```
+
+2. Criar `src/presentation/providers/QueryProvider.tsx`:
+```typescript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: 3,
+    },
+  },
+});
+
+export function QueryProvider({ children }: PropsWithChildren) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+}
+```
+
+**Entregáveis:**
+- [ ] TanStack Query configurado
+- [ ] QueryClient com opções padrão
+
+---
+
+### 5.3 Auth Context
+**Ações:**
+1. Criar `src/presentation/contexts/AuthContext.tsx`:
+```typescript
+interface AuthContextData {
+  user: UserDTO | null;
+  isLoading: boolean;
+  login: (credentials: LoginDTO) => Promise<Result<void>>;
+  logout: () => Promise<void>;
+}
+
+export function AuthProvider({ children }: PropsWithChildren) {
+  const [user, setUser] = useState<UserDTO | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    restoreSession();
+  }, []);
+
+  async function login(credentials: LoginDTO): Promise<Result<void>> {
+    const useCase = new LoginUseCase(authRepository);
+    const result = await useCase.execute(credentials);
+    
+    if (result.isSuccess) {
+      const data = result.getValue();
+      setUser(data.user);
+      await storage.setToken(data.token);
+    }
+    
+    return result.isSuccess ? Result.ok() : Result.fail(result.error);
+  }
+
+  async function logout(): Promise<void> {
+    setUser(null);
+    await storage.removeToken();
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+```
+
+**Entregáveis:**
+- [ ] Auth Context implementado
+- [ ] Hook useAuth() criado
+
+---
+
+**✅ Checkpoint Fase 5:**
+- [ ] Navigation configurada
+- [ ] TanStack Query configurado
+- [ ] Auth Context implementado
+
+---
+
+## 📋 Fase 6: Screens & Features
+
+### 6.1 Custom Hooks (TanStack Query)
+**Ações:**
+1. Criar `src/presentation/hooks/useRequestVacation.ts`:
+```typescript
+export function useRequestVacation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: RequestVacationDTO) => {
+      const useCase = new RequestVacationUseCase(vacationRepo, userRepo);
+      const result = await useCase.execute(data);
+      if (result.isFailure) throw result.error;
+      return result.getValue();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vacations'] });
+    },
+  });
+}
+```
+
+2. Criar hooks:
+   - `useAuth.ts`
+   - `useVacationRequests.ts`
+   - `useVacationHistory.ts`
+   - `useVacationDetails.ts`
+   - `useApproveVacation.ts`
+   - `useRejectVacation.ts`
+   - `usePendingVacations.ts`
+   - `useDashboardPermissions.ts`
+   - `useCreateUser.ts`
+   - `useApproveUser.ts`
+
+
+**Entregáveis:**
+- [ ] Todos os hooks criados
+
+---
+
+### 6.2 Login Screen
+**Ações:**
+1. Instalar:
+```bash
+npm install react-hook-form zod @hookform/resolvers
+```
+
+2. Criar `src/presentation/screens/LoginScreen.tsx`:
+
+**Testes:**
+```typescript
+describe('LoginScreen', () => {
+  it('should render login form');
+  it('should show validation errors');
+  it('should call login on submit');
+  it('should navigate to Dashboard on success');
+  it('should show the user role in the dashboard');
+  it('should show the user name in the dashboard');
+});
+```
+
+**Entregáveis:**
+- [ ] Login screen implementada
+
+---
+
+### 6.3 Request Vacation Screen
+**Ações:**
+1. Criar `src/presentation/screens/RequestVacationScreen.tsx`
+2. Formulário com:
+   - Data início (DatePicker)
+   - Data fim (DatePicker)
+   - Observação (TextInput)
+3. Zod apenas para shape
+4. Nenhuma regra semântica (datas, períodos, limites) deve estar no UI
+5. UI apenas reflete DomainError.message
+4. Submit usando `useRequestVacation()`
+
+**Entregáveis:**
+- [ ] Request Vacation screen implementada
+- [ ] Testes com > 80% de cobertura
+
+---
+
+### 6.4 Vacation History Screen
+**Ações:**
+1. Criar `src/presentation/screens/VacationHistoryScreen.tsx`:
+```typescript
+export function VacationHistoryScreen() {
+  const { user } = useAuth();
+  const { data, isLoading, error, refetch } = useVacationRequests(user!.id);
+
+  if (isLoading) {
+    return (
+      <View>
+        <VacationCardSkeleton />
+        <VacationCardSkeleton />
+      </View>
+    );
+  }
+
+  if (error) {
+    return <ErrorState onRetry={refetch} />;
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <EmptyState
+        title="Nenhuma solicitação"
+        description="Você ainda não solicitou férias"
+      />
+    );
+  }
+
+  return (
+    <FlatList
+      data={data}
+      renderItem={({ item }) => <VacationCard vacation={item} />}
+      refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+    />
+  );
+}
+```
+
+**Entregáveis:**
+- [ ] History screen implementada
+- [ ] Loading/Empty/Error states
+
+---
+
+### 6.5 Manager Dashboard Screen
+**Ações:**
+1. Criar `src/presentation/screens/ManagerDashboardScreen.tsx`
+2. Listar pendências usando `usePendingVacations()`
+
+**Entregáveis:**
+- [ ] Manager dashboard implementado
+
+---
+
+### 6.6 Review Vacation Screen
+**Ações:**
+1. Criar `src/presentation/screens/ReviewVacationScreen.tsx`
+2. Detalhes da solicitação
+3. Botões: Aprovar / Rejeitar
+4. Modal para motivo da rejeição
+
+**Entregáveis:**
+- [ ] Review screen implementada
+- [ ] Approve/Reject funcionando
+
+---
+
+**✅ Checkpoint Fase 6:**
+- [ ] Hooks criados
+- [ ] Login screen funcionando
+- [ ] Request vacation screen funcionando
+- [ ] History screen funcionando
+- [ ] Manager dashboard funcionando
+- [ ] Review screen funcionando
+- [ ] **Telas testadas com React Native Testing Library**
+
+---
+
+## 📋 Fase 7: E2E Testing & Quality
+
+### 7.1 Cenários BDD (Gherkin)
+**Ações:**
+1. Criar `features/request-vacation.feature`:
+```gherkin
+Feature: Solicitar Férias
+
+  Scenario: Colaborador solicita férias com sucesso
+    Given estou logado como colaborador
+    When preencho data de início com "01/02/2025"
+    And preencho data de término com "10/02/2025"
+    And pressiono "Solicitar"
+    Then devo ver "Solicitação enviada"
+    And devo ser redirecionado para o histórico
+
+  Scenario: Erro ao solicitar com data inválida
+    Given estou logado como colaborador
+    When preencho data de início com "10/02/2025"
+    And preencho data de término com "01/02/2025"
+    And pressiono "Solicitar"
+    Then devo ver erro "Data de término deve ser maior"
+```
+
+2. Criar features para:
+   - Login
+   - Aprovação de férias
+   - Rejeição de férias
+
+**Entregáveis:**
+- [ ] Arquivos .feature criados
+- [ ] Cenários dos fluxos críticos
+
+---
+
+### 7.2 Testes E2E (Detox)
+**Ações:**
+1. Instalar Detox:
+```bash
+npm install detox --save-dev
+```
+
+2. Configurar `.detoxrc.js`
+
+3. Criar testes em `e2e/`:
+```typescript
+describe('Request Vacation Flow', () => {
+  beforeAll(async () => {
+    await device.launchApp();
+  });
+
+  it('should request vacation successfully', async () => {
+    // Login
+    await element(by.id('email-input')).typeText('joao@empresa.com');
+    await element(by.id('password-input')).typeText('Senha@123');
+    await element(by.id('login-button')).tap();
+
+    // Navegar
+    await element(by.id('request-vacation-button')).tap();
+
+    // Preencher
+    await element(by.id('start-date-input')).tap();
+    await element(by.text('1')).tap();
+    
+    await element(by.id('end-date-input')).tap();
+    await element(by.text('10')).tap();
+
+    // Submeter
+    await element(by.id('submit-button')).tap();
+
+    // Verificar
+    await expect(element(by.text('Solicitação enviada'))).toBeVisible();
+  });
+});
+```
+
+**Entregáveis:**
+- [ ] Detox configurado
+- [ ] Testes E2E dos fluxos críticos
+- [ ] **Cobertura > 80% dos fluxos**
+
+---
+
+**✅ Checkpoint Fase 7:**
+- [ ] Cenários Gherkin escritos
+- [ ] Testes E2E implementados
+- [ ] Fluxos críticos cobertos
+
+---
+
+
+## 📋 Fase 8: CI/CD & Documentation
+
+### 8.1 GitHub Actions
+**Ações:**
+1. Criar `.github/workflows/ci.yml`:
+```yaml
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm install
+      - run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm install
+      - run: npm run test:coverage
+      - uses: codecov/codecov-action@v3
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm install
+      - run: npm run build
+```
+
+**Entregáveis:**
+- [ ] CI pipeline configurado
+- [ ] Lint + Tests + Build rodando
+
+---
+
+### 8.2 Fastlane
+**Ações:**
+1. Instalar Fastlane
+2. Criar `fastlane/Fastfile`:
+```ruby
+lane :debug do
+  gradle(task: "assembleDebug")
+end
+
+lane :release do
+  gradle(task: "assembleRelease")
+end
+```
+
+**Entregáveis:**
+- [ ] Fastlane configurado
+- [ ] Lanes de build criadas
+
+---
+
+### 8.3 Documentation
+**Ações:**
+1. Criar `README.md` completo:
+```markdown
+# Corporate Vacation Management
+
+## Arquitetura
+Clean Architecture com Domain, Application, Infrastructure, Presentation.
+
+## Getting Started
+- npm install
+- npm run android
+
+## Testing
+- npm run test
+- npm run test:coverage
+- npm run test:e2e
+
+## Project Structure
+src/
+├── domain/
+├── application/
+├── infrastructure/
+└── presentation/
+```
+
+2. Criar `docs/architecture.md`
+3. Criar `docs/testing-strategy.md`
+
+**Entregáveis:**
+- [ ] README completo
+- [ ] Documentação técnica.
+
+# Logical Dependency Chain
+- **Domain Layer**: Não depende de nada. Deve ser a primeira a ser modelada.
+- **Infra Layer (Mock)**: Necessária para desbloquear o desenvolvimento da UI sem backend real.
+- **Auth Feature**: Pré-requisito para qualquer outra funcionalidade, pois define o Role do usuário.
+- **Vacation Request (Create)**: Necessário existir dados para poder listar (History/Dashboard).
+- **Vacation Review (Update)**: Depende da existência de solicitações pendentes.
+- **Colaborator creation**: Necessário para criar um novo colaborador.
+- **Department creation**: Necessário para criar um novo setor.
+- **Seed data**: Necessário ter dados de teste para o sistema, com histório no Json Server.
+
+# Risks and Mitigations  
+- **Risco**: Complexidade excessiva no Clean Architecture para um app simples.
+Mitigação: Manter a estrutura de pastas clara, mas evitar over-engineering (ex: DTOs desnecessários se a API Mock já retornar o formato próximo da Entidade, mas mantendo a interface de adaptação).
+- **Risco**: "Mock Hell" nos testes.
+Mitigação: Usar o padrão Mother Object ou Factories para gerar dados de teste. 
+- **Risco**: Sincronização Offline complexa.
+Mitigação: Confiar nas estratégias de `staleTime` e ``cacheTime`` do TanStack Query e usar `persistQueryClient` para salvar o cache no AsyncStorage, sem tentar reinventar filas de sincronização manuais na v1.
+
+# Appendix  
+## Configuração de Linting (package.json snippet)
+code
+JSON
+"devDependencies": {
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsdoc": "^61.5.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-compiler": "^19.1.0-rc.2",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-native": "^5.0.0",
+    "eslint-plugin-testing-library": "^7.15.1"
+}
+
+## Requisitos do README.md
+O projeto deve conter um README.md impecável com:
+- Visão Geral: O que é o projeto.
+- Decisões Arquiteturais: Explicação do porquê Clean Arch, porquê TanStack Query, diagrama simplificado.
+- Como Rodar:
+  - Pré-requisitos (Node, Ruby, JDK).
+  - Comando para rodar API Mock.
+  - Comando para rodar App (iOS/Android).
+  - Comando para rodar Testes (Unitários e E2E).
+  - Estrutura de Pastas: Breve explicação.
+  - Melhorias Futuras: O que ficou de fora do MVP.
+
+</PRD>

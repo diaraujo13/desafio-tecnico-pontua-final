@@ -1,0 +1,189 @@
+---
+description: 'React Native Quality, Performance, and Metrics Rules'
+globs:
+  - '**/*.{ts,tsx}'
+alwaysApply: true
+---
+
+# React Native Metrics & Quality Rules (AI-Enforced)
+
+These rules define what “quality” means in this React Native project.
+They are mandatory for all AI tools (Cursor, Copilot, etc.) generating or modifying code.
+
+Violations are architectural errors, not style preferences.
+
+---
+
+## 1. Core Philosophy (React Native Context)
+
+- Assume low-end devices
+- Assume poor network conditions
+- Assume long-term maintenance
+
+AI MUST prioritize:
+
+- Clarity over cleverness
+- Explicitness over abstraction
+- Stability over premature optimization
+
+---
+
+## 2. Code Complexity Rules
+
+AI MUST avoid:
+
+- Deeply nested logic (>3 levels)
+- Deeply nested JSX (>3 levels inside render)
+- Hooks or components that mix UI and business logic
+
+Guidelines:
+
+- UI components ≈ 100 LOC
+- Screens ≈ 150 LOC
+- Hooks ≈ 80 LOC
+
+If limits are exceeded, AI MUST question responsibility boundaries.
+
+---
+
+## 3. Rendering & Performance Rules
+
+AI MUST avoid:
+
+- Unnecessary state
+- Derived state stored in state
+- Inline object/array creation in render
+- Unstable callback references
+
+Rules:
+
+- `useMemo` / `useCallback` only when justified
+- No “defensive memoization”
+- No optimization without a clear reason
+
+Every render is assumed to:
+
+- Consume battery
+- Consume JS thread time
+
+---
+
+## 4. Hooks & Data Fetching (TanStack Query)
+
+Hooks are UI adapters only.
+
+Hooks MAY:
+
+- Call UseCases from the Composition Root
+- Use TanStack Query for loading, error, caching
+- Expose UI-ready data
+
+Hooks MUST NOT:
+
+- Contain business logic
+- Interpret errors
+- Normalize errors
+- Use `instanceof` on errors
+- Convert errors to strings
+- Create DomainErrors
+
+Hooks may only consume:
+
+- `result.error.message`
+
+---
+
+## 5. Error Handling Metrics (ADR-Aligned)
+
+Error rules are strict and non-negotiable.
+
+- `DomainError` is the ONLY error contract
+- All UseCases return `Result<T, DomainError>`
+- Errors are values, not exceptions
+
+AI MUST NOT:
+
+- Normalize errors
+- Guess error types
+- Wrap errors
+- Re-create error objects
+- Add optional properties conditionally
+- Introduce helpers like `toAppError`
+
+Error shape must remain stable across propagation.
+
+---
+
+## 6. Testing Quality Rules (React Native Testing Library)
+
+Tests SHOULD:
+
+- Verify rendering
+- Verify user interaction
+- Verify visible states (loading, error, success)
+
+Tests MUST NOT:
+
+- Test business logic in UI
+- Assert implementation details
+- Interpret error semantics
+
+Tests must reflect user-observable behavior only.
+
+---
+
+## 7. Dependency & Bundle Discipline
+
+Before adding dependencies, AI MUST consider:
+
+- Bundle size impact
+- Native compatibility
+- Long-term maintenance cost
+
+AI MUST avoid:
+
+- Heavy utility libraries
+- Redundant abstractions
+- Polyfills without justification
+
+---
+
+## 8. Metrics & Analytics (Explicitly Out of Scope)
+
+AI MUST NOT:
+
+- Add analytics
+- Add tracking events
+- Add logging for metrics
+- Add performance monitoring
+
+Unless explicitly instructed.
+
+This project defines metrics conceptually, not operationally.
+
+---
+
+## 9. Quality Gates (Conceptual)
+
+Code is considered low quality if it:
+
+- Hides behavior
+- Increases ambiguity
+- Introduces speculative abstractions
+- Violates architectural boundaries
+
+Even if it “works”.
+
+---
+
+## 10. AI Enforcement Rule
+
+If an AI tool:
+
+- Is unsure about responsibility boundaries
+- Needs to guess error semantics
+- Feels tempted to normalize or abstract “just in case”
+
+IT MUST STOP AND ASK.
+
+Proceeding without clarity is an architectural violation.
