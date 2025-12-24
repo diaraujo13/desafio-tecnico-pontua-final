@@ -26,3 +26,5 @@ export interface IDepartmentRepository {
    */
   save(department: Department): Promise<Result<void>>;
 }
+
+

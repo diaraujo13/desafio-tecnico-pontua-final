@@ -53,3 +53,5 @@ export interface VacationRequestDTO {
   reviewedAt: string | null; // ISO 8601 format
   rejectionReason: string | null;
 }
+
+

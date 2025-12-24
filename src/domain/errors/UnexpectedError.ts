@@ -11,3 +11,5 @@ export class UnexpectedError extends DomainError {
     super(message, 'UNEXPECTED_ERROR');
   }
 }
+
+

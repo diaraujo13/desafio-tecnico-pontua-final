@@ -41,3 +41,5 @@ export interface IUserRepository {
    */
   findByManagerId(managerId: string): Promise<Result<User[]>>;
 }
+
+

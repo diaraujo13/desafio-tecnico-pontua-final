@@ -12,3 +12,5 @@ export class InfrastructureFailureError extends DomainError {
     super(fullMessage, 'INFRASTRUCTURE_FAILURE');
   }
 }
+
+

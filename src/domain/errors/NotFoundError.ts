@@ -13,3 +13,5 @@ export class NotFoundError extends DomainError {
     super(message, 'NOT_FOUND');
   }
 }
+
+
