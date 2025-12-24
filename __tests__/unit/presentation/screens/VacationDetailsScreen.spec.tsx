@@ -66,7 +66,7 @@ describe('VacationDetailsScreen', () => {
             />
           </Stack.Navigator>
         </NavigationContainer>
-      </ThemeProvider>
+      </ThemeProvider>,
     );
   };
 
@@ -104,7 +104,9 @@ describe('VacationDetailsScreen', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Motivo da Reprovação')).toBeTruthy();
-      expect(screen.getByText('Período solicitado já possui outras solicitações aprovadas')).toBeTruthy();
+      expect(
+        screen.getByText('Período solicitado já possui outras solicitações aprovadas'),
+      ).toBeTruthy();
     });
   });
 
@@ -121,7 +123,7 @@ describe('VacationDetailsScreen', () => {
     expect(screen.getByText('Carregando detalhes...')).toBeTruthy();
   });
 
-    it('should show error state with message', async () => {
+  it('should show error state with message', async () => {
     mockUseVacationDetails.mockReturnValue({
       data: null,
       isLoading: false,
@@ -134,8 +136,8 @@ describe('VacationDetailsScreen', () => {
     await waitFor(() => {
       expect(screen.getByText('Erro ao carregar detalhes')).toBeTruthy();
       expect(screen.getByText('Vacation request not found')).toBeTruthy();
-      });
     });
+  });
 
   it('should display vacation observation when present', async () => {
     mockUseVacationDetails.mockReturnValue({
