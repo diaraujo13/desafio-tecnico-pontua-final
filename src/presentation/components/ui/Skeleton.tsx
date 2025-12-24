@@ -64,16 +64,20 @@ export function Skeleton({
     };
   }, [opacity]);
 
+  const staticStyles: ViewStyle = {
+    backgroundColor: theme.colors.border,
+    borderRadius,
+    height,
+    width: width as ViewStyle['width'],
+  };
+
   return (
     <Animated.View
       style={[
         styles.container,
+        staticStyles,
         {
-          backgroundColor: theme.colors.border,
-          borderRadius,
-          height,
           opacity,
-          width,
         },
         style,
       ]}
