@@ -77,7 +77,9 @@ export class AsyncStorageAdapter implements IStorageAdapter {
    */
   async getAllKeys(): Promise<string[]> {
     try {
-      return await AsyncStorage.getAllKeys();
+      const keys = await AsyncStorage.getAllKeys();
+      // Convert readonly array to mutable array
+      return [...keys];
     } catch (error) {
       throw new Error(
         `Failed to get all keys: ${error instanceof Error ? error.message : String(error)}`
