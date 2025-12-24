@@ -4,7 +4,6 @@
  */
 
 export { DomainError } from './DomainError';
-export { ValidationError } from './ValidationError';
 export { InvalidEmailFormatError } from './InvalidEmailFormatError';
 export { WeakPasswordError } from './WeakPasswordError';
 export { InvalidDateRangeError } from './InvalidDateRangeError';

@@ -9,11 +9,11 @@
 export class DomainError extends Error {
   /**
    * Error code for programmatic handling
-   * Defaults to the class name (e.g., 'ValidationError', 'InvalidEmailFormatError')
+   * Defaults to the class name (e.g., 'InvalidInputError', 'InvalidEmailFormatError')
    */
   public readonly code: string;
 
-  constructor(message: string, code?: string) {
+  constructor (message: string, code?: string) {
     super(message);
     this.name = this.constructor.name;
     this.code = code || this.constructor.name;

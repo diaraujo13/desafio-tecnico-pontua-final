@@ -1,9 +1,9 @@
-import { ValidationError } from './ValidationError';
+import { DomainError } from './DomainError';
 
 /**
  * Error thrown when a date range is invalid (start date >= end date)
  */
-export class InvalidDateRangeError extends ValidationError {
+export class InvalidDateRangeError extends DomainError {
   constructor(startDate?: Date, endDate?: Date) {
     let message = 'Invalid date range: start date must be before end date';
 
