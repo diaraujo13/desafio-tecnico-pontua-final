@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NavigationContainer } from '@react-navigation/native';
 import { ManagerDashboardScreen } from '../../../../src/presentation/screens/ManagerDashboardScreen';
 import { useAuth } from '../../../../src/presentation/hooks/useAuth';
-import { useManagerDashboard } from '../../../../src/presentation/hooks/vacations/useManagerDashboard';
+import { usePendingVacations } from '../../../../src/presentation/hooks/vacations/usePendingVacations';
 import { ThemeProvider } from '../../../../src/presentation/theme/ThemeProvider';
 import { VacationRequest } from '../../../../src/domain/entities/VacationRequest';
 import { VacationStatus } from '../../../../src/domain/enums/VacationStatus';
@@ -12,10 +12,12 @@ import { UserRole } from '../../../../src/domain/enums/UserRole';
 
 // Mock hooks
 jest.mock('../../../../src/presentation/hooks/useAuth');
-jest.mock('../../../../src/presentation/hooks/vacations/useManagerDashboard');
+jest.mock('../../../../src/presentation/hooks/vacations/usePendingVacations');
 
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-const mockUseManagerDashboard = useManagerDashboard as jest.MockedFunction<typeof useManagerDashboard>;
+const mockUsePendingVacations = usePendingVacations as jest.MockedFunction<
+  typeof usePendingVacations
+>;
 
 const createTestWrapper = () => {
   const queryClient = new QueryClient({
@@ -25,13 +27,15 @@ const createTestWrapper = () => {
     },
   });
 
-  return ({ children }: { children: React.ReactNode }) => (
+  const TestWrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <NavigationContainer>{children}</NavigationContainer>
       </ThemeProvider>
     </QueryClientProvider>
   );
+
+  return TestWrapper;
 };
 
 describe('ManagerDashboardScreen', () => {
@@ -53,9 +57,10 @@ describe('ManagerDashboardScreen', () => {
   });
 
   it('should render loading state', () => {
-    mockUseManagerDashboard.mockReturnValue({
+    mockUsePendingVacations.mockReturnValue({
       data: [],
       isLoading: true,
+      isFetching: true,
       error: null,
       refetch: jest.fn(),
     });
@@ -66,9 +71,10 @@ describe('ManagerDashboardScreen', () => {
   });
 
   it('should render empty state when no pending requests', async () => {
-    mockUseManagerDashboard.mockReturnValue({
+    mockUsePendingVacations.mockReturnValue({
       data: [],
       isLoading: false,
+      isFetching: false,
       error: null,
       refetch: jest.fn(),
     });
@@ -93,9 +99,10 @@ describe('ManagerDashboardScreen', () => {
       } as VacationRequest,
     ];
 
-    mockUseManagerDashboard.mockReturnValue({
+    mockUsePendingVacations.mockReturnValue({
       data: mockVacations,
       isLoading: false,
+      isFetching: false,
       error: null,
       refetch: jest.fn(),
     });
@@ -108,9 +115,10 @@ describe('ManagerDashboardScreen', () => {
   });
 
   it('should display error message when error occurs', async () => {
-    mockUseManagerDashboard.mockReturnValue({
+    mockUsePendingVacations.mockReturnValue({
       data: [],
       isLoading: false,
+      isFetching: false,
       error: 'Failed to load pending requests',
       refetch: jest.fn(),
     });
@@ -122,4 +130,3 @@ describe('ManagerDashboardScreen', () => {
     });
   });
 });
-
