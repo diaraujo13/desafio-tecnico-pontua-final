@@ -6,9 +6,8 @@ module.exports = {
     'plugin:react-hooks/recommended',
     'plugin:react-native/all',
     'plugin:testing-library/react',
-    'prettier',
   ],
-  plugins: ['react', 'react-hooks', 'react-native', 'testing-library', 'prettier'],
+  plugins: ['react', 'react-hooks', 'react-native', 'testing-library'],
   parserOptions: {
     ecmaFeatures: {
       jsx: true,
@@ -21,7 +20,6 @@ module.exports = {
     jest: true,
   },
   rules: {
-    'prettier/prettier': 'error',
     'react/react-in-jsx-scope': 'off',
     'react-native/no-inline-styles': 'warn',
     'react-native/no-unused-styles': 'warn',
