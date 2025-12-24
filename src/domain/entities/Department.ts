@@ -11,7 +11,7 @@ export class Department extends Entity<Department> {
   private readonly _createdAt: Date;
   private readonly _updatedAt: Date;
 
-  private constructor(
+  private constructor (
     id: string,
     name: string,
     managerId: string | null,
@@ -29,9 +29,9 @@ export class Department extends Entity<Department> {
    * Factory method to create a new Department
    * @param props - Department properties
    * @returns A new Department instance
-   * @throws ValidationError if name is empty
+   * @throws DepartmentNameRequiredError if name is empty
    */
-  static create(props: {
+  static create (props: {
     id: string;
     name: string;
     managerId?: string | null;
@@ -55,19 +55,19 @@ export class Department extends Entity<Department> {
     );
   }
 
-  get name(): string {
+  get name (): string {
     return this._name;
   }
 
-  get managerId(): string | null {
+  get managerId (): string | null {
     return this._managerId;
   }
 
-  get createdAt(): Date {
+  get createdAt (): Date {
     return new Date(this._createdAt);
   }
 
-  get updatedAt(): Date {
+  get updatedAt (): Date {
     return new Date(this._updatedAt);
   }
 }
