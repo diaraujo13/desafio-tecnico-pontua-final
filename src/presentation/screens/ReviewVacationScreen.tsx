@@ -14,26 +14,9 @@ import { VacationStatus } from '../../domain/enums/VacationStatus';
 import { useTheme } from '../theme/ThemeProvider';
 import type { AppStackParamList } from '../navigation/types';
 import type { RouteProp } from '@react-navigation/native';
+import { formatDateToPTBR, formatDateTimeToPTBR } from '../utils/dateFormatters';
 
 type ReviewVacationRouteProp = RouteProp<AppStackParamList, 'ReviewVacation'>;
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-}
-
-function formatDateTime(date: Date): string {
-  return date.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 function getStatusLabel(status: VacationStatus): string {
   switch (status) {
@@ -172,7 +155,7 @@ export function ReviewVacationScreen() {
               Período
             </Text>
             <Text variant="body" style={styles.periodText}>
-              {formatDate(data.startDate)} → {formatDate(data.endDate)}
+              {formatDateToPTBR(data.startDate)} → {formatDateToPTBR(data.endDate)}
             </Text>
             <Text variant="caption" style={styles.daysText}>
               {daysRequested} {daysRequested === 1 ? 'dia' : 'dias'} solicitados
@@ -223,14 +206,14 @@ export function ReviewVacationScreen() {
               Informações Adicionais
             </Text>
             <Text variant="caption" style={styles.infoText}>
-              Criada em: {formatDateTime(data.createdAt)}
+              Criada em: {formatDateTimeToPTBR(data.createdAt)}
             </Text>
             <Text variant="caption" style={styles.infoText}>
-              Atualizada em: {formatDateTime(data.updatedAt)}
+              Atualizada em: {formatDateTimeToPTBR(data.updatedAt)}
             </Text>
             {data.reviewedAt && (
               <Text variant="caption" style={styles.infoText}>
-                Analisada em: {formatDateTime(data.reviewedAt)}
+                Analisada em: {formatDateTimeToPTBR(data.reviewedAt)}
               </Text>
             )}
           </Card.Content>
