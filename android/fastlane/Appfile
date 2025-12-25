@@ -1,0 +1,9 @@
+# Appfile for Android Fastlane
+# Configuration specific to Android builds
+
+app_identifier("com.feriascontroltemp")
+
+
+
+
+

@@ -1,0 +1,62 @@
+# Fastfile for Android
+# Handles Android-specific build and version management
+
+# Lane to build debug APK
+lane :build_debug do
+  UI.message("🤖 Building Android Debug APK...")
+  
+  gradle(
+    task: 'assembleDebug',
+    project_dir: File.join(__dir__, '..'),
+  )
+  
+  UI.success("✅ Android Debug APK built successfully")
+  UI.message("📦 Output: android/app/build/outputs/apk/debug/app-debug.apk")
+end
+
+# Lane to build release AAB
+lane :build_release do
+  UI.message("🤖 Building Android Release AAB...")
+  
+  gradle(
+    task: 'bundleRelease',
+    project_dir: File.join(__dir__, '..'),
+  )
+  
+  UI.success("✅ Android Release AAB built successfully")
+  UI.message("📦 Output: android/app/build/outputs/bundle/release/app-release.aab")
+end
+
+# Lane to increment version
+lane :increment_version do |options|
+  version = options[:version]
+  
+  if version.nil?
+    UI.user_error!("❌ Version parameter is required. Usage: fastlane increment_version version:1.2.3")
+  end
+  
+  UI.message("🔄 Updating Android version to #{version}...")
+  
+  # Read current build.gradle
+  build_gradle_path = File.join(__dir__, '..', 'app', 'build.gradle')
+  build_gradle_content = File.read(build_gradle_path)
+  
+  # Extract current versionCode
+  version_code_match = build_gradle_content.match(/versionCode\s+(\d+)/)
+  current_version_code = version_code_match ? version_code_match[1].to_i : 1
+  new_version_code = current_version_code + 1
+  
+  # Update versionName
+  build_gradle_content.gsub!(/versionName\s+"[^"]+"/, "versionName \"#{version}\"")
+  
+  # Update versionCode
+  build_gradle_content.gsub!(/versionCode\s+\d+/, "versionCode #{new_version_code}")
+  
+  # Write back to file
+  File.write(build_gradle_path, build_gradle_content)
+  
+  UI.success("✅ Android version updated:")
+  UI.message("   versionName: #{version}")
+  UI.message("   versionCode: #{current_version_code} → #{new_version_code}")
+end
+
