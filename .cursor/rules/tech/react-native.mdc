@@ -747,6 +747,9 @@ Then('devo ver minha solicitação na lista com status {string}', async (status:
 ## Fastlane
 
 ### Fastlane Setup
+
+**Attention**: Replace {YOUR_PROJECT_NAME} with the actual project name.
+
 ```ruby
 # fastlane/Fastfile
 default_platform(:ios)
@@ -754,15 +757,15 @@ default_platform(:ios)
 platform :ios do
   desc "Build and deploy to TestFlight"
   lane :beta do
-    increment_build_number(xcodeproj: "YourApp.xcodeproj")
-    build_app(scheme: "YourApp", export_method: "app-store")
+    increment_build_number(xcodeproj: "{YOUR_PROJECT_NAME}.xcodeproj")
+    build_app(scheme: "{YOUR_PROJECT_NAME}", export_method: "app-store")
     upload_to_testflight(skip_waiting_for_build_processing: true)
     slack(message: "iOS Beta deployed successfully!")
   end
 
   desc "Run tests"
   lane :test do
-    run_tests(scheme: "YourApp", devices: ["iPhone 15"])
+    run_tests(scheme: "{YOUR_PROJECT_NAME}", devices: ["iPhone 15"])
   end
 end
 
