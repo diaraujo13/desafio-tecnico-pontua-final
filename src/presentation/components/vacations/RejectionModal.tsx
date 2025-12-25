@@ -158,6 +158,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
+    elevation: 5,
     margin: 24,
     padding: 24,
     shadowColor: '#000',
@@ -167,7 +168,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
   },
   description: {
     marginBottom: 16,
