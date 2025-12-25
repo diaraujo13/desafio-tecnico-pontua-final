@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, Platform, Pressable } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -10,6 +10,7 @@ import { Text } from '../components/ui/Text';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { useTheme } from '../theme/ThemeProvider';
+import { formatDateToPTBR } from '../utils/dateFormatters';
 
 const requestVacationSchema = z.object({
   startDate: z.date({ required_error: 'Data de início é obrigatória' }),
@@ -19,13 +20,9 @@ const requestVacationSchema = z.object({
 
 type RequestVacationFormValues = z.infer<typeof requestVacationSchema>;
 
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
-
 export function RequestVacationScreen() {
   const { user } = useAuth();
-  const { requestVacation, isLoading, error } = useRequestVacation();
+  const { requestVacation, isLoading, error, reset: resetMutation } = useRequestVacation();
   const { colors } = useTheme();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -37,7 +34,6 @@ export function RequestVacationScreen() {
     reset,
     formState: { errors },
     setValue,
-    watch,
   } = useForm<RequestVacationFormValues>({
     resolver: zodResolver(requestVacationSchema),
     defaultValues: {
@@ -47,7 +43,8 @@ export function RequestVacationScreen() {
     },
   });
 
-  const startDate = watch('startDate');
+  // Use useWatch hook to observe startDate value for minimumDate constraint
+  const startDate = useWatch({ control, name: 'startDate' });
 
   const onSubmit = useCallback(
     async (values: RequestVacationFormValues) => {
@@ -55,7 +52,9 @@ export function RequestVacationScreen() {
         return;
       }
 
+      // Clear previous messages and errors before new submission
       setSuccessMessage(null);
+      resetMutation();
 
       const result = await requestVacation({
         requesterId: user.id,
@@ -68,13 +67,14 @@ export function RequestVacationScreen() {
         setSuccessMessage('Solicitação enviada com sucesso.');
         reset();
       }
+      // Error is automatically handled by the hook and displayed via the error state
     },
-    [requestVacation, reset, user],
+    [requestVacation, reset, resetMutation, user],
   );
 
   return (
-    <View style={styles.container}>
-      <Text variant="h2" style={styles.title}>
+    <View style={styles.container} testID="RequestVacationScreen_Container">
+      <Text variant="h2" style={styles.title} testID="RequestVacationScreen_Title">
         Solicitar Férias
       </Text>
 
@@ -91,7 +91,7 @@ export function RequestVacationScreen() {
               style={[styles.dateButton, { borderColor: colors.border }]}
               testID="RequestVacationScreen_StartDateButton"
             >
-              <Text variant="body">{formatDate(value)}</Text>
+              <Text variant="body">{formatDateToPTBR(value)}</Text>
             </Pressable>
             {errors.startDate && (
               <Text variant="caption" style={[styles.errorText, { color: colors.error }]}>
@@ -131,7 +131,7 @@ export function RequestVacationScreen() {
               style={[styles.dateButton, { borderColor: colors.border }]}
               testID="RequestVacationScreen_EndDateButton"
             >
-              <Text variant="body">{formatDate(value)}</Text>
+              <Text variant="body">{formatDateToPTBR(value)}</Text>
             </Pressable>
             {errors.endDate && (
               <Text variant="caption" style={[styles.errorText, { color: colors.error }]}>
@@ -174,13 +174,13 @@ export function RequestVacationScreen() {
       />
 
       {error && (
-        <Text variant="caption" style={styles.errorText}>
+        <Text variant="caption" style={[styles.errorText, { color: colors.error }]} testID="RequestVacationScreen_ErrorText">
           {error}
         </Text>
       )}
 
       {successMessage && (
-        <Text variant="caption" style={styles.successText}>
+        <Text variant="caption" style={styles.successText} testID="RequestVacationScreen_SuccessText">
           {successMessage}
         </Text>
       )}
@@ -191,6 +191,7 @@ export function RequestVacationScreen() {
         loading={isLoading}
         onPress={handleSubmit(onSubmit)}
         style={styles.submitButton}
+        testID="RequestVacationScreen_SubmitButton"
       />
     </View>
   );
