@@ -12,10 +12,7 @@ import type { VacationRequest } from '../../domain/entities/VacationRequest';
 import { VacationStatus } from '../../domain/enums/VacationStatus';
 import type { AppStackParamList } from '../navigation/types';
 import { useTheme } from '../theme/ThemeProvider';
-
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
+import { formatDateToPTBR } from '../utils/dateFormatters';
 
 function getStatusLabel(status: VacationStatus): string {
   switch (status) {
@@ -40,7 +37,7 @@ interface PendingVacationItemProps {
 
 function PendingVacationItem({ vacation }: PendingVacationItemProps) {
   const navigation = useNavigation<NavigationProp>();
-  const period = `${formatDate(vacation.startDate)} → ${formatDate(vacation.endDate)}`;
+  const period = `${formatDateToPTBR(vacation.startDate)} → ${formatDateToPTBR(vacation.endDate)}`;
   const statusLabel = getStatusLabel(vacation.status);
 
   const handlePress = () => {
@@ -48,17 +45,17 @@ function PendingVacationItem({ vacation }: PendingVacationItemProps) {
   };
 
   return (
-    <Pressable onPress={handlePress}>
+    <Pressable onPress={handlePress} testID={`ManagerDashboardScreen_VacationItem_${vacation.id}`}>
       <Card style={styles.card}>
         <Card.Content>
-          <Text variant="label" style={styles.cardTitle}>
+          <Text variant="label" style={styles.cardTitle} testID={`ManagerDashboardScreen_VacationItem_${vacation.id}_Period`}>
             {period}
           </Text>
-          <Text variant="bodySmall" style={styles.cardSubtitle}>
+          <Text variant="bodySmall" style={styles.cardSubtitle} testID={`ManagerDashboardScreen_VacationItem_${vacation.id}_Status`}>
             Status: {statusLabel}
           </Text>
-          <Text variant="caption" style={styles.cardCaption}>
-            Criada em: {formatDate(vacation.createdAt)}
+          <Text variant="caption" style={styles.cardCaption} testID={`ManagerDashboardScreen_VacationItem_${vacation.id}_CreatedAt`}>
+            Criada em: {formatDateToPTBR(vacation.createdAt)}
           </Text>
         </Card.Content>
       </Card>
@@ -84,32 +81,33 @@ export function ManagerDashboardScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <Text variant="h2" style={styles.title}>
+      <View style={styles.container} testID="ManagerDashboardScreen_Container">
+        <Text variant="h2" style={styles.title} testID="ManagerDashboardScreen_Title">
           Pendências de Aprovação
         </Text>
-        <ListSkeleton count={3} />
+        <ListSkeleton count={3} testID="ManagerDashboardScreen_LoadingSkeleton" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text variant="h2" style={styles.title}>
+    <View style={styles.container} testID="ManagerDashboardScreen_Container">
+      <Text variant="h2" style={styles.title} testID="ManagerDashboardScreen_Title">
         Pendências de Aprovação
       </Text>
 
       {error && (
-        <Text variant="caption" style={[styles.errorText, { color: theme.colors.error }]}>
+        <Text variant="caption" style={[styles.errorText, { color: theme.colors.error }]} testID="ManagerDashboardScreen_ErrorText">
           {error}
         </Text>
       )}
 
       {isEmpty && (
-        <View style={styles.emptyContainer}>
+        <View style={styles.emptyContainer} testID="ManagerDashboardScreen_EmptyState">
           <EmptyState
             title="Nenhuma solicitação pendente"
             description="Não há solicitações de férias aguardando sua aprovação no momento."
+            testID="ManagerDashboardScreen_EmptyStateComponent"
           />
         </View>
       )}
