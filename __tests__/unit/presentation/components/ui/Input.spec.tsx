@@ -14,25 +14,19 @@ describe('Input Component', () => {
   });
 
   it('should render input with label', () => {
-    renderWithTheme(
-      <Input label="Email" placeholder="Enter email" />
-    );
+    renderWithTheme(<Input label="Email" placeholder="Enter email" />);
     expect(screen.getByText('Email')).toBeTruthy();
     expect(screen.getByPlaceholderText('Enter email')).toBeTruthy();
   });
 
   it('should display error message when provided', () => {
-    renderWithTheme(
-      <Input label="Email" errorMessage="Invalid email format" />
-    );
+    renderWithTheme(<Input label="Email" errorMessage="Invalid email format" />);
     expect(screen.getByText('Invalid email format')).toBeTruthy();
   });
 
   it('should handle text input', () => {
     const onChangeText = jest.fn();
-    renderWithTheme(
-      <Input placeholder="Enter text" onChangeText={onChangeText} />
-    );
+    renderWithTheme(<Input placeholder="Enter text" onChangeText={onChangeText} />);
 
     const input = screen.getByPlaceholderText('Enter text');
     fireEvent.changeText(input, 'Hello');
@@ -41,9 +35,7 @@ describe('Input Component', () => {
 
   it('should handle focus events', () => {
     const onFocus = jest.fn();
-    renderWithTheme(
-      <Input placeholder="Enter text" onFocus={onFocus} />
-    );
+    renderWithTheme(<Input placeholder="Enter text" onFocus={onFocus} />);
 
     const input = screen.getByPlaceholderText('Enter text');
     fireEvent(input, 'focus');
@@ -52,9 +44,7 @@ describe('Input Component', () => {
 
   it('should handle blur events', () => {
     const onBlur = jest.fn();
-    renderWithTheme(
-      <Input placeholder="Enter text" onBlur={onBlur} />
-    );
+    renderWithTheme(<Input placeholder="Enter text" onBlur={onBlur} />);
 
     const input = screen.getByPlaceholderText('Enter text');
     fireEvent(input, 'blur');
@@ -63,20 +53,13 @@ describe('Input Component', () => {
 
   it('should render with left icon', () => {
     const LeftIcon = () => <></>;
-    renderWithTheme(
-      <Input placeholder="Enter text" leftIcon={<LeftIcon />} />
-    );
+    renderWithTheme(<Input placeholder="Enter text" leftIcon={<LeftIcon />} />);
     expect(screen.getByPlaceholderText('Enter text')).toBeTruthy();
   });
 
   it('should render with right icon', () => {
     const RightIcon = () => <></>;
-    renderWithTheme(
-      <Input placeholder="Enter text" rightIcon={<RightIcon />} />
-    );
+    renderWithTheme(<Input placeholder="Enter text" rightIcon={<RightIcon />} />);
     expect(screen.getByPlaceholderText('Enter text')).toBeTruthy();
   });
 });
-
-
-

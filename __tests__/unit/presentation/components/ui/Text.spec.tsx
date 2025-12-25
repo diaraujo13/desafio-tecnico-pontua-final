@@ -57,6 +57,3 @@ describe('Text Component', () => {
     console.error = originalError;
   });
 });
-
-
-

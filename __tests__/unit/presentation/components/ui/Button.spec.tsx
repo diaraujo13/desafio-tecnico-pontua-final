@@ -64,6 +64,3 @@ describe('Button Component', () => {
     expect(screen.getByText('Ghost')).toBeTruthy();
   });
 });
-
-
-

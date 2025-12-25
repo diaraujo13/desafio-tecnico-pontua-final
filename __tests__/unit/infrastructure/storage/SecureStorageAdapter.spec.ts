@@ -93,7 +93,7 @@ describe('SecureStorageAdapter', () => {
         JSON.stringify('test-string'),
         {
           service: 'string-key',
-        }
+        },
       );
       expect(Keychain.setGenericPassword).toHaveBeenCalledWith('number-key', JSON.stringify(42), {
         service: 'number-key',
@@ -105,7 +105,7 @@ describe('SecureStorageAdapter', () => {
       (Keychain.setGenericPassword as jest.Mock).mockRejectedValue(error);
 
       await expect(adapter.set('test-key', 'value')).rejects.toThrow(
-        'Failed to store secure value for key "test-key"'
+        'Failed to store secure value for key "test-key"',
       );
     });
   });
@@ -124,7 +124,7 @@ describe('SecureStorageAdapter', () => {
       (Keychain.resetGenericPassword as jest.Mock).mockRejectedValue(error);
 
       await expect(adapter.remove('test-key')).rejects.toThrow(
-        'Failed to remove secure value for key "test-key"'
+        'Failed to remove secure value for key "test-key"',
       );
     });
   });
@@ -155,6 +155,3 @@ describe('SecureStorageAdapter', () => {
     });
   });
 });
-
-
-

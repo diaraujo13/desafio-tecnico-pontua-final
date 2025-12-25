@@ -17,7 +17,7 @@ const renderWithProviders = (component: React.ReactElement) => {
   return render(
     <ThemeProvider>
       <AuthProvider>{component}</AuthProvider>
-    </ThemeProvider>
+    </ThemeProvider>,
   );
 };
 
@@ -157,4 +157,3 @@ describe('LoginScreen Integration', () => {
     });
   });
 });
-

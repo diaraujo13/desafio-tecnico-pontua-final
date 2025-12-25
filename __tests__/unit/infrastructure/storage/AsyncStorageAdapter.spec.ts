@@ -74,7 +74,7 @@ describe('AsyncStorageAdapter', () => {
 
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         'string-key',
-        JSON.stringify('test-string')
+        JSON.stringify('test-string'),
       );
       expect(AsyncStorage.setItem).toHaveBeenCalledWith('number-key', JSON.stringify(42));
       expect(AsyncStorage.setItem).toHaveBeenCalledWith('boolean-key', JSON.stringify(true));
@@ -85,7 +85,7 @@ describe('AsyncStorageAdapter', () => {
       (AsyncStorage.setItem as jest.Mock).mockRejectedValue(error);
 
       await expect(adapter.set('test-key', 'value')).rejects.toThrow(
-        'Failed to store value for key "test-key"'
+        'Failed to store value for key "test-key"',
       );
     });
   });
@@ -104,7 +104,7 @@ describe('AsyncStorageAdapter', () => {
       (AsyncStorage.removeItem as jest.Mock).mockRejectedValue(error);
 
       await expect(adapter.remove('test-key')).rejects.toThrow(
-        'Failed to remove value for key "test-key"'
+        'Failed to remove value for key "test-key"',
       );
     });
   });
@@ -145,6 +145,3 @@ describe('AsyncStorageAdapter', () => {
     });
   });
 });
-
-
-

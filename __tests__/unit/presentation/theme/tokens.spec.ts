@@ -71,14 +71,14 @@ describe('Design Tokens', () => {
 
   describe('token values', () => {
     it('should have valid spacing values (positive numbers)', () => {
-      Object.values(tokens.spacing).forEach(value => {
+      Object.values(tokens.spacing).forEach((value) => {
         expect(typeof value).toBe('number');
         expect(value).toBeGreaterThan(0);
       });
     });
 
     it('should have valid borderRadius values', () => {
-      Object.values(tokens.borderRadius).forEach(value => {
+      Object.values(tokens.borderRadius).forEach((value) => {
         expect(typeof value).toBe('number');
         expect(value).toBeGreaterThanOrEqual(0);
       });
@@ -95,6 +95,3 @@ describe('Design Tokens', () => {
     });
   });
 });
-
-
-

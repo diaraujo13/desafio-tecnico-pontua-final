@@ -13,13 +13,10 @@ jest.mock('../../../../src/presentation/hooks/useAuth');
 jest.mock('../../../../src/presentation/hooks/vacations/useRequestVacation');
 
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-const mockUseRequestVacation = useRequestVacation as jest.MockedFunction<
-  typeof useRequestVacation
->;
+const mockUseRequestVacation = useRequestVacation as jest.MockedFunction<typeof useRequestVacation>;
 
 // Mock DateTimePicker
 jest.mock('@react-native-community/datetimepicker', () => {
-  const React = require('react');
   const { View, Text, Pressable } = require('react-native');
   return function DateTimePicker({ value, onChange, testID }: any) {
     return (
@@ -198,4 +195,3 @@ describe('RequestVacationScreen Integration', () => {
     });
   });
 });
-

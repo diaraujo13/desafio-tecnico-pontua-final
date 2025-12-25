@@ -264,11 +264,8 @@ describe('ApiClient', () => {
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 
       await expect(client.post('/test', { data: 'test' })).rejects.toThrow(
-        'HTTP error! status: 404'
+        'HTTP error! status: 404',
       );
     });
   });
 });
-
-
-
