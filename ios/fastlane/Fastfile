@@ -1,0 +1,87 @@
+# Fastfile for iOS
+# Handles iOS-specific build and version management
+
+require 'xcodeproj'
+
+# Lane to build debug
+lane :build_debug do
+  UI.message("🍎 Building iOS Debug...")
+  
+  workspace_path = File.join(__dir__, '..', 'FeriasControlTemp.xcworkspace')
+  
+  build_app(
+    workspace: workspace_path,
+    scheme: 'FeriasControlTemp',
+    configuration: 'Debug',
+    export_method: 'development',
+    skip_package_ipa: true,
+  )
+  
+  UI.success("✅ iOS Debug build completed")
+end
+
+# Lane to build release
+lane :build_release do
+  UI.message("🍎 Building iOS Release...")
+  
+  workspace_path = File.join(__dir__, '..', 'FeriasControlTemp.xcworkspace')
+  
+  build_app(
+    workspace: workspace_path,
+    scheme: 'FeriasControlTemp',
+    configuration: 'Release',
+    export_method: 'app-store',
+    skip_package_ipa: false,
+  )
+  
+  UI.success("✅ iOS Release IPA built successfully")
+  UI.message("📦 Output: ~/Library/Developer/Xcode/Archives/")
+end
+
+# Lane to increment version
+lane :increment_version do |options|
+  version = options[:version]
+  
+  if version.nil?
+    UI.user_error!("❌ Version parameter is required. Usage: fastlane increment_version version:1.2.3")
+  end
+  
+  UI.message("🔄 Updating iOS version to #{version}...")
+  
+  project_path = File.join(__dir__, '..', 'FeriasControlTemp.xcodeproj')
+  project = Xcodeproj::Project.open(project_path)
+  
+  # Find the main target
+  target = project.targets.find { |t| t.name == 'FeriasControlTemp' }
+  
+  if target.nil?
+    UI.user_error!("❌ Could not find FeriasControlTemp target in Xcode project")
+  end
+  
+  # Get current build number
+  current_build_number = nil
+  project.build_configurations.each do |config|
+    build_number = config.build_settings['CURRENT_PROJECT_VERSION']
+    if build_number && build_number != '$(CURRENT_PROJECT_VERSION)'
+      current_build_number = build_number.to_i
+      break
+    end
+  end
+  
+  current_build_number ||= 1
+  new_build_number = current_build_number + 1
+  
+  # Update MARKETING_VERSION and CURRENT_PROJECT_VERSION for all configurations
+  project.build_configurations.each do |config|
+    config.build_settings['MARKETING_VERSION'] = version
+    config.build_settings['CURRENT_PROJECT_VERSION'] = new_build_number.to_s
+  end
+  
+  # Save the project
+  project.save
+  
+  UI.success("✅ iOS version updated:")
+  UI.message("   MARKETING_VERSION (CFBundleShortVersionString): #{version}")
+  UI.message("   CURRENT_PROJECT_VERSION (CFBundleVersion): #{current_build_number} → #{new_build_number}")
+end
+

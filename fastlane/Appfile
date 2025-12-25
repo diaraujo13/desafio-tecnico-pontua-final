@@ -2,7 +2,7 @@
 # This file contains configuration that is shared across all lanes
 
 # App identifier (bundle identifier)
-app_identifier("com.feriascontroltemp")
+app_identifier("com.feriascontrol")
 
 # Apple Developer Team ID (if needed for iOS)
 # apple_team_id("YOUR_TEAM_ID")

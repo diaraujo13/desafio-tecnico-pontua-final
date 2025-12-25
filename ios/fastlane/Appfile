@@ -1,0 +1,13 @@
+# Appfile for iOS Fastlane
+# Configuration specific to iOS builds
+
+app_identifier("com.feriascontroltemp")
+
+# Uncomment and set if you have an Apple Developer account
+# apple_team_id("YOUR_TEAM_ID")
+# apple_id("your-email@example.com")
+
+
+
+
+
