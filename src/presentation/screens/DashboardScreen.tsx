@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Text } from '../components/ui/Text';
 import { Button } from '../components/ui/Button';
 import { UserRole } from '../../domain/enums/UserRole';
+import { getRoleLabel } from '../utils/roleLabels';
 
 export function DashboardScreen() {
   const { user, logout, isAuthLoading } = useAuth();
@@ -33,12 +34,12 @@ export function DashboardScreen() {
   }, [navigation]);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="DashboardScreen_Container">
       <Text variant="h2" style={styles.title}>
         Olá, {user?.name ?? 'colaborador'}
       </Text>
       <Text variant="bodySmall" style={styles.subtitle}>
-        Perfil: {user?.role ?? 'N/A'}
+        Perfil: {getRoleLabel(user?.role as UserRole)}
       </Text>
 
       <Button
@@ -46,12 +47,14 @@ export function DashboardScreen() {
         variant="primary"
         onPress={handleRequestVacation}
         style={styles.requestVacationButton}
+        testID="DashboardScreen_RequestVacationButton"
       />
       <Button
         label="Ver histórico"
         variant="secondary"
         onPress={handleViewHistory}
         style={styles.historyButton}
+        testID="DashboardScreen_ViewHistoryButton"
       />
       {isManagerOrAdmin && (
         <Button
@@ -59,6 +62,7 @@ export function DashboardScreen() {
           variant="secondary"
           onPress={handleViewPending}
           style={styles.pendingButton}
+          testID="DashboardScreen_ViewPendingButton"
         />
       )}
       <Button
@@ -67,6 +71,7 @@ export function DashboardScreen() {
         onPress={handleLogout}
         loading={isAuthLoading}
         style={styles.logoutButton}
+        testID="DashboardScreen_LogoutButton"
       />
     </View>
   );
