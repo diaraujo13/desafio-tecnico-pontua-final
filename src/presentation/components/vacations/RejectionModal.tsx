@@ -62,8 +62,10 @@ export function RejectionModal({
   // Reset state when modal closes
   useEffect(() => {
     if (!visible) {
-      setReason('');
-      setError(null);
+      setTimeout(() => {
+        setReason('');
+        setError(null);
+      }, 0);
     }
   }, [visible]);
 
