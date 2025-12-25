@@ -98,8 +98,8 @@ android {
         applicationId "com.feriascontrol"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode VERSION_CODE.toInteger()
-        versionName VERSION_NAME
+        versionCode 6
+        versionName 1.0.1
     }
     signingConfigs {
         debug {

@@ -1,0 +1,26 @@
+# Changelog
+
+## v1.0.1+6
+
+- refactor: streamline release_core lane and update README (b365d16)
+- feat: add Fastlane plugin support and update build lanes (c2741d7)
+- test: adiciona end-to-end test steps basic structure (ef6872f)
+- chore: update Dockerfile configurations and dependencies (d890138)
+- feat: add initial iOS project structure c/ LaunchScreen storyboard and asset catalog (66d5aac)
+- refactor: prettier format (8f726ca)
+- fix: Corrige versão do projeto (ba2eb35)
+- feat: Habilita e2e (79f3072)
+- feat: Configura fastlane e bump version ios (276e03b)
+- feat: Configura fastlane e bump version android (5816833)
+- fix: Corrige formatação e remove linhas em branco desnecessárias nos testes (c0208d8)
+- chore: Remove mock desnecessário do datetimepicker (6831495)
+- fix: Remove comentários desnecessários do App.tsx (4a01b93)
+- feat: Adiciona configurações iniciais do Taskmaster (a3ffa40)
+- feat: Adiciona .gitignore para ignorar arquivos e diretórios desnecessários (cc0bf20)
+- feat: Adiciona workflow para build de release android com docker (825fffc)
+- feat: Adiciona workflow de validação de pull requests (f742fb4)
+- feat: Adiciona arquivos de configuração inicial do projeto (05a2a7e)
+- feat: add new commands and configuration for task management (22de53e)
+- refactor(tests): remove mock global do DateTimePicker do jest.setup (526d05a)
+- fix(docker): corrige Dockerfile.android para usar Node.js 20.19.4 e remove script inexistente (73c1bc2)
+- feat: altera comando de build para gerar APK em formato tar (18a35b3)

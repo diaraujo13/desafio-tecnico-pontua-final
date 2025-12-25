@@ -1,3 +1,5 @@
+require "json"
+
 module Versioning
   def self.version
     JSON.parse(File.read("../package.json"))["version"]

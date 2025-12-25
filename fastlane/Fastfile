@@ -7,11 +7,13 @@ default_platform :ios
 XCODEPROJ = "ios/FeriasControlTemp.xcodeproj"
 SCHEME = "FeriasControlTemp"
 
+GRADLE_FILE = "./android/app/build.gradle"
+
 # -------------------------
 # CORE RELEASE LOGIC
 # -------------------------
 lane :release_core do
-  ensure_git_status_clean
+  # ensure_git_status_clean
 
   # 1️⃣ iOS versioning (FASTLANE DSL — correto aqui)
   increment_build_number(xcodeproj: XCODEPROJ)
@@ -24,10 +26,10 @@ lane :release_core do
   # 2️⃣ Sync Android versionCode with iOS build number
   build_number = get_build_number(xcodeproj: XCODEPROJ)
 
-  Android.set_versions(
-    version_name: Versioning.version,
-    version_code: build_number
-  )
+  android_set_version_code(version_code: build_number, gradle_file: GRADLE_FILE)	
+
+  android_set_version_name(version_name: Versioning.version, gradle_file: GRADLE_FILE)
+
 
   # 3️⃣ Tag
   tag = "v#{Versioning.version}+#{build_number}"
@@ -40,11 +42,12 @@ lane :release_core do
 
   # 5️⃣ Commit + tag + push
   commit_version_bump(
-    message: tag,
+    message: "release: {tag} 🚀",
     xcodeproj: XCODEPROJ,
     include: [
       "CHANGELOG.md",
-      "android/app/build.gradle"
+      XCODEPROJ,
+      GRADLE_FILE,
     ]
   )
 
@@ -66,7 +69,14 @@ end
 
 lane :build_android do
   UI.message("--- Building Android 🤖")
-  Android.build
+  gradle(
+    task: "assembleRelease",
+    version_name: Versioning.version,
+    version_code: get_build_number(xcodeproj: XCODEPROJ),
+    
+    build_type: "Release"
+  )
+
   UI.message("--- Android built successfully 🎉")
 end
 
