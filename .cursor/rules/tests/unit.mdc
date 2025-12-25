@@ -1,0 +1,217 @@
+---
+description: Unit tests decisions for the project
+globs: __tests__/unit/**/*.spec.ts
+alwaysApply: true
+---
+
+# Unit Tests
+São testes que verificam o comportamento de uma função ou componente isoladamente.
+
+## Definição Formal
+Um **Teste Unitário** valida **uma única unidade lógica**, de forma:
+- Determinística
+- Isolada
+- Independente de UI, navegação ou infraestrutura real
+
+**Teste unitário NÃO renderiza telas.**
+
+## Escopo Permitido para Testes Unitários
+### Testes Unitários DEVEM cobrir:
+#### Domain Layer
+- Entities
+- Value Objects
+- Domain invariants
+- Permission helpers
+- Domain Errors
+#### Application Layer
+- Use Cases
+- Fluxos válidos e inválidos
+- Regras de permissão
+- Retornos `Result.ok` e `Result.fail`
+- Propagação correta de `DomainError`
+#### Presentation (parcial)
+- Hooks **sem renderização de UI**
+- Helpers puros (formatadores, mappers)
+- Funções determinísticas
+
+**✅ Allowed:**
+- Testing Use Cases
+- Testing hooks logic (without UI)
+- Testing formatters, mappers, helpers
+- ✅ Unit tests use `renderHook` for hooks
+- ✅ Unit tests do NOT render JSX
+- ✅ No production code should be changed to satisfy tests
+
+## Para que servem?
+Servem para:
+- Testar funções e componentes isoladamente
+- Testar lógica de negócio
+- Testar validadores de formulários
+
+---
+
+## Escopo Proibido (NÃO NEGOCIÁVEL)
+### Testes unitários **NÃO PODEM**:
+- Renderizar `Screen` ou `Component`
+- Usar `render()` do React Testing Library
+- Usar `NavigationContainer`
+- Usar ThemeProvider, SafeAreaProvider ou similares
+- Acessar JSX ou layout
+- Testar textos da UI
+- Testar navegação
+- Testar efeitos visuais
+- Testar integração entre múltiplas camadas
+
+#### Se renderiza JSX → **NÃO é unit test**.
+
+### **🚫 Unit tests MUST:**
+- NOT render React Native components
+- NOT use NavigationContainer
+- NOT depend on ThemeProvider
+- NOT assert UI strings
+
+---
+
+## Estrutura Recomendada
+```
+__tests__/unit/
+├── domain/
+│   ├── entities/
+│   ├── value-objects/
+│   └── errors/
+├── application/
+│   ├── use-cases/
+│   └── mappers/
+├── presentation/
+│   ├── hooks/
+│   └── utils/
+│       └── formatters.spec.ts
+│       └── masks.spec.ts
+└── main/
+    └── container.spec.ts
+```
+## Mock
+### Regras de Mocking (CRÍTICAS)
+
+#### Permitido
+- Mockar **interfaces de repositório**
+- Mockar dependências de infraestrutura
+- Mockar tempo, data e UUID
+
+#### Proibido
+- Mockar Domain Errors
+- Mockar regras de negócio
+- Mockar UI
+- Mockar hooks dentro de unit tests
+- Mockar o container para esconder falhas reais
+
+#### Mocks devem refletir **contratos reais**, nunca comportamento desejado.
+
+---
+
+## Regras de Asserção
+
+### Testes Unitários DEVEM:
+- Validar retorno explícito (`Result.ok` / `Result.fail`)
+- Validar dados de domínio
+- Validar mensagens e códigos de `DomainError`
+- Validar invariantes e exceções explícitas
+
+### Testes Unitários NÃO DEVEM:
+
+- Validar strings de UI
+- Validar copy textual
+- Validar layout
+- Validar side effects visuais
+
+---
+
+## Integração com ROP (Railway Oriented Programming)
+
+- Todos os Use Cases retornam `Result<T, DomainError>`
+- Testes unitários DEVEM validar:
+  - Caminho de sucesso
+  - Caminho de falha
+- É proibido:
+  - Lançar exceções no teste para simular erro
+  - Aceitar `unknown` como erro
+  - Normalizar erros no teste
+
+Exemplo correto:
+
+```ts
+const result = await useCase.execute(dto);
+
+expect(result.isFailure()).toBe(true);
+expect(result.getError()).toBeInstanceOf(DomainError);
+```
+---
+
+## Regras de `Dependency Injection` nos Testes
+Testes unitários:
+- Instanciam `Use Cases` manualmente
+- Injetam `dependências fake` ou `mockadas`
+Testes unitários:
+- **NÃO dependem** de React
+- **NÃO dependem** de container.ts (exceto teste dedicado do container)
+
+### Container Test (Exceção Controlada)
+`src/main/container.ts` pode ter um teste unitário dedicado para verificar:
+- Exportação correta de instâncias
+- Wiring consistente
+
+Este teste:
+- NÃO renderiza UI 🚫
+- NÃO executa Use Cases 🚫
+- NÃO testa comportamento 🚫
+
+### 🚨 PROTOCOLO DE FALHA (OBRIGATÓRIO)
+
+Quando um teste unitário falhar:
+- Verificar se a regra de negócio mudou
+- Verificar se o contrato do Use Case mudou
+- Verificar se o mock viola o contrato
+- Ajustar o teste para refletir o contrato atual
+
+**🚫 É proibido:**
+- 🚫 Alterar código de produção para satisfazer teste unitário
+- 🚫 Enfraquecer contratos para fazer teste passar
+
+---
+
+## **Consequences**
+### Benefícios
+- Testes rápidos e determinísticos
+- Alta confiança em regras de negócio
+- Isolamento real de responsabilidades
+- Facilidade de refatoração de UI
+- Base sólida para Integration e E2E tests
+
+### Trade-offs
+- Mais testes de integração necessários
+- Menos validação visual em unit tests (intencional)
+
+---
+
+## Enforcement Rule
+
+Este ADR é obrigatório para:
+- Humanos
+- AI tools
+- Code agents
+- Code reviews
+
+#### Qualquer violação deve ser tratada como erro arquitetural, não como preferência de estilo.
+
+Se houver dúvida:
+
+**STOP. NÃO ADIVINHE. CRIE UM ADR OU PEÇA CLARIFICAÇÃO.**
+
+---
+
+## Final Statement
+
+### Unit Tests existem para proteger o CORE do sistema.
+### UI e navegação pertencem a Integration Tests.
+
+**Este documento é parte do contrato arquitetural do projeto.**

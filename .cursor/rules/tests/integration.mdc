@@ -1,0 +1,265 @@
+---
+description: Integration tests decisions for the project
+globs: __tests__/integration/**/*.spec.ts
+alwaysApply: true
+---
+
+# Integration Tests
+
+### Definição Formal
+Um **Teste de Integração** valida o **comportamento de uma Screen ou fluxo de UI**, incluindo:
+- Renderização
+- Estados (loading / error / empty)
+- Interações do usuário
+- Navegação
+
+**Testes de Integração NÃO validam regras de negócio.**
+
+# Para que servem?
+Servem para:
+- Renderizar `Screens`
+- Ver fluxo visual
+- Testar `navigation`
+- Testar Empty / Loading / Error states
+- Validar interação do usuário (`user interaction`), como cliques, preenchimentos de formulários, etc.
+
+**🚫 NÃO devem ser usados para testar: **
+- Regra de negócio profunda
+- Use Cases diretamente
+- Formatos exatos de string
+- Estrutura interna do JSX
+
+## Regras
+- Tests are stable, deterministic, and aligned with current UI behavior
+- No production code is changed to “make tests pass”
+
+---
+
+## 🚨 NON-NEGOTIABLE RULES
+
+### ❌ ABSOLUTELY FORBIDDEN
+
+- Recreating or rewriting Use Cases
+- Changing Domain, Application, or Infrastructure code
+- Introducing new abstractions to satisfy tests
+- Modifying architecture to accommodate tests
+- Testing UI copy (exact strings)
+- Testing JSX internal structure (parent.parent, etc.)
+- Using implementation details as assertions
+- Introducing error normalization or defensive logic
+- Using `instanceof` in hooks or tests
+
+If a test fails, you MUST fix the TEST, not the CODE.
+
+Testes de integração **NÃO PODEM**:
+- 🚫 Testar regras de negócio
+- 🚫 Testar Use Cases diretamente
+- 🚫 Importar ou mockar `container.ts`
+- 🚫 Mockar repositórios ou infraestrutura
+- 🚫 Testar formato exato de strings
+- 🚫 Testar datas literais
+- 🚫 Testar estrutura interna de JSX (`parent.parent`)
+- 🚫 Alterar código de produção para fazer teste passar
+
+**Se um teste depende de texto literal → **o teste está errado**.**
+
+**🚫 DO NOT:**
+- Assert exact text labels
+- Assert date string literals
+- Assert layout structure
+
+--
+
+## ✅ ALLOWED ACTIONS
+
+- Move test files to correct directories (e.g., __tests__/integration/presentation/screens/)
+- Rename test files to reflect test type (e.g., *.int.spec.tsx)
+- Rewrite assertions to test behavior instead of copy (e.g., getByText('Carregando detalhes...') -> getByTestId('vacation-details-loading'))
+- Add `testID` attributes in Presentation layer ONLY
+- Mock hooks (not Use Cases or repositories) in integration tests
+- Update test mocks to match CURRENT behavior
+
+## Escopo Permitido
+
+Testes de integração DEVEM:
+
+- Renderizar Screens completas
+- Usar React Native Testing Library (RNTL)
+- Usar `NavigationContainer` ou helper equivalente
+- Mockar **hooks da Presentation**
+- Validar:
+  - estados visuais
+  - interações
+  - transições de navegação
+
+
+**✅ Integration tests MUST:**
+- Render the full `Screen`
+- Use `renderWithNavigation`
+- Mock hooks instead of mocking internal data (e.g., use `jest.mock('@/hooks/useAuth')`)
+- Use `testID` for:
+  - `loading`
+  - `error`
+  - `empty` state
+  - `interactive` elements
+
+**✅ Assertions MUST focus on:**
+- Visibility of states
+- User interactions
+- Navigation events
+
+---
+
+**⚠️ If `testIDs` do not exist:**
+- Add them ONLY in the `Presentation` layer
+- Keep them semantic and stable
+
+---
+
+## Estrutura Recomendada
+```
+__tests__/integration/
+├── presentation/
+│   ├── screens/
+```
+
+**✅ Renomear é importante: *.int.spec.tsx**
+- ✅ Integration tests render full Screens/Components
+- ✅ Integration tests use testIDs for stable assertions
+- ✅ Integration tests mock hooks, not Use Cases
+
+---
+
+## Recomendações Arquiteturais
+### Para telas complexas (Details, History, Dashboard, etc.):
+- Sempre:
+    - testID para estados (loading, error, empty)
+
+    - testID para itens interativos
+- Nunca:
+    - Testar texto de label estático
+    - Testar estrutura interna de JSX
+    - Depender de .parent.parent
+### Loading e Error states: valide estado, não copy
+Frágil:
+```ts
+getByText('Carregando detalhes...') // Frágil
+```
+Estável:
+```ts
+getByTestId('vacation-details-loading')
+getByTestId('vacation-details-error')
+```
+---
+
+## Regras de Mocking (CRÍTICAS)
+
+### Permitido
+- Mockar hooks da Presentation Layer
+- Mockar retorno de hooks (data, loading, error)
+- Simular callbacks (refetch, submit)
+
+### Proibido
+- Mockar Use Cases
+- Mockar Domain
+- Mockar Infrastructure
+- Mockar Composition Root
+
+Hooks são o **boundary oficial** dos integration tests.
+
+## Uso Obrigatório de `testID`
+
+### Estados
+```tsx
+<View testID="screen-loading" />
+<View testID="screen-error" />
+<View testID="screen-empty" />
+```
+
+### testID deve ser:
+- Semântico
+- Estável
+- Independente de layout
+
+Texto de UI NÃO é contrato.
+
+--- 
+
+## Regras de Asserção
+Testes de integração DEVEM:
+	•	Verificar presença de estados via testID
+	•	Verificar navegação (mocked)
+	•	Verificar efeitos de interação
+
+Testes de integração NÃO DEVEM:
+	•	Assertar texto literal
+	•	Assertar estrutura de layout
+	•	Assertar regras de negócio
+
+--- 
+
+## Como decidir rapidamente se um teste é Unit ou Integration?
+Faça essa pergunta:
+- Esse teste renderiza JSX com layout?
+    - **✅ Se sim, é um teste de integração.**
+    - **❌ Se não, é um teste unitário.**
+- Esse teste quebra se mudar o texto da UI?
+    - **✅ Se sim, é um teste de integração.**
+    - **❌ Se não, é um teste unitário.**
+
+## Configuração do Jest (opcional, mas recomendado)
+
+```json
+"scripts": {
+  "test:unit": "jest __tests__/unit",
+  "test:integration": "jest __tests__/integration",
+  "test": "npm run test:unit && npm run test:integration"
+}
+```
+
+## 🧪 VERIFICATION CHECKLIST (MANDATORY)
+
+Before finishing, ensure:
+- All integration tests render `Screens` correctly
+- No test depends on UI copy
+- No test inspects `JSX` structure
+- No production code was altered to satisfy tests
+- `npm test:integration` passes consistently
+
+
+## 🧠 DEBUGGING PROTOCOL (MANDATORY)
+
+When a test **fails**:
+	1.	Verify file exists and is imported correctly
+	2.	Verify test expectations match **CURRENT** behavior
+	3.	Verify mocks align with **hook contracts**
+	4.	Only then modify the TEST minimally
+
+If the cause is unclear:
+- STOP
+- Ask for clarification
+
+## 🎯 OUTPUT EXPECTATION
+- Integration tests should be fast and reliable
+- Stable test suite
+- Tests that survive UI refactors
+- Architecture remains untouched and enforceable
+- Security to refactor UI without fear
+
+---
+## Enforcement Rule
+
+Este ADR é obrigatório para:
+- Humanos
+- AI tools
+- Code agents
+- Code reviews
+
+Qualquer violação deve ser tratada como erro arquitetural.
+
+---
+
+## Final Statement
+
+### Integration Tests validam comportamento do usuário.
+### Regras de negócio pertencem aos Unit Tests.

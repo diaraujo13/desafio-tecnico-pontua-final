@@ -1,0 +1,288 @@
+---
+description: "Documentation Standards and Architectural Documentation Rules"
+globs:
+  - "**/*.md"
+  - "**/*.mdx"
+  - "**/README*"
+  - "**/CONTRIBUTING*"
+  - "**/docs/**/*"
+alwaysApply: true
+---
+
+# Documentation Rules (NON-NEGOTIABLE)
+
+This document defines how documentation must be written for this project.
+AI tools MUST follow these rules to avoid architectural drift and ambiguity.
+
+---
+
+## 1. Documentation Philosophy
+
+### 1.1 Architecture First
+
+Documentation must:
+- Reflect **actual architecture**, not intentions
+- Reinforce **Clean Architecture boundaries**
+- Make architectural violations obvious
+- Be explicit rather than generic
+- Be written in PT-BR (Brazilian Portuguese)
+
+Documentation that introduces ambiguity is considered incorrect.
+
+---
+
+### 1.2 Audience
+
+Documentation is written for:
+- Senior engineers
+- Future maintainers
+- AI tools (Cursor, Gemini, Copilot)
+
+Assume no access to prior context beyond the repository.
+
+---
+
+## 2. README.md Structure (MANDATORY)
+
+Every README MUST follow this structure:
+
+```md
+# Project Name
+
+Short description of what the app does and its domain purpose.
+
+## 🚀 Quick Start
+
+```bash
+npm install
+cd ios && pod install
+npm run ios
+npm run android
+
+📋 Requirements
+	•	Node.js 18+
+	•	React Native 0.83.1+
+	•	React 19
+	•	Android Studio / Xcode
+
+🏗️ Architecture
+
+This project follows Clean Architecture:
+	•	Domain (business rules, entities, DomainErrors)
+	•	Application (Use Cases)
+	•	Infrastructure (API, storage)
+	•	Presentation (Hooks, UI)
+
+Key Rules
+	•	DomainError is the ONLY error contract
+	•	No application/services layer
+	•	Hooks call Use Cases via the Composition Root
+	•	No business logic in UI
+
+📁 Project Structure
+
+src/
+├── domain/
+├── application/
+├── infrastructure/
+├── presentation/
+└── main/            # Composition Root
+
+🧪 Testing
+
+npm test               # unit (domain + application)
+npm run test:integration
+npm run test:e2e
+
+📄 License
+
+---
+
+## 3. Architecture Documentation
+
+### 3.1 Mandatory Files
+
+The following files are **architectural sources of truth** and must be kept consistent:
+
+- `architecture.mdc`
+- `core/performance.mdc`
+- `docs/adr/*.md`
+
+Documentation MUST NOT contradict these files.
+
+---
+
+### 3.2 ADRs (Architecture Decision Records)
+
+All non-trivial decisions MUST be documented as ADRs.
+
+ADR template:
+
+```md
+# ADR-XXX: <Decision Title>
+
+## Status
+Accepted | Superseded | Deprecated
+
+## Context
+What problem exists and why it matters.
+
+## Decision
+What was chosen and why.
+
+## Consequences
+### Positive
+### Negative
+### Mitigations
+
+Forbidden:
+	•	Undocumented architectural changes
+	•	“Implicit” decisions
+	•	Silent refactors
+
+⸻
+
+4. Code Documentation Rules
+
+4.1 Domain Layer
+
+Domain documentation MUST:
+	•	Describe business meaning
+	•	Avoid UI or technical references
+	•	Describe invariants and rules
+
+Example:
+
+/**
+ * Thrown when a vacation request is approved
+ * after it has already been rejected.
+ *
+ * Business Rule:
+ * A vacation request can only transition
+ * from PENDING → APPROVED or REJECTED.
+ */
+export class InvalidVacationStatusTransitionError extends DomainError {}
+
+
+⸻
+
+4.2 Use Cases (Application Layer)
+
+Use Case documentation MUST:
+	•	Describe the business intent
+	•	Describe preconditions and outcomes
+	•	Document returned DomainErrors
+
+Example:
+
+/**
+ * Approves a vacation request.
+ *
+ * Rules:
+ * - Only managers can approve
+ * - Request must be PENDING
+ *
+ * Returns:
+ * - InvalidVacationStatusTransitionError
+ * - UserNotManagerError
+ */
+
+
+⸻
+
+4.3 Hooks (Presentation Layer)
+
+Hooks documentation MUST:
+	•	Describe UI intent
+	•	NEVER describe business logic
+	•	NEVER describe caching as business behavior
+
+Example:
+
+/**
+ * UI hook to load vacation history.
+ *
+ * Responsibilities:
+ * - Calls GetVacationHistoryUseCase
+ * - Handles loading and error state
+ * - Does not filter or interpret data
+ */
+
+
+⸻
+
+5. Error Documentation Rules (CRITICAL)
+
+5.1 Error Contract
+
+Documentation MUST state clearly:
+	•	DomainError is the ONLY error contract
+	•	No AppError exists
+	•	No error normalization is allowed
+	•	DomainErrors must propagate unchanged
+
+Forbidden documentation patterns:
+	•	“This function may throw Error”
+	•	“Returns string error message”
+	•	“Converts errors for UI”
+
+⸻
+
+6. Performance Documentation
+
+Performance documentation MUST:
+	•	Reference core/performance.mdc
+	•	Avoid speculative optimization claims
+	•	Never justify architectural shortcuts
+
+Forbidden phrases:
+	•	“Optimized by skipping Use Case”
+	•	“Handled directly in UI for performance”
+
+⸻
+
+7. Migration & Change Logs
+
+Migration docs MUST:
+	•	State breaking changes explicitly
+	•	Include before/after examples
+	•	Mention affected layers
+
+⸻
+
+8. Troubleshooting Guides
+
+Troubleshooting MUST:
+	•	Map symptoms → causes → fixes
+	•	Avoid guessing
+	•	Avoid recommending architecture violations
+
+⸻
+
+9. AI Enforcement Rules (HARD STOP)
+
+AI tools MUST:
+	•	Respect architectural boundaries in documentation
+	•	Never invent undocumented layers
+	•	Never document forbidden patterns
+	•	STOP and ask if documentation conflicts with architecture.mdc
+
+⸻
+
+10. Final Rule
+
+Documentation is executable architecture.
+If it lies, the system rots.
+
+Any documentation that contradicts architecture
+is considered a bug.
+
+---
+
+## What this adaptation does (important)
+
+✔ Aligns with **React Native + React 19**  
+✔ Enforces **DomainError-only model**  
+✔ Explicitly forbids `application/services`  
+✔ Teaches LLMs how hooks, Use Cases, and Domain relate  
+✔ Treats documentation as an **architectural artifact**, not prose  

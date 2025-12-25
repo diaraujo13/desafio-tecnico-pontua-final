@@ -1,122 +1,113 @@
 ---
 alwaysApply: true
 ---
-Performance Optimization Rules & Metrics
+# Performance Optimization Rules & Metrics
 
 This document defines mandatory performance rules for this project.
+
 All AI tools and contributors must follow these rules when writing or refactoring code.
 
 Performance optimizations must never violate architectural boundaries.
 
-⸻
+## 1. Performance Philosophy (Non-Negotiable)
 
-1. Performance Philosophy (Non-Negotiable)
-
-1.1 Correctness > Performance
+### 1.1 Correctness > Performance
 	•	Performance optimizations MUST NOT:
-	•	move business logic to Presentation
-	•	bypass Use Cases
-	•	introduce caching inside Domain or Application
-	•	duplicate state across layers
+	- move business logic to Presentation
+	- bypass Use Cases
+	- introduce caching inside Domain or Application
+	- duplicate state across layers
 
 If an optimization violates architecture, it is invalid, even if it is faster.
 
 ⸻
 
-1.2 Measure Before Optimizing
-	•	No speculative optimizations
-	•	No “just in case” memoization
-	•	No premature caching
+### 1.2 Measure Before Optimizing
+	- No speculative optimizations
+	- No “just in case” memoization
+	- No premature caching
 
 Performance work must be driven by:
-	•	profiler evidence
-	•	known RN bottlenecks
-	•	user-visible issues (jank, stalls, long TTI)
+	- profiler evidence
+	- known RN bottlenecks
+	- user-visible issues (jank, stalls, long TTI)
 
-⸻
 
-2. Runtime Model (RN 0.83.1 + React 19)
+## 2. Runtime Model (RN 0.83.1 + React 19)
 
 Key assumptions
-	•	Concurrent React rendering is enabled
-	•	Automatic batching is enabled
-	•	TurboModules + Fabric may be active
-	•	JS thread remains the primary bottleneck
-	•	Bridge cost is reduced but not zero
+	- Concurrent React rendering is enabled
+	- Automatic batching is enabled
+	- TurboModules + Fabric may be active
+	- JS thread remains the primary bottleneck
+	- Bridge cost is reduced but not zero
 
 Implication:
 
 Avoid unnecessary re-renders and JS work.
 Native ≠ free.
 
-⸻
 
-3. Allowed Optimization Areas (By Layer)
-
-⸻
+## 3. Allowed Optimization Areas (By Layer)
 
 Presentation Layer (Primary Performance Surface)
 
-3.1 Rendering Rules
+### 3.1 Rendering Rules
 
 MUST:
-	•	Use React.memo only for:
-	•	reusable UI components
-	•	list items
-	•	components with stable props
-	•	Use useCallback / useMemo only when:
-	•	passing callbacks to memoized children
-	•	proven render loops exist
+	-	Use React.memo only for:
+	- reusable UI components
+	- list items
+	- components with stable props
+	- Use useCallback / useMemo only when:
+	- passing callbacks to memoized children
+	- proven render loops exist
 
 MUST NOT:
-	•	Blanket memoize everything
-	•	Memoize hooks
-	•	Memoize screens by default
+	- Blanket memoize everything
+	- Memoize hooks
+	- Memoize screens by default
 
 ⸻
 
-3.2 Lists & Large Data
+### 3.2 Lists & Large Data
 
 Mandatory rules:
-	•	Use FlatList / SectionList only
-	•	Provide:
-	•	keyExtractor
-	•	getItemLayout when possible
-	•	Avoid inline renderItem definitions
-	•	Avoid anonymous components in lists
+	- Use FlatList / SectionList only
+	- Provide:
+	- keyExtractor
+	- getItemLayout when possible
+	- Avoid inline renderItem definitions
+	- Avoid anonymous components in lists
 
 Forbidden:
-	•	Rendering lists via .map() for large datasets
-	•	Complex logic inside renderItem
+	- Rendering lists via .map() for large datasets
+	- Complex logic inside renderItem
 
-⸻
+### 3.3 Navigation Performance
+	- Lazy-load screens
+	- Avoid heavy work in useEffect on mount
+	- Never fetch data inside navigation config
 
-3.3 Navigation Performance
-	•	Lazy-load screens
-	•	Avoid heavy work in useEffect on mount
-	•	Never fetch data inside navigation config
+## 4. Data Fetching & Caching
 
-⸻
-
-4. Data Fetching & Caching
-
-4.1 TanStack Query (Single Source of Truth)
+### 4.1 TanStack Query (Single Source of Truth)
 
 TanStack Query is the only allowed caching mechanism for server data.
 
 Rules:
-	•	Caching belongs ONLY in Presentation
-	•	Use Cases MUST be cache-agnostic
-	•	Domain must never know about caching
+	- Caching belongs ONLY in Presentation
+	- Use Cases MUST be cache-agnostic
+	- Domain must never know about caching
 
 ⸻
 
-4.2 Query Configuration Rules
+### 4.2 Query Configuration Rules
 
 Allowed:
-	•	staleTime for read-heavy screens
-	•	cacheTime for navigation back/forward
-	•	background refetching
+	- staleTime for read-heavy screens
+	- cacheTime for navigation back/forward
+	- background refetching
 
 Forbidden:
 	•	Caching inside Use Cases
@@ -125,104 +116,101 @@ Forbidden:
 
 ⸻
 
-4.3 Offline / Optimistic Updates
-	•	Optimistic updates must:
-	•	live in hooks
-	•	rollback on failure
-	•	Domain never handles optimistic state
+### 4.3 Offline / Optimistic Updates
+	Optimistic updates must:
+	- live in hooks
+	- rollback on failure
+	- Domain never handles optimistic state
 
-⸻
+## 5. State Management Performance
 
-5. State Management Performance
-
-5.1 Zustand Usage Rules
+### 5.1 Zustand Usage Rules
 
 Zustand is UI state only.
 
 Allowed:
-	•	auth session state
-	•	UI flags
-	•	ephemeral coordination state
+	-	auth session state
+	- UI flags
+	- ephemeral coordination state
 
 Forbidden:
-	•	server data caching
-	•	business rules
-	•	permission logic
-	•	derived domain state
+	- server data caching
+	- business rules
+	- permission logic
+	- derived domain state
 
 Zustand stores must be:
-	•	shallow
-	•	minimal
-	•	replaceable
+	- shallow
+	- minimal
+	- replaceable
 
 ⸻
 
-6. Error Handling & Performance
+## 6. Error Handling & Performance
 
-6.1 Error Propagation Cost
-	•	DomainErrors are lightweight value objects
-	•	No stack traces required for DomainErrors
-	•	Avoid recreating errors in loops
+### 6.1 Error Propagation Cost
+	- DomainErrors are lightweight value objects
+	- No stack traces required for DomainErrors
+	- Avoid recreating errors in loops
 
 Rules:
-	•	Preserve DomainError instances
-	•	Never wrap DomainErrors
+	- Preserve DomainError instances
+	- Never wrap DomainErrors
 
 ⸻
 
-7. JS Thread Protection Rules
+## 7. JS Thread Protection Rules
 
 MUST:
-	•	Avoid heavy synchronous loops
-	•	Avoid JSON parsing in render
-	•	Avoid deep cloning in UI
+	- Avoid heavy synchronous loops
+	- Avoid JSON parsing in render
+	- Avoid deep cloning in UI
 
 SHOULD:
-	•	Pre-process data in Use Cases (pure, synchronous)
-	•	Keep UI rendering trivial
+	- Pre-process data in Use Cases (pure, synchronous)
+	- Keep UI rendering trivial
 
 MUST NOT:
-	•	Perform expensive calculations in hooks
-	•	Perform mapping/filtering in render paths
+	- Perform expensive calculations in hooks
+	- Perform mapping/filtering in render paths
 
 ⸻
 
-8. Metrics & Instrumentation
+## 8. Metrics & Instrumentation
 
 8.1 Mandatory Metrics
 
 Track at least:
-	•	Screen mount time
-	•	List render time
-	•	API request duration
-	•	Error frequency by DomainError type
+	- Screen mount time
+	- List render time
+	- API request duration
+	- Error frequency by DomainError type
 
-⸻
 
-8.2 Tooling
+### 8.2 Tooling
 
 Allowed:
-	•	Flipper
-	•	React DevTools Profiler
-	•	RN Performance Monitor
-	•	Custom logging in hooks
+	- Flipper
+	- React DevTools Profiler
+	- RN Performance Monitor
+	- Custom logging in hooks
 
 Forbidden:
-	•	Logging inside Domain
-	•	Performance hacks inside entities
+	- Logging inside Domain
+	- Performance hacks inside entities
 
 ⸻
 
-9. Memory Management
+## 9. Memory Management
 
 Rules:
-	•	Avoid retaining large arrays in closures
-	•	Clean up subscriptions
-	•	Avoid long-lived timers
+	- Avoid retaining large arrays in closures
+	- Clean up subscriptions
+	- Avoid long-lived timers
 
 React 19 note:
-	•	Effects may re-run more often
-	•	Code must be idempotent
+	- Effects may re-run more often
+	- Code must be idempotent
 
 ⸻
 

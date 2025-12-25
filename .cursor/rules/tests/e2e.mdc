@@ -1,0 +1,363 @@
+---
+alwaysApply: true
+---
+---
+id: ADR-E2E-001
+title: End-to-End Testing Strategy with Detox + Cucumber
+status: Accepted
+---
+
+# ADR-E2E-001 — Estratégia Genérica de Testes End-to-End (Detox + Cucumber)
+
+## Status
+Accepted
+
+---
+
+## Context
+
+Projetos modernos, especialmente aplicações mobile e frontend, exigem validação
+de **fluxos completos do usuário** executando o **produto real**, de ponta a ponta.
+
+Testes unitários e de integração são insuficientes para garantir que:
+- O app inicia corretamente
+- Fluxos críticos funcionam em runtime
+- Navegação, estado e integrações estão corretamente conectados
+
+Este ADR define uma estratégia **genérica, reutilizável e independente de domínio**
+para Testes End-to-End (E2E) utilizando:
+
+- **Detox** para automação nativa
+- **Cucumber (Gherkin)** para definição declarativa de cenários
+
+---
+
+## Decision
+
+### Definição Formal
+
+Um **Teste End-to-End (E2E)** é um teste que:
+
+- Executa o **aplicativo real empacotado**
+- Interage **exclusivamente pela interface do usuário**
+- Exercita **fluxos completos**, do início ao fim
+- Não utiliza mocks de lógica interna
+- Representa o comportamento real do usuário
+
+E2E é o **nível mais alto da pirâmide de testes**.
+
+---
+
+## Stack de E2E (Genérico)
+
+- **Detox** — automação nativa (Android / iOS)
+- **Cucumber** — especificação de comportamento (Gherkin)
+- **Jest (ou runner equivalente)** — execução dos testes
+- **TypeScript ou JavaScript** — implementação dos steps
+
+---
+
+## Princípios Fundamentais
+
+### 1. Black-Box Testing
+- O sistema é tratado como uma caixa-preta
+- Nenhum acesso a estado interno, lógica de domínio ou infraestrutura
+
+### 2. Realismo
+- O app deve rodar como em produção (ou o mais próximo possível)
+- Sem atalhos técnicos
+
+### 3. Legibilidade
+- Cenários devem ser compreensíveis por pessoas não técnicas
+- Steps traduzem intenção em ações técnicas
+
+---
+
+## Escopo Permitido
+
+Testes End-to-End (E2E) devem validar fluxos reais do usuário executando o
+aplicativo empacotado, do início ao fim, de forma isolada e reproduzível.
+
+E2E devem:
+- Iniciar o app real
+- Interagir via UI (tap, type, scroll)
+- Validar telas, navegação e conclusão de fluxos
+- Verificar estados visíveis ao usuário
+- Executar fluxos críticos do negócio
+
+---
+
+## Escopo Proibido (NÃO NEGOCIÁVEL)
+
+Testes E2E NÃO DEVEM:
+
+- Importar código de produção
+- Importar Use Cases, services ou repositórios
+- Mockar lógica de negócio
+- Mockar APIs internas
+- Ler ou escrever diretamente no estado da aplicação
+- Testar regras de negócio isoladas
+- Testar detalhes de implementação
+
+Se algo pode ser validado com Unit ou Integration Tests,
+**não deve ser testado em E2E**.
+
+---
+
+## Estrutura Recomendada (Genérica)
+```
+e2e/
+├── features/
+│   └── *.feature
+├── step-definitions/
+│   └── *.ts
+├── support/
+│   └── *.ts
+├── page-objects/        # opcional
+├── artifacts/
+├── cucumber.js
+├── jest.config.js
+└── detox.config.js
+```
+---
+
+## Cucumber (Gherkin)
+
+### Features
+- Descrevem **o que o usuário faz**
+- Linguagem de negócio
+- Sem detalhes técnicos
+
+Exemplo:
+```gherkin
+Scenario: User completes a primary flow
+  Given the app is launched
+  When the user performs a key action
+  Then the expected result is visible
+```
+
+⸻
+
+### Step Definitions
+
+Step Definitions DEVEM:
+- Traduzir intenção em ações Detox
+- Lidar explicitamente com assincronismo
+- Usar seletores estáveis (IDs)
+
+Step Definitions NÃO DEVEM:
+- Conter lógica de negócio
+- Conter asserts complexos
+- Reproduzir regras internas
+- Acumular múltiplas responsabilidades
+
+⸻
+
+## Test IDs (Contrato Recomendado)
+- IDs estáveis são o contrato principal dos testes E2E
+- Texto visível deve ser tratado como instável
+
+Exemplo recomendado:
+
+```ts
+element(by.id('primary-action-button'))
+```
+
+⸻
+
+## Page Objects (Opcional)
+
+Permitido quando:
+- Há duplicação excessiva
+- Melhora legibilidade
+
+Proibido quando:
+- Esconde comportamento relevante
+- Introduz lógica
+- Cria abstrações genéricas demais
+
+⸻
+
+## Isolamento e Independência
+
+Cada cenário E2E:
+- Deve iniciar em estado limpo 
+- Não deve depender de execução anterior
+- Não deve compartilhar estado implícito
+
+
+Estado limpo significa:
+	•	Nenhum resíduo de execução anterior
+	•	Nenhum cache compartilhado
+	•	Nenhuma dependência implícita
+	•	Nenhuma ordem entre cenários
+
+❌ Não significa:
+	•	“Sempre deslogado”
+	•	“Sempre onboarding”
+	•	“Sempre primeira execução”
+
+👉 O estado inicial deve ser controlado, não necessariamente vazio.
+
+### Estado Inicial Declarativo
+Todo cenário E2E deve declarar explicitamente seu estado inicial.
+Se o usuário precisa estar logado:
+- O cenário deve dizer isso
+- O step deve garantir que o usuário está logado
+
+⸻
+
+```ts
+beforeEach(async () => {
+  await device.reloadReactNative();
+});
+```
+
+⸻
+## Abordagem PROIBIDA ❌
+
+❌ Reutilizar sessão de cenário anterior
+❌ Mutar storage diretamente
+```ts 
+  // ERRADO
+  await AsyncStorage.setItem('token', '...');
+```
+Possíveis violações:
+- Black-box principle
+- Arquitetura
+- Confiabilidade
+
+❌ Assumir usuário autenticado implicitamente
+
+Todo cenário deve declarar seu estado.
+
+⸻
+
+## Falhas e Debug (Obrigatório)
+
+Quando um teste E2E falhar:
+- Verificar se o app iniciou corretamente
+- Verificar se o seletor existe
+- Verificar sincronização / timeouts
+- Confirmar se o fluxo é válido
+- Corrigir o TESTE antes de assumir bug no app
+
+⸻
+
+## Consequences
+
+Benefícios
+- Alta confiança no produto final
+- Detecção de regressões críticas
+- Documentação viva de fluxos
+- Segurança para releases
+
+Trade-offs
+- Execução lenta
+- Setup mais complexo
+- Manutenção maior que testes unitários
+
+---
+
+
+## Estratégias Oficiais de Autenticação
+
+Existem **duas estratégias permitidas**, cada uma com uso recomendado.
+
+---
+
+## Estratégia 1 — Autenticação via UI (Padrão Ouro)
+
+### Descrição
+
+O cenário realiza o fluxo completo de autenticação através da interface do usuário,
+da mesma forma que um usuário real faria.
+
+### Exemplo (Gherkin)
+
+```gherkin
+Scenario: Usuário autenticado acessa o dashboard
+  Given o app é iniciado limpo
+  And estou autenticado como usuário válido
+  When acesso o dashboard
+  Then devo ver meus dados carregados
+
+Características
+	•	Fluxo real
+	•	Exercita UI, navegação e backend
+	•	Maior confiança funcional
+
+Quando usar
+	•	Testes de autenticação
+	•	Smoke tests
+	•	Fluxos críticos
+	•	Validação de regressões importantes
+
+Trade-offs
+	•	Execução mais lenta
+	•	Repetição de steps (pode ser abstraída)
+
+⸻
+
+Estratégia 2 — Bootstrap de Sessão (Seed Controlado)
+
+Descrição
+
+O app é iniciado limpo, mas recebe dados de autenticação válidos por meio de
+parâmetros controlados de execução (ex.: launchArgs, deep link ou feature flag).
+
+A UI não é pulada arbitrariamente — a sessão é apenas pré-hidratada.
+
+Exemplo Técnico (Detox)
+
+await device.launchApp({
+  delete: true,
+  newInstance: true,
+  launchArgs: {
+    e2eAuthToken: 'VALID_TEST_TOKEN',
+  },
+});
+
+No app:
+
+if (__DEV__ && launchArgs.e2eAuthToken) {
+  authService.hydrateSession(launchArgs.e2eAuthToken);
+}
+
+Características
+	•	Muito mais rápido
+	•	Determinístico
+	•	Controlado por feature flag
+
+Quando usar
+	•	Cenários que não testam autenticação
+	•	Suites grandes de regressão
+	•	Testes de performance ou estabilidade
+	•	Ambientes de QA / staging
+
+Restrições (CRÍTICAS)
+	•	Apenas para E2E
+	•	Nunca habilitado em produção
+	•	Deve ser explicitamente documentado
+	•	Não deve ocultar falhas reais de login
+
+⸻
+
+## Enforcement Rule
+
+Este ADR é obrigatório para:
+- Times de desenvolvimento
+- Revisões de código
+- Agentes de automação
+- Pipelines de CI
+- AI tools
+
+Qualquer violação deve ser tratada como erro de estratégia de testes.
+
+⸻
+
+## Final Statement
+
+Testes E2E existem para provar que o usuário consegue completar o fluxo real.
+Tudo que pode ser testado abaixo, não pertence ao E2E.
+
