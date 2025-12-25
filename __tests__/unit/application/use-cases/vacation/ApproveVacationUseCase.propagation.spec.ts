@@ -3,12 +3,13 @@ import { IVacationRepository } from '../../../../../src/domain/repositories/IVac
 import { IUserRepository } from '../../../../../src/domain/repositories/IUserRepository';
 import { VacationRequest } from '../../../../../src/domain/entities/VacationRequest';
 import { InvalidStatusTransitionError } from '../../../../../src/domain/errors/InvalidStatusTransitionError';
+import { VacationStatus } from '../../../../../src/domain/enums/VacationStatus';
 
 describe('ApproveVacationUseCase - DomainError propagation', () => {
   it('should propagate DomainError thrown by entity without wrapping', async () => {
     const vacationRequestMock = {
       approve: jest.fn(() => {
-        throw new InvalidStatusTransitionError('Invalid transition');
+        throw new InvalidStatusTransitionError(VacationStatus.PENDING_APPROVAL, VacationStatus.APPROVED, 'Não é possível aprovar uma solicitação pendente');
       }),
     } as unknown as VacationRequest;
 
