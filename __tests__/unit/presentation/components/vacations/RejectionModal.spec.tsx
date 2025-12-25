@@ -12,11 +12,15 @@ const createTestWrapper = () => {
     },
   });
 
-  return ({ children }: { children: React.ReactNode }) => (
+  const TestWrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>{children}</ThemeProvider>
     </QueryClientProvider>
   );
+
+  TestWrapper.displayName = 'TestWrapper';
+
+  return TestWrapper;
 };
 
 describe('RejectionModal', () => {
@@ -124,7 +128,7 @@ describe('RejectionModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('should clear reason and error when closed', () => {
+  it('should clear reason and error when closed', async () => {
     const { rerender } = render(
       <RejectionModal visible={true} onClose={mockOnClose} onConfirm={mockOnConfirm} />,
       { wrapper: createTestWrapper() },
@@ -138,14 +142,17 @@ describe('RejectionModal', () => {
       <RejectionModal visible={false} onClose={mockOnClose} onConfirm={mockOnConfirm} />,
     );
 
-    // Reopen modal
+    // Wait for setTimeout to complete (state reset happens in setTimeout)
     rerender(
-      <RejectionModal visible={true} onClose={mockOnClose} onConfirm={mockOnConfirm} />,
-    );
+          <RejectionModal visible={true} onClose={mockOnClose} onConfirm={mockOnConfirm} />,
+        );
 
-    const reopenedInput = screen.getByTestId('RejectionModal_ReasonInput');
-    // After reopening, the input should be empty (state was reset by useEffect)
-    expect(reopenedInput.props.value).toBe('');
+    // Wait for the state to be reset after reopening
+    await waitFor(() => {
+      const reopenedInput = screen.getByTestId('RejectionModal_ReasonInput');
+      // After reopening, the input should be empty (state was reset by useEffect)
+      expect(reopenedInput.props.value).toBe('');
+    });
   });
 
   it('should not call onConfirm when isLoading is true', () => {
