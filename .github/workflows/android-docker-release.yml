@@ -16,22 +16,45 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
 
       - name: Build APK using Docker
         run: |
-          docker build -f Dockerfile.android \
-            --output type=tar,dest=sbp-output.tar \
+          echo "=== DEBUG: GitHub Actions Environment ==="
+          uname -a
+          docker buildx version
+          echo "=== Starting Docker Build ==="
+          docker buildx build -f Dockerfile.android \
+            --platform linux/amd64 \
+            --output type=local,dest=./sbp-output \
+            --progress=plain \
             .
-          tar -xf sbp-output.tar
+          echo "=== Build Complete - Checking Output ==="
+          # The APK should be in sbp-output/app-release.apk
+          ls -lh sbp-output/ || echo "No output directory found"
+          find sbp-output -name "*.apk" -type f || echo "No APK found in output"
 
       - name: Verify APK
         run: |
-          ls -lh sbp-output
-          file sbp-output/app-release.apk
+          # Find the APK file
+          APK_FILE=$(find sbp-output -name "*.apk" -type f | head -1)
+          if [ -z "$APK_FILE" ]; then
+            echo "ERROR: APK file not found!"
+            echo "Contents of sbp-output:"
+            find sbp-output -type f || echo "sbp-output is empty or doesn't exist"
+            exit 1
+          fi
+          echo "Found APK: $APK_FILE"
+          ls -lh "$APK_FILE"
+          file "$APK_FILE"
+          # Copy to a known location for the release step
+          mkdir -p dist
+          cp "$APK_FILE" dist/app-release.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: sbp-output/app-release.apk
+          files: dist/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
