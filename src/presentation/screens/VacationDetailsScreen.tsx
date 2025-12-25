@@ -10,26 +10,9 @@ import { VacationStatus } from '../../domain/enums/VacationStatus';
 import { useTheme } from '../theme/ThemeProvider';
 import type { AppStackParamList } from '../navigation/types';
 import type { RouteProp } from '@react-navigation/native';
+import { formatDateToPTBR, formatDateTimeToPTBR } from '../utils/dateFormatters';
 
 type VacationDetailsRouteProp = RouteProp<AppStackParamList, 'VacationDetails'>;
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-}
-
-function formatDateTime(date: Date): string {
-  return date.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 function getStatusLabel(status: VacationStatus): string {
   switch (status) {
@@ -58,9 +41,9 @@ export function VacationDetailsScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text variant="body" style={styles.loadingText}>
+      <View style={styles.centerContainer} testID="VacationDetailsScreen_LoadingContainer">
+        <ActivityIndicator size="large" color={colors.primary} testID="VacationDetailsScreen_LoadingIndicator" />
+        <Text variant="body" style={styles.loadingText} testID="VacationDetailsScreen_LoadingText">
           Carregando detalhes...
         </Text>
       </View>
@@ -69,11 +52,11 @@ export function VacationDetailsScreen() {
 
   if (error || !data) {
     return (
-      <View style={styles.centerContainer}>
-        <Text variant="h3" style={styles.errorTitle}>
+      <View style={styles.centerContainer} testID="VacationDetailsScreen_ErrorContainer">
+        <Text variant="h3" style={styles.errorTitle} testID="VacationDetailsScreen_ErrorTitle">
           Erro ao carregar detalhes
         </Text>
-        <Text variant="body" style={styles.errorText}>
+        <Text variant="body" style={styles.errorText} testID="VacationDetailsScreen_ErrorText">
           {error || 'Solicitação não encontrada'}
         </Text>
         <Button
@@ -81,6 +64,7 @@ export function VacationDetailsScreen() {
           variant="primary"
           onPress={() => navigation.goBack()}
           style={styles.backButton}
+          testID="VacationDetailsScreen_ErrorBackButton"
         />
       </View>
     );
@@ -92,39 +76,39 @@ export function VacationDetailsScreen() {
   ) + 1;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Card style={styles.card}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} testID="VacationDetailsScreen_Container">
+      <Card style={styles.card} testID="VacationDetailsScreen_PeriodCard">
         <Card.Content>
-          <Text variant="h3" style={styles.sectionTitle}>
+          <Text variant="h3" style={styles.sectionTitle} testID="VacationDetailsScreen_PeriodTitle">
             Período
           </Text>
-          <Text variant="body" style={styles.periodText}>
-            {formatDate(data.startDate)} → {formatDate(data.endDate)}
+          <Text variant="body" style={styles.periodText} testID="VacationDetailsScreen_PeriodText">
+            {formatDateToPTBR(data.startDate)} → {formatDateToPTBR(data.endDate)}
           </Text>
-          <Text variant="caption" style={styles.daysText}>
+          <Text variant="caption" style={styles.daysText} testID="VacationDetailsScreen_DaysText">
             {daysRequested} {daysRequested === 1 ? 'dia' : 'dias'} solicitados
           </Text>
         </Card.Content>
       </Card>
 
-      <Card style={styles.card}>
+      <Card style={styles.card} testID="VacationDetailsScreen_StatusCard">
         <Card.Content>
-          <Text variant="h3" style={styles.sectionTitle}>
+          <Text variant="h3" style={styles.sectionTitle} testID="VacationDetailsScreen_StatusTitle">
             Status
           </Text>
-          <Text variant="body" style={styles.statusText}>
+          <Text variant="body" style={styles.statusText} testID="VacationDetailsScreen_StatusText">
             {statusLabel}
           </Text>
         </Card.Content>
       </Card>
 
       {data.observation && (
-        <Card style={styles.card}>
+        <Card style={styles.card} testID="VacationDetailsScreen_ObservationCard">
           <Card.Content>
-            <Text variant="h3" style={styles.sectionTitle}>
+            <Text variant="h3" style={styles.sectionTitle} testID="VacationDetailsScreen_ObservationTitle">
               Observação
             </Text>
-            <Text variant="body" style={styles.observationText}>
+            <Text variant="body" style={styles.observationText} testID="VacationDetailsScreen_ObservationText">
               {data.observation}
             </Text>
           </Card.Content>
@@ -132,32 +116,32 @@ export function VacationDetailsScreen() {
       )}
 
       {data.status === VacationStatus.REJECTED && data.rejectionReason && (
-        <Card style={styles.card}>
+        <Card style={styles.card} testID="VacationDetailsScreen_RejectionReasonCard">
           <Card.Content>
-            <Text variant="h3" style={styles.sectionTitle}>
+            <Text variant="h3" style={styles.sectionTitle} testID="VacationDetailsScreen_RejectionReasonTitle">
               Motivo da Reprovação
             </Text>
-            <Text variant="body" style={[styles.rejectionReasonText, { color: colors.error }]}>
+            <Text variant="body" style={[styles.rejectionReasonText, { color: colors.error }]} testID="VacationDetailsScreen_RejectionReasonText">
               {data.rejectionReason}
             </Text>
           </Card.Content>
         </Card>
       )}
 
-      <Card style={styles.card}>
+      <Card style={styles.card} testID="VacationDetailsScreen_InfoCard">
         <Card.Content>
-          <Text variant="h3" style={styles.sectionTitle}>
+          <Text variant="h3" style={styles.sectionTitle} testID="VacationDetailsScreen_InfoTitle">
             Informações Adicionais
           </Text>
-          <Text variant="caption" style={styles.infoText}>
-            Criada em: {formatDateTime(data.createdAt)}
+          <Text variant="caption" style={styles.infoText} testID="VacationDetailsScreen_CreatedAt">
+            Criada em: {formatDateTimeToPTBR(data.createdAt)}
           </Text>
-          <Text variant="caption" style={styles.infoText}>
-            Atualizada em: {formatDateTime(data.updatedAt)}
+          <Text variant="caption" style={styles.infoText} testID="VacationDetailsScreen_UpdatedAt">
+            Atualizada em: {formatDateTimeToPTBR(data.updatedAt)}
           </Text>
           {data.reviewedAt && (
-            <Text variant="caption" style={styles.infoText}>
-              Analisada em: {formatDateTime(data.reviewedAt)}
+            <Text variant="caption" style={styles.infoText} testID="VacationDetailsScreen_ReviewedAt">
+              Analisada em: {formatDateTimeToPTBR(data.reviewedAt)}
             </Text>
           )}
         </Card.Content>
@@ -168,12 +152,25 @@ export function VacationDetailsScreen() {
         variant="secondary"
         onPress={() => navigation.goBack()}
         style={styles.backButton}
+        testID="VacationDetailsScreen_BackButton"
       />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  backButton: {
+    marginTop: 24,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  centerContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
   container: {
     flex: 1,
   },
@@ -181,50 +178,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 32,
   },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  loadingText: {
-    marginTop: 16,
-  },
-  errorTitle: {
-    marginBottom: 8,
-    textAlign: 'center',
+  daysText: {
+    marginTop: 4,
   },
   errorText: {
     marginBottom: 24,
     textAlign: 'center',
   },
-  card: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
+  errorTitle: {
     marginBottom: 8,
-  },
-  periodText: {
-    marginBottom: 4,
-  },
-  daysText: {
-    marginTop: 4,
-  },
-  statusText: {
-    fontWeight: '600',
-  },
-  observationText: {
-    marginTop: 4,
-  },
-  rejectionReasonText: {
-    marginTop: 4,
-    fontWeight: '500',
+    textAlign: 'center',
   },
   infoText: {
     marginBottom: 4,
   },
-  backButton: {
-    marginTop: 24,
+  loadingText: {
+    marginTop: 16,
+  },
+  observationText: {
+    marginTop: 4,
+  },
+  periodText: {
+    marginBottom: 4,
+  },
+  rejectionReasonText: {
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  sectionTitle: {
+    marginBottom: 8,
+  },
+  statusText: {
+    fontWeight: '600',
   },
 });
 
