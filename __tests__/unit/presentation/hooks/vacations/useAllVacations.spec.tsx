@@ -41,10 +41,10 @@ describe('useAllVacations', () => {
     (getAllVacationsUseCase.execute as jest.Mock).mockResolvedValue(Result.ok(mockVacations));
 
     const { result, rerender } = renderHook(
-      ({ filters }) => useAllVacations(callerId, filters),
+      (props: { filters: { status: VacationStatus } }) => useAllVacations(callerId, props.filters),
       {
         initialProps: {
-          filters: { status: VacationStatus.PENDING },
+          filters: { status: VacationStatus.PENDING_APPROVAL },
         },
       },
     );
@@ -56,7 +56,7 @@ describe('useAllVacations', () => {
     const initialCallCount = (getAllVacationsUseCase.execute as jest.Mock).mock.calls.length;
 
     // Rerender with same filter values but new object reference
-    rerender({ filters: { status: VacationStatus.PENDING } });
+    rerender({ filters: { status: VacationStatus.PENDING_APPROVAL } });
 
     await waitFor(() => {
       // Should not cause additional calls if values are the same
@@ -70,10 +70,10 @@ describe('useAllVacations', () => {
     (getAllVacationsUseCase.execute as jest.Mock).mockResolvedValue(Result.ok(mockVacations));
 
     const { result, rerender } = renderHook(
-      ({ filters }) => useAllVacations(callerId, filters),
+      (props: { filters: { status: VacationStatus } }) => useAllVacations(callerId, props.filters),
       {
         initialProps: {
-          filters: { status: VacationStatus.PENDING },
+          filters: { status: VacationStatus.PENDING_APPROVAL },
         },
       },
     );
