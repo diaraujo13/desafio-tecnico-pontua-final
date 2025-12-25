@@ -39,7 +39,19 @@ jest.mock('@react-native-community/datetimepicker', () => {
   };
 });
 
-describe('RequestVacationScreen', () => {
+const renderScreen = (queryClient: QueryClient) => {
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <RequestVacationScreen />
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>,
+  );
+};
+
+describe('RequestVacationScreen Integration', () => {
   let queryClient: QueryClient;
   const mockUser = {
     id: 'user-1',
@@ -66,7 +78,7 @@ describe('RequestVacationScreen', () => {
 
     mockUseAuth.mockReturnValue({
       user: mockUser,
-      isLoading: false,
+      isAuthLoading: false,
       login: jest.fn(),
       logout: jest.fn(),
     });
@@ -77,6 +89,7 @@ describe('RequestVacationScreen', () => {
       requestVacation: mockRequestVacation,
       isLoading: false,
       error: null,
+      reset: jest.fn(),
     });
   });
 
@@ -84,26 +97,14 @@ describe('RequestVacationScreen', () => {
     jest.clearAllMocks();
   });
 
-  const renderScreen = () => {
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <AuthProvider>
-            <RequestVacationScreen />
-          </AuthProvider>
-        </ThemeProvider>
-      </QueryClientProvider>,
-    );
-  };
+  it('should render form container and fields', () => {
+    renderScreen(queryClient);
 
-  it('should render all form fields', () => {
-    renderScreen();
-
-    expect(screen.getByText('Solicitar Férias')).toBeTruthy();
-    expect(screen.getByText('Data de início')).toBeTruthy();
-    expect(screen.getByText('Data de término')).toBeTruthy();
-    expect(screen.getByText('Observação (opcional)')).toBeTruthy();
-    expect(screen.getByText('Enviar solicitação')).toBeTruthy();
+    expect(screen.getByTestId('RequestVacationScreen_Container')).toBeTruthy();
+    expect(screen.getByTestId('RequestVacationScreen_Title')).toBeTruthy();
+    expect(screen.getByTestId('RequestVacationScreen_StartDateButton')).toBeTruthy();
+    expect(screen.getByTestId('RequestVacationScreen_EndDateButton')).toBeTruthy();
+    expect(screen.getByTestId('RequestVacationScreen_SubmitButton')).toBeTruthy();
   });
 
   it('should show error message when request fails', async () => {
@@ -115,18 +116,26 @@ describe('RequestVacationScreen', () => {
       } as any),
     );
 
-    renderScreen();
+    mockUseRequestVacation.mockReturnValue({
+      requestVacation: mockRequestVacation,
+      isLoading: false,
+      error: errorMessage,
+      reset: jest.fn(),
+    });
 
-    const submitButton = screen.getByText('Enviar solicitação');
+    renderScreen(queryClient);
+
+    const submitButton = screen.getByTestId('RequestVacationScreen_SubmitButton');
     fireEvent.press(submitButton);
 
     await waitFor(() => {
-      expect(mockRequestVacation).toHaveBeenCalled();
+      expect(screen.getByTestId('RequestVacationScreen_ErrorText')).toBeTruthy();
+      expect(screen.getByText(errorMessage)).toBeTruthy();
     });
   });
 
   it('should call requestVacation with correct data on submit', async () => {
-    renderScreen();
+    renderScreen(queryClient);
 
     // Open start date picker
     const startDateButton = screen.getByTestId('RequestVacationScreen_StartDateButton');
@@ -145,7 +154,7 @@ describe('RequestVacationScreen', () => {
     fireEvent.press(endPickerButton);
 
     // Submit form
-    const submitButton = screen.getByText('Enviar solicitação');
+    const submitButton = screen.getByTestId('RequestVacationScreen_SubmitButton');
     fireEvent.press(submitButton);
 
     await waitFor(() => {
@@ -164,19 +173,19 @@ describe('RequestVacationScreen', () => {
       requestVacation: mockRequestVacation,
       isLoading: true,
       error: null,
+      reset: jest.fn(),
     });
 
-    renderScreen();
+    renderScreen(queryClient);
 
-    // When loading, button may show ActivityIndicator instead of text
-    // Just verify the screen renders without errors
-    expect(screen.getByText('Solicitar Férias')).toBeTruthy();
+    expect(screen.getByTestId('RequestVacationScreen_Container')).toBeTruthy();
+    expect(screen.getByTestId('RequestVacationScreen_SubmitButton')).toBeTruthy();
   });
 
   it('should show success message after successful submission', async () => {
-    renderScreen();
+    renderScreen(queryClient);
 
-    const submitButton = screen.getByText('Enviar solicitação');
+    const submitButton = screen.getByTestId('RequestVacationScreen_SubmitButton');
     fireEvent.press(submitButton);
 
     await waitFor(() => {
@@ -185,7 +194,7 @@ describe('RequestVacationScreen', () => {
 
     // After successful submission, success message should appear
     await waitFor(() => {
-      expect(screen.getByText('Solicitação enviada com sucesso.')).toBeTruthy();
+      expect(screen.getByTestId('RequestVacationScreen_SuccessText')).toBeTruthy();
     });
   });
 });
