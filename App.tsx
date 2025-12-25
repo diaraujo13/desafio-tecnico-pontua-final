@@ -1,10 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/presentation/navigation/RootNavigator';
@@ -45,7 +38,6 @@ function AppContent() {
 
   return (
     <View style={styles.container}>
-      {/* Root navigation for the real app flow */}
       <RootNavigator />
     </View>
   );
