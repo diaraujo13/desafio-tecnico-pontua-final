@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text, Pressable } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { ErrorBoundary } from '../../../../../src/presentation/components/templates/ErrorBoundary';
 import { ThemeProvider } from '../../../../../src/presentation/theme/ThemeProvider';
@@ -100,7 +101,11 @@ describe('ErrorBoundary', () => {
       if (shouldThrow) {
         throw new Error('Test error');
       }
-      return <div>Success</div>;
+      return (
+        <View>
+          <Text>Success</Text>
+        </View>
+      );
     }
     ToggleBomb.displayName = 'ToggleBomb';
 
@@ -143,10 +148,12 @@ describe('ErrorBoundary', () => {
 
   it('should use custom fallback component when provided', () => {
     const CustomFallback = ({ error, resetError }: { error: Error; resetError: () => void }) => (
-      <div>
-        <p>Custom Error: {error.message}</p>
-        <button onClick={resetError}>Custom Reset</button>
-      </div>
+      <View>
+        <Text>Custom Error: {error.message}</Text>
+        <Pressable onPress={resetError}>
+          <Text>Custom Reset</Text>
+        </Pressable>
+      </View>
     );
 
     render(
