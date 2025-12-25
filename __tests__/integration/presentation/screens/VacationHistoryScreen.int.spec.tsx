@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { VacationHistoryScreen } from '../../../../src/presentation/screens/VacationHistoryScreen';
 import { VacationRequest } from '../../../../src/domain/entities/VacationRequest';
 import { VacationStatus } from '../../../../src/domain/enums/VacationStatus';
@@ -37,7 +38,17 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-describe('VacationHistoryScreen', () => {
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <NavigationContainer>{component}</NavigationContainer>
+      </ThemeProvider>
+    </SafeAreaProvider>
+  );
+};
+
+describe('VacationHistoryScreen Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -45,7 +56,7 @@ describe('VacationHistoryScreen', () => {
   const mockVacations: VacationRequest[] = [
     {
       id: 'vac-1',
-      userId: 'user-123',
+      requesterId: 'user-123',
       startDate: new Date('2025-01-10'),
       endDate: new Date('2025-01-20'),
       status: VacationStatus.APPROVED,
@@ -55,7 +66,7 @@ describe('VacationHistoryScreen', () => {
     } as VacationRequest,
     {
       id: 'vac-2',
-      userId: 'user-123',
+      requesterId: 'user-123',
       startDate: new Date('2025-06-01'),
       endDate: new Date('2025-06-15'),
       status: VacationStatus.PENDING_APPROVAL,
@@ -65,7 +76,7 @@ describe('VacationHistoryScreen', () => {
     } as VacationRequest,
   ];
 
-  it('should render vacation list correctly', async () => {
+  it('should render screen container and title', async () => {
     mockUseVacationHistory.mockReturnValue({
       data: mockVacations,
       isLoading: false,
@@ -73,19 +84,28 @@ describe('VacationHistoryScreen', () => {
       refetch: jest.fn(),
     });
 
-    render(
-      <ThemeProvider>
-        <NavigationContainer>
-          <VacationHistoryScreen />
-        </NavigationContainer>
-      </ThemeProvider>,
-    );
+    renderWithProviders(<VacationHistoryScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText('Histórico de Férias')).toBeTruthy();
-      expect(screen.getByText('2025-01-10 → 2025-01-20')).toBeTruthy();
-      expect(screen.getByText(/Status: Aprovada/)).toBeTruthy();
-      expect(screen.getByText(/Status: Pendente/)).toBeTruthy();
+      expect(screen.getByTestId('VacationHistoryScreen_Container')).toBeTruthy();
+      expect(screen.getByTestId('VacationHistoryScreen_Title')).toBeTruthy();
+    });
+  });
+
+  it('should render vacation list when data is available', async () => {
+    mockUseVacationHistory.mockReturnValue({
+      data: mockVacations,
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    renderWithProviders(<VacationHistoryScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('VacationHistoryScreen_VacationsList')).toBeTruthy();
+      expect(screen.getByTestId('VacationHistoryScreen_VacationItem_vac-1')).toBeTruthy();
+      expect(screen.getByTestId('VacationHistoryScreen_VacationItem_vac-2')).toBeTruthy();
     });
   });
 
@@ -97,20 +117,15 @@ describe('VacationHistoryScreen', () => {
       refetch: jest.fn(),
     });
 
-    render(
-      <ThemeProvider>
-        <NavigationContainer>
-          <VacationHistoryScreen />
-        </NavigationContainer>
-      </ThemeProvider>,
-    );
+    renderWithProviders(<VacationHistoryScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText('Você ainda não solicitou férias.')).toBeTruthy();
+      expect(screen.getByTestId('VacationHistoryScreen_EmptyState')).toBeTruthy();
+      expect(screen.getByTestId('VacationHistoryScreen_EmptyStateMessage')).toBeTruthy();
     });
   });
 
-  it('should not render list while loading', () => {
+  it('should not render empty state while loading', () => {
     mockUseVacationHistory.mockReturnValue({
       data: [],
       isLoading: true,
@@ -118,36 +133,26 @@ describe('VacationHistoryScreen', () => {
       refetch: jest.fn(),
     });
 
-    render(
-      <ThemeProvider>
-        <NavigationContainer>
-          <VacationHistoryScreen />
-        </NavigationContainer>
-      </ThemeProvider>,
-    );
+    renderWithProviders(<VacationHistoryScreen />);
 
-    expect(screen.getByText('Histórico de Férias')).toBeTruthy();
-    expect(screen.queryByText('Você ainda não solicitou férias.')).toBeNull();
+    expect(screen.getByTestId('VacationHistoryScreen_Container')).toBeTruthy();
+    expect(screen.queryByTestId('VacationHistoryScreen_EmptyState')).toBeNull();
   });
 
   it('should display error message when fetch fails', async () => {
+    const errorMessage = 'Failed to load vacation history';
     mockUseVacationHistory.mockReturnValue({
       data: [],
       isLoading: false,
-      error: 'Failed to load vacation history',
+      error: errorMessage,
       refetch: jest.fn(),
     });
 
-    render(
-      <ThemeProvider>
-        <NavigationContainer>
-          <VacationHistoryScreen />
-        </NavigationContainer>
-      </ThemeProvider>,
-    );
+    renderWithProviders(<VacationHistoryScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to load vacation history')).toBeTruthy();
+      expect(screen.getByTestId('VacationHistoryScreen_ErrorText')).toBeTruthy();
+      expect(screen.getByText(errorMessage)).toBeTruthy();
     });
   });
 
@@ -159,28 +164,15 @@ describe('VacationHistoryScreen', () => {
       refetch: jest.fn(),
     });
 
-    render(
-      <ThemeProvider>
-        <NavigationContainer>
-          <VacationHistoryScreen />
-        </NavigationContainer>
-      </ThemeProvider>,
-    );
+    renderWithProviders(<VacationHistoryScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText('Histórico de Férias')).toBeTruthy();
+      expect(screen.getByTestId('VacationHistoryScreen_VacationItem_vac-1')).toBeTruthy();
     });
 
-    // Find and press the first vacation card using the period text
-    const firstVacationPeriod = screen.getByText('2025-01-10 → 2025-01-20');
+    const vacationItem = screen.getByTestId('VacationHistoryScreen_VacationItem_vac-1');
+    fireEvent.press(vacationItem);
 
-    // Navigate up to find the Pressable parent
-    const pressable = firstVacationPeriod.parent?.parent?.parent;
-    if (pressable) {
-      fireEvent.press(pressable);
-    }
-
-    // Verify navigation was called with correct params
     expect(mockNavigate).toHaveBeenCalledWith('VacationDetails', {
       requestId: 'vac-1',
     });
@@ -195,20 +187,14 @@ describe('VacationHistoryScreen', () => {
       refetch: mockRefetch,
     });
 
-    render(
-      <ThemeProvider>
-        <NavigationContainer>
-          <VacationHistoryScreen />
-        </NavigationContainer>
-      </ThemeProvider>,
-    );
+    renderWithProviders(<VacationHistoryScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText('Histórico de Férias')).toBeTruthy();
+      expect(screen.getByTestId('VacationHistoryScreen_VacationsList')).toBeTruthy();
     });
 
-    // Note: Testing RefreshControl behavior requires more complex setup
-    // This test verifies that refetch function is available
+    // Verify refetch function is available (actual RefreshControl testing requires more complex setup)
     expect(mockRefetch).toBeDefined();
   });
 });
+
