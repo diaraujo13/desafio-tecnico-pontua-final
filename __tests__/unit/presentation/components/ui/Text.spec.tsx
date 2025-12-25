@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { Text } from '../../../../../src/presentation/components/ui/Text';
 import { ThemeProvider } from '../../../../../src/presentation/theme/ThemeProvider';
 
@@ -9,47 +9,40 @@ describe('Text Component', () => {
   };
 
   it('should render text with default variant', () => {
-    const { getByText } = renderWithTheme(<Text>Hello World</Text>);
-    const text = getByText('Hello World');
-    expect(text).toBeTruthy();
+    renderWithTheme(<Text>Hello World</Text>);
+    expect(screen.getByText('Hello World')).toBeTruthy();
   });
 
   it('should apply h1 variant styles', () => {
-    const { getByText } = renderWithTheme(<Text variant="h1">Heading 1</Text>);
-    const text = getByText('Heading 1');
-    expect(text).toBeTruthy();
+    renderWithTheme(<Text variant="h1">Heading 1</Text>);
+    expect(screen.getByText('Heading 1')).toBeTruthy();
     // Styles are applied internally, we verify the component renders
   });
 
   it('should apply h2 variant styles', () => {
-    const { getByText } = renderWithTheme(<Text variant="h2">Heading 2</Text>);
-    const text = getByText('Heading 2');
-    expect(text).toBeTruthy();
+    renderWithTheme(<Text variant="h2">Heading 2</Text>);
+    expect(screen.getByText('Heading 2')).toBeTruthy();
   });
 
   it('should apply body variant styles', () => {
-    const { getByText } = renderWithTheme(<Text variant="body">Body text</Text>);
-    const text = getByText('Body text');
-    expect(text).toBeTruthy();
+    renderWithTheme(<Text variant="body">Body text</Text>);
+    expect(screen.getByText('Body text')).toBeTruthy();
   });
 
   it('should apply caption variant styles', () => {
-    const { getByText } = renderWithTheme(<Text variant="caption">Caption</Text>);
-    const text = getByText('Caption');
-    expect(text).toBeTruthy();
+    renderWithTheme(<Text variant="caption">Caption</Text>);
+    expect(screen.getByText('Caption')).toBeTruthy();
   });
 
   it('should apply label variant styles', () => {
-    const { getByText } = renderWithTheme(<Text variant="label">Label</Text>);
-    const text = getByText('Label');
-    expect(text).toBeTruthy();
+    renderWithTheme(<Text variant="label">Label</Text>);
+    expect(screen.getByText('Label')).toBeTruthy();
   });
 
   it('should allow style override', () => {
     const customStyle = { color: '#FF0000' };
-    const { getByText } = renderWithTheme(<Text style={customStyle}>Custom styled</Text>);
-    const text = getByText('Custom styled');
-    expect(text).toBeTruthy();
+    renderWithTheme(<Text style={customStyle}>Custom styled</Text>);
+    expect(screen.getByText('Custom styled')).toBeTruthy();
   });
 
   it('should throw error when used outside ThemeProvider', () => {
@@ -64,5 +57,6 @@ describe('Text Component', () => {
     console.error = originalError;
   });
 });
+
 
 
