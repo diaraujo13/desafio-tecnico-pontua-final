@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ManagerDashboardScreen } from '../../../../src/presentation/screens/ManagerDashboardScreen';
 import { useAuth } from '../../../../src/presentation/hooks/useAuth';
 import { usePendingVacations } from '../../../../src/presentation/hooks/vacations/usePendingVacations';
@@ -28,17 +29,19 @@ const createTestWrapper = () => {
   });
 
   const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <NavigationContainer>{children}</NavigationContainer>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <NavigationContainer>{children}</NavigationContainer>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 
   return TestWrapper;
 };
 
-describe('ManagerDashboardScreen', () => {
+describe('ManagerDashboardScreen Integration', () => {
   const mockUser = {
     id: 'manager-1',
     name: 'Manager User',
@@ -67,7 +70,9 @@ describe('ManagerDashboardScreen', () => {
 
     render(<ManagerDashboardScreen />, { wrapper: createTestWrapper() });
 
-    expect(screen.getByText('Pendências de Aprovação')).toBeTruthy();
+    expect(screen.getByTestId('ManagerDashboardScreen_Container')).toBeTruthy();
+    expect(screen.getByTestId('ManagerDashboardScreen_Title')).toBeTruthy();
+    expect(screen.getByTestId('ManagerDashboardScreen_LoadingSkeleton')).toBeTruthy();
   });
 
   it('should render empty state when no pending requests', async () => {
@@ -82,7 +87,8 @@ describe('ManagerDashboardScreen', () => {
     render(<ManagerDashboardScreen />, { wrapper: createTestWrapper() });
 
     await waitFor(() => {
-      expect(screen.getByText('Nenhuma solicitação pendente')).toBeTruthy();
+      expect(screen.getByTestId('ManagerDashboardScreen_EmptyState')).toBeTruthy();
+      expect(screen.getByTestId('ManagerDashboardScreen_EmptyStateComponent')).toBeTruthy();
     });
   });
 
@@ -110,23 +116,29 @@ describe('ManagerDashboardScreen', () => {
     render(<ManagerDashboardScreen />, { wrapper: createTestWrapper() });
 
     await waitFor(() => {
-      expect(screen.getByText('Pendências de Aprovação')).toBeTruthy();
+      expect(screen.getByTestId('ManagerDashboardScreen_Container')).toBeTruthy();
+      expect(screen.getByTestId('ManagerDashboardScreen_Title')).toBeTruthy();
+      expect(screen.getByTestId('ManagerDashboardScreen_VacationsList')).toBeTruthy();
+      expect(screen.getByTestId('ManagerDashboardScreen_VacationItem_vacation-1')).toBeTruthy();
     });
   });
 
   it('should display error message when error occurs', async () => {
+    const errorMessage = 'Failed to load pending requests';
     mockUsePendingVacations.mockReturnValue({
       data: [],
       isLoading: false,
       isFetching: false,
-      error: 'Failed to load pending requests',
+      error: errorMessage,
       refetch: jest.fn(),
     });
 
     render(<ManagerDashboardScreen />, { wrapper: createTestWrapper() });
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to load pending requests')).toBeTruthy();
+      expect(screen.getByTestId('ManagerDashboardScreen_ErrorText')).toBeTruthy();
+      expect(screen.getByText(errorMessage)).toBeTruthy();
     });
   });
 });
+
