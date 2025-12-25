@@ -36,6 +36,10 @@ export interface ButtonProps extends Omit<TouchableOpacityProps, 'style'> {
    * Optional style override for label text
    */
   labelStyle?: TextStyle;
+  /**
+   * Test ID for E2E testing
+   */
+  testID?: string;
 }
 
 /**
