@@ -14,3 +14,4 @@ export class InfrastructureFailureError extends DomainError {
 }
 
 
+
