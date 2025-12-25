@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { Card } from '../../../../../src/presentation/components/ui/Card';
 import { ThemeProvider } from '../../../../../src/presentation/theme/ThemeProvider';
 
@@ -20,12 +20,12 @@ describe('Card Component', () => {
   });
 
   it('should render card with header', () => {
-    const { getByText } = renderWithTheme(
+    renderWithTheme(
       <Card>
         <Card.Header title="Card Title" />
       </Card>
     );
-    expect(getByText('Card Title')).toBeTruthy();
+    expect(screen.getByText('Card Title')).toBeTruthy();
   });
 
   it('should render card with content', () => {
@@ -53,7 +53,7 @@ describe('Card Component', () => {
   });
 
   it('should render complete card structure', () => {
-    const { getByText } = renderWithTheme(
+    renderWithTheme(
       <Card>
         <Card.Header title="Title" />
         <Card.Content>
@@ -64,7 +64,7 @@ describe('Card Component', () => {
         </Card.Footer>
       </Card>
     );
-    expect(getByText('Title')).toBeTruthy();
+    expect(screen.getByText('Title')).toBeTruthy();
   });
 
   it('should not render header when title is not provided', () => {
