@@ -58,7 +58,3 @@ export function useVacationDetails(requestId: string, requesterId: string) {
     refetch: fetchDetails,
   };
 }
-
-
-
-

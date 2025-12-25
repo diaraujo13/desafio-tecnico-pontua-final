@@ -48,10 +48,7 @@ export function Badge({ label, variant = 'info', style, testID }: BadgeProps) {
 /**
  * Gets badge container styles based on variant
  */
-function getBadgeStyles(
-  variant: BadgeVariant,
-  theme: ReturnType<typeof useTheme>
-): ViewStyle {
+function getBadgeStyles(variant: BadgeVariant, theme: ReturnType<typeof useTheme>): ViewStyle {
   const { colors, spacing, borderRadius } = theme;
 
   const baseStyle: ViewStyle = {
@@ -109,7 +106,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
-
-
-

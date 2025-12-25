@@ -12,6 +12,3 @@ export interface UserDTO {
   departmentId: string;
   managerId: string | null;
 }
-
-
-

@@ -67,7 +67,3 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
-
-
-
-

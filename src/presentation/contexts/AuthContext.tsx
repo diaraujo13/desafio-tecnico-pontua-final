@@ -23,7 +23,8 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<UserDTO | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true); // Start as true to check session on mount
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [hasBootstrapped, setHasBootstrapped] = useState(false);
 
   const handleLogin = useCallback(async (dto: LoginDTO): Promise<Result<UserDTO>> => {
     setIsAuthLoading(true);
@@ -31,8 +32,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       const result = await loginUseCase.execute(dto);
 
       if (result.isSuccess) {
-        const loggedUser = result.getValue();
-        setUser(loggedUser);
+        setUser(result.getValue());
       }
 
       return result;
@@ -56,11 +56,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   }, []);
 
-  // Restore session on mount
   useEffect(() => {
+    let isMounted = true;
+
     async function restoreSession() {
       try {
         const result = await restoreSessionUseCase.execute();
+
+        if (!isMounted) return;
 
         if (result.isSuccess) {
           const restoredUser = result.getValue();
@@ -68,16 +71,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
             setUser(restoredUser);
           }
         }
-        // If restore fails or returns null, user remains null (not authenticated)
-      } catch {
-        // Silently fail - user is not authenticated
-        
       } finally {
-        setIsAuthLoading(false);
+        if (isMounted) {
+          setHasBootstrapped(true);
+        }
       }
     }
 
     restoreSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const value = useMemo<AuthContextValue>(
@@ -89,6 +94,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }),
     [user, isAuthLoading, handleLogin, handleLogout],
   );
+
+  if (!hasBootstrapped) {
+    return null;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

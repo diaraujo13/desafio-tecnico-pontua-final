@@ -11,6 +11,3 @@ export class InvalidInputError extends DomainError {
     super(message, 'INVALID_INPUT');
   }
 }
-
-
-

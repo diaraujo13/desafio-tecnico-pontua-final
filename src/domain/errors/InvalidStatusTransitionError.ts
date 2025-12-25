@@ -11,6 +11,3 @@ export class InvalidStatusTransitionError extends DomainError {
     super(message);
   }
 }
-
-
-

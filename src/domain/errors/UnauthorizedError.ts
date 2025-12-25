@@ -10,6 +10,3 @@ export class UnauthorizedError extends DomainError {
     super(message, 'UNAUTHORIZED');
   }
 }
-
-
-

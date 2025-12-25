@@ -6,6 +6,3 @@ export type { IAuthRepository } from './IAuthRepository';
 export type { IUserRepository } from './IUserRepository';
 export type { IVacationRepository } from './IVacationRepository';
 export type { IDepartmentRepository } from './IDepartmentRepository';
-
-
-

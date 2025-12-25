@@ -40,14 +40,7 @@ export interface EmptyStateProps {
  * A component for displaying empty states in lists or screens.
  * Provides visual feedback when there is no data to display.
  */
-export function EmptyState({
-  icon,
-  title,
-  description,
-  action,
-  style,
-  testID,
-}: EmptyStateProps) {
+export function EmptyState({ icon, title, description, action, style, testID }: EmptyStateProps) {
   const theme = useTheme();
 
   return (
@@ -59,7 +52,10 @@ export function EmptyState({
       </Text>
 
       {description && (
-        <Text variant="bodySmall" style={[styles.description, { color: theme.colors.textSecondary }]}>
+        <Text
+          variant="bodySmall"
+          style={[styles.description, { color: theme.colors.textSecondary }]}
+        >
           {description}
         </Text>
       )}
@@ -99,7 +95,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
-
-
-

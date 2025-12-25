@@ -13,7 +13,7 @@
 export async function simulateRequest<T>(
   data: T,
   ms: number = 800,
-  shouldFail: boolean = false
+  shouldFail: boolean = false,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -34,7 +34,7 @@ export async function simulateRequest<T>(
  */
 export async function simulateError(
   message: string = 'Network error',
-  ms: number = 800
+  ms: number = 800,
 ): Promise<never> {
   return new Promise((_, reject) => {
     setTimeout(() => {
@@ -42,6 +42,3 @@ export async function simulateError(
     }, ms);
   });
 }
-
-
-

@@ -34,4 +34,3 @@ export function getRoleLabel(role: UserRole | undefined | null): string {
 
   return ROLE_LABELS[role] ?? role;
 }
-

@@ -38,5 +38,3 @@ export function formatDateTimeToPTBR(date: Date): string {
     minute: '2-digit',
   });
 }
-
-

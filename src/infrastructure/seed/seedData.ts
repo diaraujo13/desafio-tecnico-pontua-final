@@ -149,6 +149,3 @@ export const vacationsSeed = [
     rejectionReason: null,
   },
 ] as const;
-
-
-

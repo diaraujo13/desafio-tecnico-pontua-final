@@ -51,6 +51,3 @@ export const lightTheme: Theme = {
   typography: tokens.typography,
   shadows: tokens.shadows,
 };
-
-
-
