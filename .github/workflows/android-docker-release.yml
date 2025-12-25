@@ -20,7 +20,9 @@ jobs:
       - name: Build APK using Docker
         run: |
           docker build -f Dockerfile.android \
-            --output type=local,dest=sbp-output
+            --output type=tar,dest=sbp-output.tar \
+            .
+          tar -xf sbp-output.tar
 
       - name: Verify APK
         run: |
