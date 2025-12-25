@@ -1,0 +1,1676 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Configuração Inicial do Projeto e Ferramentas de Qualidade",
+        "description": "Inicializar o projeto React Native com TypeScript e configurar ferramentas de linting, formatação e testes unitários conforme roadmap da Fase 1.",
+        "details": "1. Inicializar projeto React Native 0.83.1+. 2. Configurar ESLint + Prettier com regras para TS e RN. 3. Configurar Husky com lint-staged para pre-commit e testes para pre-push. 4. Configurar Commitlint. 5. Configurar Jest para testes unitários.",
+        "testStrategy": "Verificar se o lint roda sem erros, se o commit falha com mensagem fora do padrão e se o jest executa um teste dummy com sucesso.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Inicialização do Projeto React Native com TypeScript",
+            "description": "Criar um novo projeto React Native (versão 0.83.1+) utilizando o template oficial com TypeScript, garantindo compatibilidade com a New Architecture.",
+            "dependencies": [],
+            "details": "Executar 'npx react-native@latest init FeriasControl --template react-native-template-typescript' (ou comando equivalente atualizado). Verificar a correta criação dos arquivos android/ e ios/, bem como a presença do 'tsconfig.json'. Validar se o app roda em um emulador simulado (iOS ou Android).",
+            "status": "done",
+            "testStrategy": "Executar 'npm run android' ou 'npm run ios' e verificar se a tela de boas-vindas do React Native aparece sem erros de build.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:17:24.165Z"
+          },
+          {
+            "id": 2,
+            "title": "Configuração de ESLint e Prettier",
+            "description": "Instalar e configurar ESLint e Prettier para garantir consistência de código, utilizando regras estritas para TypeScript e React Native.",
+            "dependencies": [1],
+            "details": "Instalar dependências de dev: eslint, prettier, @react-native/eslint-config, eslint-config-prettier, eslint-plugin-prettier, etc. Criar/atualizar '.eslintrc.js' e '.prettierrc' com as regras definidas no PRD (ou padrões estritos de comunidade). Adicionar scripts 'lint' e 'lint:fix' no package.json.",
+            "status": "done",
+            "testStrategy": "Rodar 'npm run lint' em um arquivo propositalmente formatado incorretamente e verificar se erros são reportados e se 'npm run lint:fix' corrige problemas de formatação.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:19:05.516Z"
+          },
+          {
+            "id": 3,
+            "title": "Configuração de Husky, Lint-staged e Commitlint",
+            "description": "Automatizar a verificação de código e padronização de commits utilizando Husky, lint-staged e Commitlint.",
+            "dependencies": [2],
+            "details": "Instalar husky, lint-staged e @commitlint/{config-conventional,cli}. Configurar hook pre-commit para rodar 'lint-staged' (executando lint nos arquivos modificados). Configurar hook commit-msg para validar mensagem de commit via commitlint. Configurar hook pre-push (opcional neste passo, mas preparado para rodar testes).",
+            "status": "done",
+            "testStrategy": "Tentar commitar um arquivo com erro de lint ou mensagem fora do padrão 'Conventional Commits' e verificar se o commit é bloqueado.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:19:48.638Z"
+          },
+          {
+            "id": 4,
+            "title": "Definição da Estrutura de Diretórios (Clean Architecture)",
+            "description": "Criar a árvore de diretórios conforme especificado na arquitetura do projeto para separar responsabilidades (Domain, Application, Infrastructure, Presentation).",
+            "dependencies": [1],
+            "details": "Criar as pastas: src/domain (models, repositories_interfaces), src/application (usecases, services), src/infrastructure (api, persistence, repositories_impl), src/presentation (components, screens, navigation, hooks, theme). Adicionar arquivos '.gitkeep' se necessário para manter pastas vazias no git inicialmente.",
+            "status": "done",
+            "testStrategy": "Verificar se a estrutura de pastas existe fisicamente no projeto e se está alinhada com a documentação de arquitetura.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:17:33.259Z"
+          },
+          {
+            "id": 5,
+            "title": "Configuração do Ambiente de Testes com Jest",
+            "description": "Configurar o Jest para suportar testes unitários com TypeScript e suporte a Path Aliases (se utilizado).",
+            "dependencies": [1, 2],
+            "details": "Ajustar 'jest.config.js' (ou package.json) para usar 'preset: react-native'. Configurar 'transformIgnorePatterns' para bibliotecas comuns do ecossistema RN. Instalar '@types/jest' e 'ts-jest' se necessário. Criar um teste simples 'App.test.tsx' para validar a configuração.",
+            "status": "done",
+            "testStrategy": "Executar 'npm test' e garantir que o teste de exemplo (dummy test) passe com sucesso e que a cobertura possa ser coletada.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:19:21.861Z"
+          }
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Check if a `package.json` already exists. If the project is empty, generate the `react-native init` command. If it exists, verify installed dependencies (`eslint`, `prettier`, `jest`, `husky`). Create/update configuration files (`.eslintrc.js`, `.prettierrc`, `jest.config.js`, `.husky/pre-commit`) based on the project's standard. Generate a sample test file.",
+        "updatedAt": "2025-12-24T04:19:48.638Z"
+      },
+      {
+        "id": "2",
+        "title": "Definição de Estrutura de Pastas e Tipos Base",
+        "description": "Criar a árvore de diretórios seguindo Clean Architecture e implementar Enums e o tipo utilitário Result para tratamento de erros.",
+        "details": "1. Criar estrutura: domain/, application/, infrastructure/, presentation/. 2. Criar Enums: VacationStatus (PENDING_APPROVAL, APPROVED, REJECTED, CANCELLED), UserRole (COLLABORATOR, MANAGER, ADMIN), UserStatus. 3. Implementar classe/tipo 'Result' para Railway Oriented Programming (ok, fail, isSuccess, getValue, getError).",
+        "testStrategy": "Testes unitários para a classe Result garantindo fluxo de sucesso e falha.",
+        "priority": "high",
+        "dependencies": ["1"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Criar Árvore de Diretórios da Clean Architecture",
+            "description": "Estabelecer a estrutura inicial de pastas do projeto seguindo os princípios da Clean Architecture.",
+            "dependencies": [],
+            "details": "Criar os diretórios principais dentro de 'src/': 'domain' (com subpastas 'enums', 'entities', 'repositories', 'shared'), 'application' (com 'usecases', 'dtos', 'mappers'), 'infrastructure' (com 'repositories', 'api', 'api/mock-server'), e 'presentation' (com 'screens', 'components', 'hooks', 'navigation').",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:25:09.937Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementar Enum VacationStatus",
+            "description": "Criar o enumerador para os status de solicitação de férias.",
+            "dependencies": [1],
+            "details": "Em 'src/domain/enums/VacationStatus.ts', definir o enum exportado com os valores: PENDING_APPROVAL, APPROVED, REJECTED, CANCELLED. Garantir que os valores string correspondam às chaves para facilitar a serialização.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:25:13.693Z"
+          },
+          {
+            "id": 3,
+            "title": "Implementar Enums UserRole e UserStatus",
+            "description": "Criar os enumeradores para papéis e status de usuários.",
+            "dependencies": [1],
+            "details": "Em 'src/domain/enums/UserRole.ts', definir: COLLABORATOR, MANAGER, ADMIN. Em 'src/domain/enums/UserStatus.ts', definir status como ACTIVE, INACTIVE, etc., conforme necessário para a entidade de usuário.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:25:15.386Z"
+          },
+          {
+            "id": 4,
+            "title": "Implementar Classe Utilitária Result (Shared Kernel)",
+            "description": "Criar a classe Result para padronizar o retorno de sucesso ou falha nas camadas da aplicação (Pattern ROP).",
+            "dependencies": [1],
+            "details": "Em 'src/domain/shared/Result.ts', implementar a classe genérica Result<T> com construtor privado e métodos estáticos 'ok<U>(value?: U)' e 'fail<E>(error: E | string)'. Deve incluir métodos de instância 'isSuccess', 'isFailure', 'getValue()' e 'getError()'.",
+            "status": "done",
+            "testStrategy": "Deve ser testada unitariamente na próxima subtask.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:25:23.486Z"
+          },
+          {
+            "id": 5,
+            "title": "Criar Testes Unitários para a Classe Result",
+            "description": "Garantir o funcionamento correto da lógica de Railway Oriented Programming implementada na classe Result.",
+            "dependencies": [4],
+            "details": "Criar o arquivo '__tests__/unit/domain/shared/Result.spec.ts'. Implementar testes cobrindo: criação de sucesso (com e sem valor), criação de falha, verificação de isSuccess/isFailure, e lançamento de exceção ao tentar acessar valor de um resultado de falha (e vice-versa).",
+            "status": "done",
+            "testStrategy": "Executar 'npm test' ou equivalente para validar a classe.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:25:47.190Z"
+          }
+        ],
+        "complexity": 2,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Generate a script or list of commands to create the `src/` directory tree (domain, data, infra, presentation). Create `Result.ts` generic class for error handling (Railway Oriented Programming). Define TypeScript Enums for `VacationStatus`, `UserRole`. Ensure no circular dependencies in the basic types.",
+        "updatedAt": "2025-12-24T04:25:47.190Z"
+      },
+      {
+        "id": "3",
+        "title": "Domain Layer: Value Objects e Erros",
+        "description": "Implementar Value Objects para garantir invariantes de dados simples e classes de Erro personalizadas (DomainErrors concretos).",
+        "status": "done",
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implementar Base DomainError e ValidationError",
+            "description": "Criar a estrutura base de tratamento de erros do domínio para garantir consistência nas exceções lançadas.",
+            "dependencies": [],
+            "details": "Criar 'src/domain/errors/DomainError.ts' estendendo a classe nativa Error. Criar 'src/domain/errors/ValidationError.ts' estendendo DomainError para erros genéricos de validação. Garantir que as classes capturem a stack trace corretamente.",
+            "status": "done",
+            "testStrategy": "Verificar se instanceof funciona corretamente para as classes de erro.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:31:43.727Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementar Classes de Erro Específicas",
+            "description": "Implementar as subclasses de erro necessárias para os Value Objects e Entidades definidos no PRD.",
+            "dependencies": [1],
+            "details": "Em 'src/domain/errors/', criar: InvalidEmailFormatError, WeakPasswordError, InvalidDateRangeError e VacationRequestExpiredError. Todas devem estender DomainError ou ValidationError e fornecer mensagens padrão claras.",
+            "status": "done",
+            "testStrategy": "Verificar se as mensagens de erro padrão são instanciadas corretamente.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:31:54.512Z"
+          },
+          {
+            "id": 3,
+            "title": "Desenvolver Value Objects de Identidade (Email e Password)",
+            "description": "Criar os objetos de valor para encapsular regras de validação de credenciais de usuário.",
+            "dependencies": [2],
+            "details": "Criar 'src/domain/value-objects/Email.ts' com validação de regex e lançamento de InvalidEmailFormatError. Criar 'src/domain/value-objects/Password.ts' validando comprimento mínimo/complexidade e lançando WeakPasswordError.",
+            "status": "done",
+            "testStrategy": "Testes unitários validando emails incorretos e senhas fracas.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:32:07.154Z"
+          },
+          {
+            "id": 4,
+            "title": "Desenvolver Value Object DateRange",
+            "description": "Implementar objeto de valor para manipulação de intervalos de datas, crucial para o domínio de férias.",
+            "dependencies": [2],
+            "details": "Criar 'src/domain/value-objects/DateRange.ts'. O construtor deve receber start e end (Date), validar se start < end e lançar InvalidDateRangeError caso contrário. Adicionar método utilitário para calcular duração em dias se necessário.",
+            "status": "done",
+            "testStrategy": "Testes unitários validando intervalos invertidos ou iguais.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:32:17.410Z"
+          },
+          {
+            "id": 5,
+            "title": "Criar Testes Unitários para Value Objects e Erros",
+            "description": "Garantir a confiabilidade das regras de negócio encapsuladas nos Value Objects através de testes automatizados.",
+            "dependencies": [3, 4],
+            "details": "Criar arquivos de teste em 'src/domain/value-objects/__tests__/' (ou similar). Cobrir cenários de sucesso e falha para Email, Password e DateRange, assegurando que os erros corretos (criados na subtask 2) sejam lançados.",
+            "status": "done",
+            "testStrategy": "Execução da suíte de testes unitários (ex: Jest/Vitest) com cobertura de branches.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:33:21.044Z"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Implement `ValueObject` base class (if needed). Create `Email`, `Password` (with regex validation), and `DateRange` (validating start < end) value objects. Implement custom `DomainError` classes. Ensure Value Objects are immutable and self-validating in the constructor.",
+        "updatedAt": "2025-12-24T12:58:32.317Z",
+        "dependencies": []
+      },
+      {
+        "id": "4",
+        "title": "Domain Layer: Entidades e Regras de Negócio",
+        "description": "Implementar as Entidades principais com encapsulamento e regras de negócio ricas.",
+        "details": "1. User Entity: props privadas, getters, role check. 2. Department Entity. 3. VacationRequest Entity: Factory Method para criação com validação, métodos 'approve()', 'reject()' (motivo obrigatório), 'cancel()'. Garantir imutabilidade externa e integridade do domínio.",
+        "testStrategy": "Testes unitários cobrindo transições de status permitidas e proibidas na entidade VacationRequest.",
+        "priority": "high",
+        "dependencies": ["3"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implementar Entidade Base e Entidade User",
+            "description": "Criar a classe abstrata Entity e implementar a entidade User com encapsulamento e validação de permissões.",
+            "dependencies": [],
+            "details": "Criar 'src/domain/shared/Entity.ts' com gestão de ID. Criar 'src/domain/entities/User.ts' com propriedades privadas (_id, _name, _email, _role, _departmentId). Implementar getters e métodos como 'isAdmin()' e 'isManager()'. Utilizar os Value Objects criados na tarefa anterior (Email, Password) se disponíveis.",
+            "status": "done",
+            "testStrategy": "Teste unitário verificando criação de usuário e retorno correto dos métodos de verificação de papel (role).",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:45:07.795Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementar Entidade Department",
+            "description": "Implementar a entidade Department para agrupar usuários e gerenciar hierarquia básica.",
+            "dependencies": [1],
+            "details": "Criar 'src/domain/entities/Department.ts'. Propriedades: _id, _name. Deve incluir método estático 'create' (Factory) para validar nome não vazio. Garantir que as propriedades sejam readonly ou acessíveis apenas via getter.",
+            "status": "done",
+            "testStrategy": "Teste unitário verificando a criação de um departamento válido e falha ao criar com nome inválido.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:45:11.711Z"
+          },
+          {
+            "id": 3,
+            "title": "Implementar Estrutura Inicial de VacationRequest",
+            "description": "Criar a entidade VacationRequest com propriedades básicas e Enum de Status.",
+            "dependencies": [1],
+            "details": "Criar 'src/domain/entities/VacationRequest.ts'. Definir 'VacationRequestStatus' (PENDING, APPROVED, REJECTED, CANCELLED). Implementar propriedades privadas: _userId, _startDate, _endDate, _status, _reason, _rejectionReason. Utilizar Value Object 'DateRange' se disponível ou validar datas no construtor.",
+            "status": "done",
+            "testStrategy": "Verificar se a entidade é instanciada com status inicial PENDING por padrão.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:45:39.956Z"
+          },
+          {
+            "id": 4,
+            "title": "Implementar Regras de Negócio Ricas em VacationRequest",
+            "description": "Adicionar métodos comportamentais para aprovação, rejeição e cancelamento com validação de estado.",
+            "dependencies": [3],
+            "details": "Na classe VacationRequest: implementar 'approve(reviewerId: string)', 'reject(reviewerId: string, reason: string)' e 'cancel()'. Cada método deve verificar o estado atual (ex: lançar erro se tentar aprovar uma solicitação cancelada). 'reject' deve obrigar o preenchimento do motivo.",
+            "status": "done",
+            "testStrategy": "Testes de transição: Pending->Approved (OK), Pending->Rejected (OK), Cancelled->Approved (Erro), etc.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:45:40.476Z"
+          },
+          {
+            "id": 5,
+            "title": "Criar Factory Methods e Testes de Domínio",
+            "description": "Padronizar a criação de entidades via Factory Methods e cobrir regras de negócio com testes.",
+            "dependencies": [2, 4],
+            "details": "Refatorar construtores para serem privados/protegidos e expor métodos estáticos 'create(props)' em User, Department e VacationRequest. Implementar suíte de testes em 'src/domain/entities/__tests__/VacationRequest.spec.ts' cobrindo todos os cenários de sucesso e falha nas transições de status.",
+            "status": "done",
+            "testStrategy": "Execução completa da suíte de testes com Jest, garantindo 100% de cobertura das regras de negócio da entidade VacationRequest.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T04:46:37.190Z"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Implement `User` and `VacationRequest` entities. `VacationRequest` must have methods like `approve`, `reject` (requiring reason), and `cancel` that check current status (State Machine logic). Use the Result pattern for method returns. Avoid setters; use semantic methods for state changes.",
+        "updatedAt": "2025-12-24T04:46:37.190Z"
+      },
+      {
+        "id": "5",
+        "title": "Domain Layer: Contratos de Repositórios",
+        "description": "Definir interfaces dos repositórios para inversão de dependência.",
+        "details": "Criar interfaces em domain/repositories/: IAuthRepository, IVacationRepository, IUserRepository, IDepartmentRepository. As interfaces devem retornar Promises contendo Entities ou o tipo Result.",
+        "testStrategy": "Revisão de código para garantir que as interfaces dependem apenas do Domain e não de libs externas.",
+        "priority": "high",
+        "dependencies": ["4"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Definir Interface do Repositório de Autenticação",
+            "description": "Criar a interface IAuthRepository no diretório de repositórios do domínio, definindo os métodos para login e logout.",
+            "dependencies": [],
+            "details": "Arquivo: `src/domain/repositories/IAuthRepository.ts`. Métodos esperados: `login(email: Email, password: Password): Promise<Result<User>>`, `logout(): Promise<void>`. Deve importar as entidades e Value Objects necessários (User, Email, Password) e o tipo Result.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:04:48.641Z"
+          },
+          {
+            "id": 2,
+            "title": "Definir Interface do Repositório de Usuários",
+            "description": "Criar a interface IUserRepository para operações de busca e persistência de dados de usuários.",
+            "dependencies": [],
+            "details": "Arquivo: `src/domain/repositories/IUserRepository.ts`. Métodos sugeridos: `findById(id: string): Promise<Result<User>>`, `findByEmail(email: string): Promise<Result<User>>`, `save(user: User): Promise<Result<void>>`. Assegurar o uso de Promises e Result.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:04:53.632Z"
+          },
+          {
+            "id": 3,
+            "title": "Definir Interface do Repositório de Solicitações de Férias",
+            "description": "Criar a interface IVacationRepository para gerenciar o ciclo de vida das solicitações de férias.",
+            "dependencies": [],
+            "details": "Arquivo: `src/domain/repositories/IVacationRepository.ts`. Métodos sugeridos: `save(vacation: VacationRequest): Promise<Result<void>>`, `findById(id: string): Promise<Result<VacationRequest>>`, `findByUserId(userId: string): Promise<Result<VacationRequest[]>>`, `findPendingByManagerId(managerId: string): Promise<Result<VacationRequest[]>>`.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:04:59.627Z"
+          },
+          {
+            "id": 4,
+            "title": "Definir Interface do Repositório de Departamentos",
+            "description": "Criar a interface IDepartmentRepository para acesso aos dados dos departamentos da empresa.",
+            "dependencies": [],
+            "details": "Arquivo: `src/domain/repositories/IDepartmentRepository.ts`. Métodos sugeridos: `listAll(): Promise<Result<Department[]>>`, `findById(id: string): Promise<Result<Department>>`. Deve depender apenas da entidade Department.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:05:03.495Z"
+          },
+          {
+            "id": 5,
+            "title": "Exportação e Organização dos Contratos",
+            "description": "Centralizar as exportações das interfaces dos repositórios para facilitar a importação em outras camadas.",
+            "dependencies": [1, 2, 3, 4],
+            "details": "Criar ou atualizar o arquivo `src/domain/repositories/index.ts` (barrel file) para exportar todas as interfaces criadas (IAuthRepository, IUserRepository, IVacationRepository, IDepartmentRepository). Verificar se todas as importações circulares foram evitadas.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:05:05.294Z"
+          }
+        ],
+        "complexity": 2,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Define TypeScript interfaces for `IAuthRepository`, `IUserRepository`, and `IVacationRepository`. Ensure they return `Promise<Result<T>>`. Place them in `src/domain/repositories`. Document methods with JSDoc indicating expected behavior.",
+        "updatedAt": "2025-12-24T05:05:05.294Z"
+      },
+      {
+        "id": "6",
+        "title": "Infrastructure Layer: API Client e Mock Server",
+        "description": "Configurar cliente HTTP e servidor mockado para simular backend.",
+        "details": "1. Configurar Axios/Fetch em infra/api/client.ts. 2. Implementar Mock Server (pode ser JSON Server ou interceptors) simulando latência e erros. 3. Criar db.json inicial com dados de seed para testes.",
+        "testStrategy": "Testar chamadas para o mock server recebendo dados fake com delay simulado.",
+        "priority": "medium",
+        "dependencies": ["1"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Definição de Seed Data em Memória",
+            "description": "Criar a estrutura de dados inicial (Seed) para popular os repositórios em memória, garantindo massa de dados suficiente para testar todos os cenários de uso (perfis diferentes e estados de férias variados).",
+            "dependencies": [],
+            "details": "Criar arquivo 'infrastructure/seed/seedData.ts'. Definir e exportar arrays constantes: 'users' (contendo Admin, Manager, Employee com senhas fixas/hash simulado) e 'vacations' (contendo solicitações em estados pending, approved, rejected, cancelled).",
+            "status": "done",
+            "testStrategy": "Verificar se os arrays exportados contêm os dados esperados e tipos corretos conforme definições do Domínio.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:40:43.380Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementação do AuthRepositoryInMemory",
+            "description": "Implementar a interface IAuthRepository utilizando os dados do seed para simular autenticação.",
+            "dependencies": [1],
+            "details": "Criar 'infrastructure/repositories/AuthRepositoryInMemory.ts'. Implementar 'login(email, password)': buscar usuário no array de seed. Se encontrar, retornar User; senão, lançar erro simulado. Implementar 'logout()': retornar Promise resolvida. Adicionar delay artificial (ex: 800ms).",
+            "status": "done",
+            "testStrategy": "Testar login com credenciais válidas (retorna usuário) e inválidas (lança exceção). Verificar o delay na resposta.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:40:54.176Z"
+          },
+          {
+            "id": 3,
+            "title": "Implementação do UserRepositoryInMemory",
+            "description": "Implementar a interface IUserRepository para fornecer acesso aos dados de usuários simulados.",
+            "dependencies": [1],
+            "details": "Criar 'infrastructure/repositories/UserRepositoryInMemory.ts'. Implementar 'getMe()': retornar usuário simulado atual. Implementar 'listUsers()': retornar todos os usuários do seed. Garantir imutabilidade retornando clones dos objetos.",
+            "status": "done",
+            "testStrategy": "Testar recuperação de usuário por ID e listagem completa. Garantir que alterações no retorno não afetam o 'banco' (seed).",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:41:08.630Z"
+          },
+          {
+            "id": 4,
+            "title": "Implementação do VacationRepositoryInMemory",
+            "description": "Implementar a interface IVacationRepository suportando operações de leitura e escrita (volátil) no array em memória.",
+            "dependencies": [1],
+            "details": "Criar 'infrastructure/repositories/VacationRepositoryInMemory.ts'. Implementar 'getAll()', 'getById(id)', 'save(vacation)'. O método save deve atualizar o item se existir ou fazer push se for novo no array de seed. Simular persistência durante a sessão.",
+            "status": "done",
+            "testStrategy": "Testar fluxo de criação (array aumenta), atualização (status muda) e leitura. Verificar integridade dos dados na memória.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:41:35.529Z"
+          },
+          {
+            "id": 5,
+            "title": "Configuração de Simulação e Exportação",
+            "description": "Centralizar a configuração de latência e erros, e preparar a exportação dos repositórios para injeção de dependência.",
+            "dependencies": [2, 3, 4],
+            "details": "Criar utilitário 'infrastructure/utils/simulation.ts' com função 'simulateRequest<T>(data: T, ms?: number, shouldFail?: boolean)'. Refatorar repositórios para usar este utilitário. Criar arquivo de exportação ou Factory que instancia os repositórios in-memory, facilitando a troca futura por implementações HTTP.",
+            "status": "done",
+            "testStrategy": "Testar se o utilitário gera erros quando configurado e se respeita o tempo de delay definido.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:41:49.119Z"
+          },
+          {
+            "id": 6,
+            "title": "Dependency Injection",
+            "description": "",
+            "details": "Esta subtask foi resolvida indiretamente pela implementação do Composition Root como singleton na Task 10.5.\n\nA injeção de dependência passou a ocorrer de forma centralizada em `src/main/container.ts`, conforme as decisões arquiteturais finais do projeto, eliminando a necessidade de uma configuração adicional específica nesta task.\n\nMotivo do deferimento: mudança arquitetural deliberada que consolidou DI no Composition Root.",
+            "status": "deferred",
+            "dependencies": [],
+            "parentTaskId": 6,
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 6,
+        "expansionPrompt": "Set up a detailed mock backend. Create an InMemory implementation of repositories using static seed data. Implement a delay simulation helper to mimic network latency. Ensure the mock structure matches the expected API contract.",
+        "updatedAt": "2025-12-24T05:42:51.315Z"
+      },
+      {
+        "id": "7",
+        "title": "Infrastructure Layer: Implementação de Storage e Repositórios Base",
+        "description": "Implementar persistência local e implementações concretas base dos repositórios.",
+        "details": "1. Implementar AsyncStorageAdapter e SecureStorageAdapter. 2. Criar AuthRepositoryImpl implementando IAuthRepository (login simulado). 3. Criar UserRepositoryImpl.",
+        "testStrategy": "Testes de integração verificando persistência e recuperação de dados no storage simulado.",
+        "priority": "medium",
+        "dependencies": ["5", "6"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implementar Adaptadores de Storage Local",
+            "description": "Criar a implementação do AsyncStorageAdapter para persistência de dados não sensíveis e SecureStorageAdapter para dados sensíveis.",
+            "dependencies": [],
+            "details": "Criar 'src/infrastructure/storage/AsyncStorageAdapter.ts' utilizando @react-native-async-storage/async-storage e 'src/infrastructure/storage/SecureStorageAdapter.ts' utilizando expo-secure-store (ou equivalente). Ambos devem implementar métodos genéricos de get, set e remove.",
+            "status": "done",
+            "testStrategy": "Criar testes unitários mockando as bibliotecas nativas para garantir que os métodos chamam as funções corretas.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:06:15.944Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementar AuthRepositoryImpl",
+            "description": "Desenvolver a implementação concreta do repositório de autenticação comunicando-se com a API (mock) e persistindo tokens.",
+            "dependencies": [1],
+            "details": "Criar 'src/infrastructure/repositories/AuthRepositoryImpl.ts' implementando 'IAuthRepository'. Deve usar o 'client' http para login/logout e o 'SecureStorageAdapter' para salvar/remover o token de acesso. Deve utilizar AuthMapper para retornar entidades de domínio.",
+            "status": "done",
+            "testStrategy": "Teste de integração: Mockar o client HTTP e o Storage, verificar se o token é salvo após um login bem-sucedido.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:14:26.475Z"
+          },
+          {
+            "id": 3,
+            "title": "Implementar UserRepositoryImpl",
+            "description": "Desenvolver a implementação concreta do repositório de usuários para buscar perfil e dados do usuário atual.",
+            "dependencies": [2],
+            "details": "Criar 'src/infrastructure/repositories/UserRepositoryImpl.ts' implementando 'IUserRepository'. Implementar métodos como 'getProfile' ou 'me' chamando o endpoint '/profile' ou '/me' do Mock Server e mapeando a resposta com UserMapper.",
+            "status": "done",
+            "testStrategy": "Teste unitário mockando o client HTTP para verificar o mapeamento correto dos dados do usuário.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:22:00.038Z"
+          },
+          {
+            "id": 4,
+            "title": "Implementar VacationRepositoryImpl (Estrutura Base)",
+            "description": "Criar a estrutura inicial do repositório de férias para permitir a injeção de dependência futura.",
+            "dependencies": [],
+            "details": "Criar 'src/infrastructure/repositories/VacationRepositoryImpl.ts' implementando 'IVacationRepository'. Inicialmente pode conter métodos básicos ou stubs que lançam 'NotImplementedError' se a lógica complexa for da Task 10, ou implementação simples de listagem se o mapper já existir.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:11:36.887Z"
+          },
+          {
+            "id": 5,
+            "title": "Exportar e Registrar Repositórios na Infraestrutura",
+            "description": "Centralizar as exportações dos repositórios e configurar arquivos de barreira (index.ts) para facilitar a importação na camada de Application/DI.",
+            "dependencies": [1, 2, 3, 4],
+            "details": "Criar ou atualizar 'src/infrastructure/repositories/index.ts' exportando as classes concretas. Garantir que todas as dependências (Client, Storage) estejam sendo passadas corretamente via construtor ou injeção manual se necessário.\n<info added on 2025-12-24T07:40:02.960Z>\nAtualização concluída da infraestrutura de repositórios:\n\n- `src/infrastructure/repositories/index.ts` atualizado para exportar todas as implementações concretas:\n  - InMemory: `AuthRepositoryInMemory`, `UserRepositoryInMemory`, `VacationRepositoryInMemory`, `DepartmentRepositoryInMemory`.\n  - HTTP: `AuthRepositoryImpl`, `UserRepositoryImpl`, `VacationRepositoryImpl`.\n- Refatoração do Composition Root (`src/main/container.ts`) para importar repositórios exclusivamente via barrel file, centralizando as dependências.\n- Validação das implementações HTTP para futura injeção de dependência (DI), mantendo o uso atual de versões InMemory conforme diretrizes do PRD.\n- Confirmação das exportações dos adaptadores de storage (`AsyncStorageAdapter`, `SecureStorageAdapter`) em `src/infrastructure/storage/index.ts`.\n- Verificação de integridade realizada: ausência de imports diretos de classes concretas fora do padrão estabelecido.\n</info added on 2025-12-24T07:40:02.960Z>",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:40:03.412Z"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Implement `AsyncStorage` and `SecureStore` wrappers. Create concrete repository implementations (`AuthRepositoryImpl`, etc.) that use the HTTP client/Mock. Map external data formats (DTOs) to Domain Entities using Mappers.",
+        "updatedAt": "2025-12-24T07:40:03.412Z"
+      },
+      {
+        "id": "8",
+        "title": "Application Layer: Autenticação (Use Cases, DTOs, Mappers)",
+        "description": "Implementar fluxo de autenticação na camada de aplicação.",
+        "details": "1. DTOs: LoginDTO, UserDTO. 2. Mapper: UserMapper (Domain <-> DTO). 3. UseCase: LoginUseCase (recebe credenciais, valida, persiste sessão), LogoutUseCase. 4. Orquestração de tokens.",
+        "testStrategy": "Testes unitários do LoginUseCase mockando o repositório para simular sucesso e falha.",
+        "priority": "high",
+        "dependencies": ["7"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Definir DTOs de Autenticação (LoginDTO e UserDTO)",
+            "description": "Criar os objetos de transferência de dados (DTOs) para entrada de credenciais e resposta de dados do usuário.",
+            "dependencies": [],
+            "details": "Criar arquivo 'src/application/dtos/LoginDTO.ts' contendo email e password. Criar 'src/application/dtos/UserDTO.ts' contendo id, nome, email e role. Assegurar que os tipos primitivos sejam usados para desacoplar do domínio.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:46:23.355Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementar UserMapper (Domain <-> DTO)",
+            "description": "Criar o mapper responsável por converter a Entidade User do domínio para UserDTO e vice-versa, se necessário.",
+            "dependencies": [1],
+            "details": "Criar 'src/application/mappers/UserMapper.ts'. Implementar métodos estáticos 'toDTO(user: User): UserDTO' e 'toDomain(raw: any): User' (se aplicável para reconstrução). Deve mapear corretamente os Value Objects para primitivos.",
+            "status": "done",
+            "testStrategy": "Testes unitários validando a conversão correta de campos e tipos.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:46:23.755Z"
+          },
+          {
+            "id": 3,
+            "title": "Definir Interfaces de Serviço de Token e Repositório",
+            "description": "Definir as interfaces que o UseCase utilizará para autenticar e gerenciar tokens, garantindo a inversão de dependência.",
+            "dependencies": [],
+            "details": "Verificar ou criar 'src/domain/repositories/IAuthRepository.ts' (método login) e 'src/application/ports/ITokenService.ts' (método generateToken, validateToken). O UseCase dependerá apenas dessas abstrações.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:48:38.621Z"
+          },
+          {
+            "id": 4,
+            "title": "Implementar LoginUseCase",
+            "description": "Desenvolver o caso de uso de login que orquestra a validação, autenticação e geração de sessão.",
+            "dependencies": [1, 2, 3],
+            "details": "Criar 'src/application/use-cases/auth/LoginUseCase.ts'. O método 'execute(dto: LoginDTO)' deve: 1. Chamar IAuthRepository.login. 2. Se sucesso, converter User para DTO usando Mapper. 3. Retornar Result<UserDTO>. Não deve validar formato de email (responsabilidade do VO).\n<info added on 2025-12-24T07:46:13.912Z>\nImplementação realizada:\n- Criado `LoginUseCase` em `src/application/use-cases/auth/LoginUseCase.ts`.\n- Fluxo implementado: Recebe `LoginDTO`, instancia VOs `Email` e `Password` (delegando validação), e invoca `IAuthRepository.login`.\n- Tratamento de Retorno: Mapeia sucesso para `Result.ok(UserDTO)` via `UserMapper` e falhas para `Result.fail` (preservando `AppError`).\n- Testes unitários criados em `__tests__/unit/application/use-cases/auth/LoginUseCase.spec.ts` cobrindo cenários de sucesso, erro de repositório e validação de VO.\n</info added on 2025-12-24T07:46:13.912Z>",
+            "status": "done",
+            "testStrategy": "Testes unitários com Mocks para IAuthRepository: cenários de sucesso (retorna UserDTO) e falha (retorna erro de credenciais).",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:46:24.123Z"
+          },
+          {
+            "id": 5,
+            "title": "Implementar LogoutUseCase",
+            "description": "Criar o caso de uso responsável por encerrar a sessão do usuário.",
+            "dependencies": [3],
+            "details": "Criar 'src/application/use-cases/auth/LogoutUseCase.ts'. Deve interagir com o IAuthRepository ou serviço de sessão para invalidar o token ou limpar dados de persistência local. Retornar um Result<void> indicando sucesso.",
+            "status": "done",
+            "testStrategy": "Teste unitário verificando se o método de limpeza do repositório/serviço é chamado.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:46:24.528Z"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Implement `LoginUseCase` and `LogoutUseCase`. Define `LoginDTO`. Create `UserMapper`. The UseCase must validate inputs, call the repository, and return a `Result`. Ensure proper error propagation from the repository layer.",
+        "updatedAt": "2025-12-24T07:48:38.621Z"
+      },
+      {
+        "id": "9",
+        "title": "Application Layer: Férias - Comandos (Write Use Cases)",
+        "description": "Implementar Use Cases de escrita para gerenciamento de férias (CQRS - Commands).",
+        "details": "1. VacationRequestDTO. 2. VacationMapper. 3. UseCases: RequestVacationUseCase (valida regras, cria entity, salva), ApproveVacationUseCase (valida gestor, executa approve), RejectVacationUseCase, CancelVacationUseCase. Usar VacationRepositoryImpl.",
+        "testStrategy": "Testes unitários garantindo que regras de negócio impedem estados inválidos antes de chamar o repositório.",
+        "priority": "high",
+        "dependencies": ["4", "5"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Vacation DTOs and Mapper",
+            "description": "Create Data Transfer Objects for vacation operations and the Mapper to translate between DTOs and Domain Entities.",
+            "dependencies": [],
+            "details": "Create `VacationRequestDTO` (input for creation) and `VacationResponseDTO` (output). Implement `VacationMapper` with methods `toDomain(dto)` and `toDTO(entity)`. Ensure proper typing for dates and enums (VacationStatus). This handles the data contract boundary between the UI and Application layers.",
+            "status": "done",
+            "testStrategy": "Unit tests verifying correct mapping of fields, especially date string/object conversions and enum matching.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:14:23.491Z"
+          },
+          {
+            "id": 2,
+            "title": "Implement RequestVacationUseCase",
+            "description": "Create the Use Case responsible for submitting a new vacation request.",
+            "dependencies": [1],
+            "details": "Implement `RequestVacationUseCase`. Logic: 1. Receive input DTO. 2. Validate input (dates). 3. Create `VacationRequest` entity (initial state PENDING). 4. Persist using `IVacationRepository.save`. Throws `InvalidDateRangeError` or `VacationOverlapError` if applicable domain logic exists.",
+            "status": "done",
+            "testStrategy": "Unit tests: 1. Success scenario. 2. Failure on invalid dates. 3. Verify repository.save is called with PENDING status.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:15:28.889Z"
+          },
+          {
+            "id": 3,
+            "title": "Implement ApproveVacationUseCase",
+            "description": "Create the Use Case for managers to approve pending vacation requests.",
+            "dependencies": [1],
+            "details": "Implement `ApproveVacationUseCase`. Logic: 1. Fetch request by ID. 2. Check if Current User is a Manager (RBAC). 3. Call entity method `approve()`. 4. Save updated entity. Throws `UnauthorizedError` if not manager, `InvalidStateTransitionError` if not PENDING.",
+            "status": "done",
+            "testStrategy": "Unit tests: 1. Success for manager. 2. Failure if user is not manager. 3. Failure if status is not PENDING.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:15:29.524Z"
+          },
+          {
+            "id": 4,
+            "title": "Implement RejectVacationUseCase",
+            "description": "Create the Use Case for managers to reject vacation requests.",
+            "dependencies": [1],
+            "details": "Implement `RejectVacationUseCase`. Logic: 1. Fetch request by ID. 2. Check if Current User is a Manager (RBAC). 3. Call entity method `reject()`. 4. Save updated entity. Throws `UnauthorizedError` if not manager or ownership mismatch logic applies.",
+            "status": "done",
+            "testStrategy": "Unit tests: 1. Success for manager. 2. Verify state transition to REJECTED. 3. Verify repository update.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:15:30.116Z"
+          },
+          {
+            "id": 5,
+            "title": "Implement CancelVacationUseCase",
+            "description": "Create the Use Case for collaborators to cancel their own pending requests.",
+            "dependencies": [1],
+            "details": "Implement `CancelVacationUseCase`. Logic: 1. Fetch request by ID. 2. Verify ownership (Current User ID == Request Owner ID). 3. Call entity method `cancel()`. 4. Save. Throws `UnauthorizedError` if trying to cancel another user's request, `InvalidStateTransitionError` if request is finalized.",
+            "status": "done",
+            "testStrategy": "Unit tests: 1. Success for owner. 2. Failure if trying to cancel other's request. 3. Failure if request is already processed.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:15:30.737Z"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Implement 'Write' Use Cases: `RequestVacation`, `ApproveVacation`, `RejectVacation`. Each must enforce RBAC (Role Based Access Control) checks (e.g., only Manager can approve) and validate domain rules before persisting.",
+        "updatedAt": "2025-12-24T05:15:30.737Z"
+      },
+      {
+        "id": "10",
+        "title": "Application Layer: Férias - Consultas (Read Use Cases & Repository)",
+        "description": "Implementar lógica de leitura e repositório concreto de férias.",
+        "details": "1. Implementar VacationRepositoryImpl com chamadas ao MockServer. 2. UseCases (Smart Queries): GetManagerDashboardUseCase (filtra por departamento e pendências), GetVacationHistoryUseCase (filtra por usuário).",
+        "testStrategy": "Testes de integração verificando se o filtro de dashboard retorna apenas as solicitações corretas.",
+        "priority": "high",
+        "dependencies": ["9"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement VacationRepositoryImpl",
+            "description": "Create the concrete implementation of IVacationRepository in the Infrastructure layer.",
+            "dependencies": [],
+            "details": "Implement the methods defined in the domain interface (IVacationRepository). The implementation should use the HTTP client (MockClient) to fetch data from the mock backend. It must handle DTO <-> Entity mapping using VacationMapper. Specific methods to implement: `findById`, `findByUserId`, `findAll` (with support for filtering by status/department if the mock allows, or fetching all and filtering in memory if necessary for the mock).",
+            "status": "done",
+            "testStrategy": "Integration tests mocking the HTTP client to ensure correct endpoints are called and data is mapped correctly.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:29:22.650Z"
+          },
+          {
+            "id": 2,
+            "title": "Create GetVacationHistoryUseCase (User View)",
+            "description": "Implement the use case for retrieving a user's own vacation history.",
+            "dependencies": [1],
+            "details": "This use case takes the `userId` (from the authenticated session) and retrieves vacation requests associated with that user. It should orchestrate the `VacationRepository` to fetch data. It must ensure that the user can only see their own data (though this is naturally enforced by passing the session userId). It returns a list of Vacation entities or DTOs suitable for the UI.",
+            "status": "done",
+            "testStrategy": "Unit tests ensuring the repository is called with the correct userId.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:29:27.597Z"
+          },
+          {
+            "id": 3,
+            "title": "Create GetManagerDashboardUseCase (Manager View)",
+            "description": "Implement the use case for managers to view their team's vacation requests.",
+            "dependencies": [1],
+            "details": "This use case is critical for the 'Smart Query' requirement. It receives the manager's `userId` and `departmentId`. It must fetch vacation requests. IMPORTANT: This application layer logic must enforce visibility rules - filtering requests to show only those from subordinates (same department) and typically prioritizing 'PENDING' requests for the dashboard view. It should NOT return the manager's own requests in this view, only subordinates.",
+            "status": "done",
+            "testStrategy": "Unit tests with various scenarios: verifying that requests from other departments are filtered out, and that the manager's own requests are excluded if required by business rules.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T13:42:04.124Z"
+          },
+          {
+            "id": 4,
+            "title": "Create GetAllVacationsUseCase (Admin View)",
+            "description": "Implement the use case for administrators to view all vacation requests across the company.",
+            "dependencies": [1],
+            "details": "This use case is for the Admin role. It should call `VacationRepository.findAll()`. It might need to support pagination or advanced filtering (by department, status, date range) passed as parameters. It enforces the rule that only Admins can execute this (checked via a Gatekeeper or simple role check inside the UseCase or a Guard clause).",
+            "status": "done",
+            "testStrategy": "Unit tests ensuring all records are returned and verifying that role checks are respected (if role checking is embedded).",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:30:08.066Z"
+          },
+          {
+            "id": 5,
+            "title": "Create Composition Root (Singleton) and Hook-Based Application Adapters",
+            "description": "Establish a single Composition Root implemented as a module-level singleton to wire Infrastructure implementations into Application Use Cases, and expose those Use Cases to the Presentation layer exclusively via hooks. This replaces the previously defined service/facade approach and ensures dependency injection occurs at bootstrap time, not via React Context..",
+            "dependencies": [2, 3, 4],
+            "details": "To simplify the presentation layer integration, create specific React hooks (e.g., `useVacationHistory`, `useManagerVacations`) that instantiate the appropriate UseCases with the required dependencies (Repository). This ensures the UI doesn't manually instantiate UseCases. This step effectively connects the Application layer (UseCases) to the boundary of the Presentation layer.\n<info added on 2025-12-24T06:20:03.257Z>\nDECISÕES ARQUITETURAIS (NÃO NEGOCIÁVEIS):\n\n- O Composition Root DEVE ser implementado como um singleton em nível de módulo (ex: 'src/main/container.ts').\n- O Composition Root NÃO DEVE usar React Context.\n- A Injeção de Dependência DEVE ocorrer uma única vez na inicialização (bootstrap), não em tempo de execução.\n- Use Cases SÃO a única fronteira da Aplicação.\n- Nenhuma camada de 'application/services' ou facade pode existir.\n- A camada de Apresentação consome Use Cases apenas através de hooks.\n\nRESPONSABILIDADES:\n\n1) Composition Root (Módulo Singleton)\n- Criar um arquivo único responsável por conectar as dependências.\n- Instanciar repositórios de Infraestrutura (ex: repositórios InMemory).\n- Instanciar Use Cases da Aplicação com os repositórios injetados.\n- Exportar instâncias de Use Case prontas para uso.\n- O container deve ser stateless e livre de efeitos colaterais.\n- Nenhuma importação do React permitida.\n\n2) Adaptadores Baseados em Hooks (Camada de Apresentação)\n- Criar hooks (ex: useVacationHistory, useApproveVacation).\n- Hooks devem importar instâncias de Use Case do Composition Root.\n- Hooks devem chamar 'UseCase.execute()'.\n- Hooks lidam apenas com preocupações de UI (loading, erro, cache).\n- Hooks NÃO DEVEM instanciar repositórios ou Use Cases.\n- Hooks NÃO DEVEM conter lógica de negócios, RBAC ou filtragem.\n\nRESTRIÇÕES ESTRITAS:\n\n- NÃO use React Context para injeção de dependência.\n- NÃO crie ou mantenha 'application/services'.\n- NÃO instancie Use Cases dentro de hooks ou componentes.\n- NÃO permita que a UI decida implementações.\n- Use Cases devem depender apenas de interfaces de Domínio.\n- Infraestrutura deve depender de Domínio, nunca o contrário.\n\nARQUIVOS A CRIAR / MODIFICAR:\n\n- src/main/container.ts (ou src/main/di.ts) — Composition Root (singleton)\n- src/presentation/hooks/* — Adaptadores baseados em hooks\n\nFORA DO ESCOPO:\n\n- Nenhuma nova lógica de negócios.\n- Nenhuma orquestração de fluxo além dos Use Cases existentes.\n- Nenhuma troca de dependência em tempo de execução.\n- Nenhuma camada de abstração adicional.\n\nESTRATÉGIA DE TESTE (SUBSTITUIÇÃO):\n\n- Testes unitários verificando se o Composition Root conecta corretamente as implementações de repositório nos Use Cases.\n- Testes NÃO devem envolver React ou Context.\n- Testes de hook devem validar se os hooks chamam o Use Case correto e propagam resultados sem lógica adicional.\n\nNOTA FINAL:\nEsta tarefa existe para reforçar a correção arquitetural e evitar que a injeção de dependência vaze para a camada de UI.\n</info added on 2025-12-24T06:20:03.257Z>",
+            "status": "done",
+            "testStrategy": "Integration tests ensuring the hooks correctly instantiates use cases and propagates results.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:30:26.528Z"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Implement 'Read' Use Cases: `GetManagerDashboard` (filtering by department), `GetVacationHistory` (filtering by user). Implement repository methods for these queries, optimizing for data retrieval (simulated) where possible.",
+        "updatedAt": "2025-12-24T13:42:04.124Z"
+      },
+      {
+        "id": "11",
+        "title": "Presentation: Design Tokens e Theme System",
+        "description": "Configurar sistema de design e tema da aplicação.",
+        "details": "1. Criar theme/tokens.ts (colors, spacing, typography). 2. Criar ThemeProvider e hook useTheme. 3. Garantir suporte a Dark/Light mode estrutural (mesmo que apenas um tema seja implementado inicialmente).",
+        "testStrategy": "Verificar se o hook useTheme retorna os valores corretos dentro do Provider.",
+        "priority": "medium",
+        "dependencies": ["1"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Definir Design Tokens Primitivos",
+            "description": "Criar o arquivo de tokens base contendo as definições primitivas de cores, espaçamentos, tipografia e border radius.",
+            "dependencies": [],
+            "details": "Criar `src/presentation/theme/tokens.ts`. Definir objetos constantes para 'colors' (paleta global), 'spacing' (escala de 4px ou 8px), 'typography' (famílias, tamanhos, pesos) e 'radii'. Estes valores devem ser agnósticos de tema (light/dark).",
+            "status": "done",
+            "testStrategy": "Verificar se os objetos de tokens exportam as chaves e valores esperados (unit test simples).",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:59:05.613Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementar Definições de Tema Light e Dark",
+            "description": "Mapear os tokens primitivos para papéis semânticos criando os objetos de tema Light e Dark.",
+            "dependencies": [1],
+            "details": "Criar `src/presentation/theme/light.ts` e `src/presentation/theme/dark.ts` (ou um arquivo unificado). Definir cores semânticas como 'background', 'surface', 'textPrimary', 'primary', 'error', etc., referenciando os tokens primitivos criados anteriormente. Garantir que ambos sigam a mesma interface TypeScript.",
+            "status": "done",
+            "testStrategy": "Unit test para garantir que ambos os temas implementam a interface completa e não faltam chaves.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:59:26.319Z"
+          },
+          {
+            "id": 3,
+            "title": "Criar Tipagem Global do Tema",
+            "description": "Definir a interface TypeScript do tema para garantir intellisense e segurança de tipos nos componentes.",
+            "dependencies": [2],
+            "details": "Criar arquivo de tipos (ex: `src/presentation/theme/types.ts` ou `styled.d.ts` se usar styled-components). Definir a interface `ThemeType` baseada na estrutura do tema Light. Isso servirá de contrato para o hook e provider.\n<info added on 2025-12-24T06:05:31.899Z>\n✅ Criada tipagem global em `src/presentation/theme/types.ts`:\n- Interface Theme com todas as propriedades tipadas\n- Cores semânticas bem definidas\n- Reutilização de tipos dos tokens primitivos\n- Garante intellisense e segurança de tipos\n</info added on 2025-12-24T06:05:31.899Z>",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:59:27.025Z"
+          },
+          {
+            "id": 4,
+            "title": "Implementar ThemeContext e Provider",
+            "description": "Criar o Contexto e o Provider que irão injetar o tema na árvore de componentes da aplicação.",
+            "dependencies": [2, 3],
+            "details": "Criar `src/presentation/theme/ThemeProvider.tsx`. Deve aceitar uma prop de tema inicial (ou detectar esquema do sistema) e prover o objeto de tema atual. Se não usar biblioteca externa de estilo, implementar via React Context API nativa.",
+            "status": "done",
+            "testStrategy": "Renderizar um componente filho dentro do Provider e verificar se recebe o contexto corretamente.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:59:32.834Z"
+          },
+          {
+            "id": 5,
+            "title": "Criar Hook useTheme Personalizado",
+            "description": "Desenvolver o hook para acesso fácil aos tokens de tema dentro de componentes funcionais.",
+            "dependencies": [4],
+            "details": "Criar `src/presentation/theme/useTheme.ts`. O hook deve consumir o ThemeContext e retornar o objeto de tema tipado corretamente. Deve lançar um erro útil se usado fora do ThemeProvider para facilitar debugging.",
+            "status": "done",
+            "testStrategy": "Testar o hook em um componente de teste; verificar se lança erro quando fora do Provider.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T05:59:33.656Z"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Define `tokens.ts` (colors, spacing, typography). Create a strongly-typed `ThemeProvider` and `useTheme` hook. Ensure TypeScript autocomplete works for theme keys. Implement a basic toggle for Dark/Light mode testing.",
+        "updatedAt": "2025-12-24T05:59:33.656Z"
+      },
+      {
+        "id": "12",
+        "title": "Presentation: Componentes UI Fundamentais",
+        "description": "Criar componentes visuais reutilizáveis 'burros' baseados no Design System.",
+        "details": "Implementar: Text (com variantes), Button (variants primary/secondary, loading state), Input (com label e error state), Card (Header/Body). Todos acessando tokens via useTheme.",
+        "testStrategy": "Snapshot testing e verificação de props (onPress, styles) no RNTL.",
+        "priority": "medium",
+        "dependencies": ["11"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implementar componente Text com suporte a variantes tipográficas",
+            "description": "Criar o componente base Text que consome os tokens de tipografia do tema via hook useTheme.",
+            "dependencies": [],
+            "details": "O componente deve aceitar props como 'variant' (h1, h2, body, caption, etc.) mapeados para os tokens do tema. Deve suportar overrides de estilo via prop 'style'. Deve garantir acessibilidade básica (roles).",
+            "status": "done",
+            "testStrategy": "Snapshot testing com diferentes variantes e verificação de estilos aplicados via RNTL.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:49:13.434Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementar componente Button com variantes e estados de carregamento",
+            "description": "Desenvolver componente Button reutilizável com suporte a variantes visuais (Primary, Secondary, Outline, Ghost).",
+            "dependencies": [1],
+            "details": "Deve consumir cores e espaçamentos do tema. Props: 'variant', 'label', 'loading' (boolean), 'disabled' e 'onPress'. Quando 'loading' for true, desabilitar interação e mostrar ActivityIndicator. Estado disabled deve alterar opacidade/cor.",
+            "status": "done",
+            "testStrategy": "Verificar disparo de onPress, não disparo quando disabled/loading, e presença do loader no estado de carregamento.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:49:26.343Z"
+          },
+          {
+            "id": 3,
+            "title": "Implementar componente Input com label, ícone e feedback de erro",
+            "description": "Criar componente de entrada de texto (TextInput wrapper) integrado ao sistema de design.",
+            "dependencies": [1],
+            "details": "Deve incluir props para 'label' (usando componente Text), 'errorMessage' (exibição condicional em vermelho/token de erro), e suporte a ícones à direita/esquerda. Deve tratar focus state alterando a cor da borda.",
+            "status": "done",
+            "testStrategy": "Verificar renderização de label e mensagem de erro. Testar focus style e onChangeText.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:49:37.611Z"
+          },
+          {
+            "id": 4,
+            "title": "Implementar componente composto Card (Container, Header, Content, Footer)",
+            "description": "Desenvolver estrutura de Card para agrupar informações, utilizando o padrão de composição (Compound Components) ou props dedicadas.",
+            "dependencies": [1],
+            "details": "Container com shadow/elevation e border-radius definidos no tema. Subcomponentes ou slots para Header (título), Content (children) e Footer (ações). Deve ser flexível para receber qualquer view como filho.",
+            "status": "done",
+            "testStrategy": "Snapshot testing da estrutura do Card renderizando filhos customizados.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:49:49.342Z"
+          },
+          {
+            "id": 5,
+            "title": "Criar arquivo de barreira (index.ts) e Storybook/Exemplos básicos",
+            "description": "Centralizar exportações dos componentes UI e criar uma tela de galeria ou documentação básica.",
+            "dependencies": [2, 3, 4],
+            "details": "Exportar Text, Button, Input, Card de 'src/presentation/components/ui/index.ts'. (Opcional) Criar uma tela temporária 'UIKitPreview' para validação visual manual de todas as variantes juntas durante o desenvolvimento.",
+            "status": "done",
+            "testStrategy": "Verificar se as importações funcionam corretamente a partir do index centralizado.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T07:52:25.324Z"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Develop reusable atomic components: `Text` (variants), `Button` (loading/disabled states), `Input` (validation states), `Card`. All must consume the `useTheme` hook. Use Compound Component pattern if suitable for Cards.",
+        "updatedAt": "2025-12-24T07:52:25.324Z"
+      },
+      {
+        "id": "13",
+        "title": "Presentation: Componentes de Feedback e Estado",
+        "description": "Componentes para feedback visual e estados vazios.",
+        "details": "Implementar: Badge (status colors), Skeleton (loading states), EmptyState (ícone + mensagem + ação).",
+        "testStrategy": "Verificar renderização condicional e aplicação de cores de status no Badge.",
+        "priority": "low",
+        "dependencies": ["12"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implementar componente Badge",
+            "description": "Criar componente Badge para exibir status (sucesso, erro, aviso, info) utilizando as cores do tema.",
+            "dependencies": [],
+            "details": "O componente deve aceitar propriedades 'variant' (success, error, warning, info) e 'label'. Deve usar o hook useTheme para acessar as cores definidas no Design System. O container deve ter bordas arredondadas e o texto deve ser pequeno e em negrito.",
+            "status": "done",
+            "testStrategy": "Snapshot tests para cada variante de status verificando a cor de fundo e texto.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T11:41:21.699Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementar componente Skeleton (Loading State)",
+            "description": "Criar componente Skeleton genérico para placeholders de carregamento com animação de pulso ou gradiente.",
+            "dependencies": [],
+            "details": "Implementar um componente que aceite 'width', 'height' e 'borderRadius'. Utilizar Animated.View do React Native ou react-native-reanimated para criar um efeito de 'shimmer' ou opacidade pulsante. Deve ser flexível para compor esqueletos de Cards e Listas.",
+            "status": "done",
+            "testStrategy": "Verificar se a animação é iniciada na montagem e se as dimensões são aplicadas corretamente.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T11:41:21.701Z"
+          },
+          {
+            "id": 3,
+            "title": "Implementar componente EmptyState",
+            "description": "Criar componente para feedback de listas vazias ou estados sem dados.",
+            "dependencies": [],
+            "details": "O componente deve aceitar 'icon' (nome ou componente), 'title', 'description' e uma prop opcional 'action' (botão). Deve centralizar o conteúdo vertical e horizontalmente. Reutilizar os componentes Text e Button da Task 12.",
+            "status": "done",
+            "testStrategy": "Verificar a renderização condicional do botão de ação e a exibição correta dos textos.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T11:41:21.704Z"
+          },
+          {
+            "id": 4,
+            "title": "Criar presets de Skeleton para casos de uso comuns",
+            "description": "Compor o componente Skeleton base em presets reutilizáveis para a aplicação.",
+            "dependencies": [2],
+            "details": "Criar componentes compostos como 'ListSkeleton' (várias linhas) e 'CardSkeleton' (formato de cartão). Isso facilitará o uso nas telas de listagem sem precisar recriar a estrutura de layout do loading repetidamente.",
+            "status": "done",
+            "testStrategy": "Snapshot tests dos layouts compostos.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T11:41:21.707Z"
+          },
+          {
+            "id": 5,
+            "title": "Exportação e documentação dos componentes de Feedback",
+            "description": "Centralizar exportações e adicionar exemplos básicos de uso.",
+            "dependencies": [1, 2, 3],
+            "details": "Adicionar os novos componentes (Badge, Skeleton, EmptyState) ao arquivo de exportação principal (index.ts) da pasta de componentes. Se houver Storybook ou similar configurado, adicionar histórias básicas demonstrando os estados.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T11:41:21.709Z"
+          }
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Create `Badge` (status colors), `Skeleton` (loading placeholder), and `EmptyState` components. Ensure they are flexible enough to be used in various screens (Dashboard, History).",
+        "updatedAt": "2025-12-24T11:41:21.709Z"
+      },
+      {
+        "id": "14",
+        "title": "Presentation: Configuração de Navegação e State Management",
+        "description": "Configurar React Navigation e TanStack Query.",
+        "details": "1. Configurar AppNavigator com Stacks (AuthStack, AppStack). 2. Configurar QueryClientProvider com staleTime global. 3. Definir TypeScript Types para rotas.",
+        "testStrategy": "Verificar se o app renderiza sem erros de provider.",
+        "priority": "high",
+        "dependencies": ["12"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configurar React Navigation e Root Navigator",
+            "description": "Instalar e configurar as dependências base do React Navigation (native, native-stack) e criar o RootNavigator principal.",
+            "dependencies": [],
+            "details": "Instalar @react-navigation/native e react-native-screens. Criar o arquivo `src/presentation/navigation/RootNavigator.tsx` (ou estrutura similar). Envolver a aplicação no `NavigationContainer`. Criar uma estrutura básica de switch entre AuthStack e AppStack baseada no estado de autenticação (pode ser mockado inicialmente se o contexto de auth não estiver pronto).",
+            "status": "done",
+            "testStrategy": "Verificar se o NavigationContainer monta sem erros e se a tela inicial correta é renderizada.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:24:20.520Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementar Definições de Tipos para Rotas (Navigation Types)",
+            "description": "Criar as definições de tipos TypeScript para as rotas da aplicação (AuthStack e AppStack).",
+            "dependencies": [1],
+            "details": "Criar arquivo `src/presentation/navigation/types.ts`. Definir `RootStackParamList`, `AuthStackParamList` (Login) e `AppStackParamList` (Home, History, Profile). Exportar tipos globais ou hooks tipados (`useAppNavigation`) para garantir type-safety ao navegar entre telas.",
+            "status": "done",
+            "testStrategy": "Verificar compilação do TypeScript ao tentar navegar para uma rota inexistente (deve falhar).",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:24:20.523Z"
+          },
+          {
+            "id": 3,
+            "title": "Criar Stacks de Navegação (AuthStack e AppStack)",
+            "description": "Implementar os componentes de Stack Navigator para os fluxos de autenticação e da aplicação principal.",
+            "dependencies": [2],
+            "details": "Criar `src/presentation/navigation/AuthNavigator.tsx` contendo a rota de Login. Criar `src/presentation/navigation/AppNavigator.tsx` contendo as rotas protegidas (Home, Detalhes, etc.). Configurar header options padrão (títulos, botão de voltar) usando o tema configurado na Task 11.",
+            "status": "done",
+            "testStrategy": "Navegar manualmente entre telas mockadas dentro de cada stack para validar transições e headers.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:24:20.525Z"
+          },
+          {
+            "id": 4,
+            "title": "Configurar TanStack Query (React Query)",
+            "description": "Instalar e configurar o QueryClientProvider na raiz da aplicação.",
+            "dependencies": [],
+            "details": "Instalar `@tanstack/react-query`. Criar uma instância de `QueryClient` em `src/presentation/providers/QueryProvider.tsx` (ou diretamente no App.tsx). Configurar `defaultOptions` com `staleTime` global apropriado (ex: 1 minuto) e `retry` strategies para falhas de rede. Envolver a aplicação com `QueryClientProvider`.",
+            "status": "done",
+            "testStrategy": "Criar um hook de query simples mockado e verificar se os dados são cacheados e recarregados conforme o staleTime.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:24:20.526Z"
+          },
+          {
+            "id": 5,
+            "title": "Integrar Navigation e Providers no App Entry Point",
+            "description": "Unificar os providers (Theme, Query, Auth) e a Navegação no ponto de entrada da aplicação.",
+            "dependencies": [1, 3, 4],
+            "details": "Editar `App.tsx` (ou `src/presentation/App.tsx`). Garantir a ordem correta dos providers: ThemeProvider -> QueryClientProvider -> AuthProvider (se existir) -> NavigationContainer. Garantir que o `SafeAreaProvider` também esteja configurado corretamente.",
+            "status": "done",
+            "testStrategy": "Rodar a aplicação completa e verificar se todos os contextos estão acessíveis em uma tela de teste.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:24:20.528Z"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Set up `React Navigation` with `AuthStack` and `AppStack`. Configure `TanStack Query` (React Query) provider. Define strict TypeScript types for navigation routes (`RootParamList`). Handle deep linking config if needed.",
+        "updatedAt": "2025-12-24T10:24:20.528Z"
+      },
+      {
+        "id": "15",
+        "title": "Presentation: Contexto de Autenticação e Integração",
+        "description": "Conectar lógica de LoginUseCase com a UI através de Context API.",
+        "details": "1. Criar AuthContext. 2. Implementar 'login' chamando LoginUseCase. 3. Implementar persistência de sessão (restoreSession). 4. Controlar estado global 'user'.",
+        "testStrategy": "Testes de integração: Login atualiza o estado do contexto e persiste token.",
+        "priority": "high",
+        "dependencies": ["8", "14"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Definir Interfaces e Tipos do AuthContext",
+            "description": "Criar as definições de tipo para o contexto de autenticação, incluindo o formato do usuário, estados de autenticação e métodos expostos.",
+            "dependencies": [],
+            "details": "Criar o arquivo `src/presentation/context/AuthContext.tsx` (ou `.types.ts`). Definir a interface `AuthContextData` contendo: `user` (User | null), `isLoading` (boolean), `signIn` (function returning Promise), `signOut` (function). Definir o tipo para `AuthProviderProps`. Isso servirá de contrato para a implementação.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:25:16.392Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementar AuthProvider e Hook useAuth",
+            "description": "Desenvolver o componente Provider e o hook customizado para expor o contexto de autenticação para a árvore de componentes.",
+            "dependencies": [1],
+            "details": "No mesmo arquivo ou separado, implementar `AuthProvider` usando `createContext`. Criar o hook `useAuth` que consome este contexto e lança erro se usado fora do Provider. Inicializar o estado com `user: null` e `isLoading: true` inicialmente.",
+            "status": "done",
+            "testStrategy": "Criar teste unitário simples verificando se `useAuth` lança erro fora do provider e retorna o contexto dentro dele.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:25:16.394Z"
+          },
+          {
+            "id": 3,
+            "title": "Integrar LoginUseCase no Método SignIn",
+            "description": "Conectar a função de login do contexto com o caso de uso de login da camada de aplicação.",
+            "dependencies": [2],
+            "details": "Injetar ou instanciar o `LoginUseCase` (Task 8) dentro do `AuthProvider`. No método `signIn`, chamar `loginUseCase.execute({ email, password })`. Em caso de sucesso, atualizar o estado `user` com os dados retornados e persistir o token (se necessário, embora o UseCase já deva lidar com persistência de token, o contexto precisa manter o estado em memória). Tratar erros (try/catch) e propagá-los ou gerenciar estado de erro.",
+            "status": "done",
+            "testStrategy": "Mockar LoginUseCase e verificar se o estado `user` é atualizado corretamente após sucesso.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:25:16.396Z"
+          },
+          {
+            "id": 4,
+            "title": "Implementar Restauração de Sessão (Restore Session)",
+            "description": "Adicionar lógica para verificar se existe um usuário logado ao iniciar o aplicativo.",
+            "dependencies": [2],
+            "details": "Utilizar `useEffect` no `AuthProvider` para verificar a persistência (ex: AsyncStorage ou SecureStore, dependendo da implementação de infraestrutura) ao montar. Se houver token válido/usuário salvo, restaurar o estado `user` e setar `isLoading` para `false`. Caso contrário, apenas setar `isLoading` para `false`.",
+            "status": "done",
+            "testStrategy": "Testar se o estado inicial transita de loading para autenticado se houver dados mockados no storage.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:25:16.398Z"
+          },
+          {
+            "id": 5,
+            "title": "Implementar Método SignOut",
+            "description": "Criar a funcionalidade de logout para limpar o estado e remover dados persistidos.",
+            "dependencies": [2, 4],
+            "details": "Implementar a função `signOut` no `AuthProvider`. Esta função deve limpar o estado `user` (setar para null) e chamar qualquer método necessário para limpar o armazenamento local (remover token). Garantir que a UI reaja a essa mudança de estado (redirecionando para login via navegação reativa).",
+            "status": "done",
+            "testStrategy": "Verificar se chamar `signOut` reseta o estado `user` para null.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:25:16.400Z"
+          }
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Create `AuthContext`. Integrate `LoginUseCase`. Implement `signIn`, `signOut`, and session restoration logic (`useEffect` on mount). Manage global loading state during session check. Securely store/retrieve tokens.",
+        "updatedAt": "2025-12-24T10:25:16.400Z"
+      },
+      {
+        "id": "16",
+        "title": "Presentation: Tela de Login",
+        "description": "Implementar tela de login com validação de formulário.",
+        "details": "1. Usar React Hook Form + Zod para validação de campos (email, senha). 2. Integrar com useAuth para realizar login. 3. Tratamento de erros de API na UI.",
+        "testStrategy": "Testes E2E (Detox) ou RNTL: Preencher formulário, submeter, verificar navegação.",
+        "priority": "high",
+        "dependencies": ["12", "15"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implementar Layout da Tela de Login",
+            "description": "Criar a estrutura visual inicial da tela de Login utilizando os componentes do Design System.",
+            "dependencies": [],
+            "details": "Criar `LoginScreen.tsx` dentro de `src/presentation/screens/auth`. Utilizar `SafeAreaView` e `KeyboardAvoidingView`. Implementar layout com Logo, inputs de Email/Senha (Task 12) e Botão de Entrar (Task 12). Garantir tipagem correta das props de navegação.",
+            "status": "done",
+            "testStrategy": "Verificar renderização dos componentes visuais via Snapshot ou RNTL.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:27:56.626Z"
+          },
+          {
+            "id": 2,
+            "title": "Configurar React Hook Form e Zod",
+            "description": "Implementar a lógica de formulário e validação de campos no client-side.",
+            "dependencies": [1],
+            "details": "Definir schema Zod (`loginSchema`) validando formato de email e senha obrigatória. Configurar `useForm` e utilizar o componente `Controller` para conectar os Inputs do Design System ao estado do formulário. Exibir mensagens de erro de validação nos Inputs.",
+            "status": "done",
+            "testStrategy": "RNTL: Tentar submeter formulário vazio e verificar exibição das mensagens de erro de validação.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:27:56.629Z"
+          },
+          {
+            "id": 3,
+            "title": "Integrar com Hook de Autenticação",
+            "description": "Conectar o evento de submissão do formulário à camada de aplicação (useAuth/LoginUseCase).",
+            "dependencies": [2],
+            "details": "Importar o hook `useAuth` (ou equivalente da camada de Application). No handler `onSubmit` do React Hook Form, invocar a função de login (ex: `signIn`) passando o payload `LoginParams`. Garantir que a função é chamada apenas se a validação passar.",
+            "status": "done",
+            "testStrategy": "RNTL: Mockar o hook de auth e verificar se a função de login é chamada com os dados corretos ao submeter.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:27:56.633Z"
+          },
+          {
+            "id": 4,
+            "title": "Implementar Feedback de Loading e Erro",
+            "description": "Adicionar feedback visual para estados de carregamento e tratamento de erros da API.",
+            "dependencies": [3],
+            "details": "Utilizar a propriedade `loading` do Botão baseada no estado `isPending` do hook. Tratar erros retornados pela Promise de login (ex: 401 Unauthorized) e exibir feedback visual (Toast ou mensagem de erro global no topo do form).",
+            "status": "done",
+            "testStrategy": "RNTL: Simular estado de loading e verificar se o botão mostra spinner. Simular erro de API e verificar exibição da mensagem.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:27:56.636Z"
+          },
+          {
+            "id": 5,
+            "title": "Criar Testes de Integração da Tela",
+            "description": "Desenvolver testes automatizados cobrindo os principais fluxos da tela de login.",
+            "dependencies": [4],
+            "details": "Criar arquivo `LoginScreen.test.tsx`. Implementar cenários: 1. Renderização inicial. 2. Validação de campos inválidos. 3. Fluxo de sucesso (chamada do hook). 4. Fluxo de erro de API. Garantir cobertura de acessibilidade básica.",
+            "status": "done",
+            "testStrategy": "Executar suíte de testes com Jest/RNTL e garantir que todos os cenários passem.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T10:27:56.638Z"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Build `LoginScreen`. Use `React Hook Form` + `Zod` for validation. Connect to `useAuth`. Handle loading states and display API errors (toasts/alerts). Ensure keyboard handling (`KeyboardAvoidingView`).",
+        "updatedAt": "2025-12-24T10:27:56.638Z"
+      },
+      {
+        "id": "17",
+        "title": "Presentation: Hooks e Tela de Solicitação de Férias",
+        "description": "Criar hooks de mutação e tela de solicitação.",
+        "details": "1. Hook useRequestVacation (React Query Mutation -> UseCase). 2. Tela com DatePickers e Input de observação. 3. Validação de UI (Zod) apenas para formato. 4. Feedback de sucesso/erro vindo do Domain.",
+        "testStrategy": "Testar envio de formulário com datas inválidas (deve mostrar erro do domínio) e válidas.",
+        "priority": "high",
+        "dependencies": ["9", "12"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implementar Hook de Mutação useRequestVacation",
+            "description": "Criar o hook personalizado que envolve o UseCase de solicitação de férias utilizando TanStack Query.",
+            "dependencies": [],
+            "details": "Desenvolver `useRequestVacation` utilizando `useMutation`. O hook deve chamar o método `execute` do `RequestVacationUseCase` (injetado via contexto ou importação direta da camada de DI). Deve tipar corretamente os argumentos (`startDate`, `endDate`, `notes`) e o retorno. Configurar callbacks de `onSuccess` para invalidar queries de listagem de férias.",
+            "status": "done",
+            "testStrategy": "Testar o hook isoladamente via React Hooks Testing Library, mockando o UseCase.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T11:23:33.126Z"
+          },
+          {
+            "id": 2,
+            "title": "Configurar Schema de Validação e Tipos do Formulário",
+            "description": "Definir o schema Zod para o formulário de solicitação e os tipos TypeScript inferidos.",
+            "dependencies": [1],
+            "details": "Criar `requestVacationSchema` utilizando Zod. Campos obrigatórios: `startDate` (Date), `endDate` (Date). Campo opcional: `notes` (string). A validação deve ser puramente de formato e obrigatoriedade, sem regras de negócio (ex: não validar se data é futura aqui). Configurar o `zodResolver` para uso com React Hook Form.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T11:23:33.128Z"
+          },
+          {
+            "id": 3,
+            "title": "Desenvolver Layout da Tela com DatePickers",
+            "description": "Construir a interface visual da tela utilizando os componentes do Design System e integração com DatePicker.",
+            "dependencies": [2],
+            "details": "Implementar `RequestVacationScreen`. Utilizar `Controller` do React Hook Form para gerenciar os componentes de DatePicker (nativo ou biblioteca escolhida) para Data de Início e Fim. Utilizar o componente `Input` (Task 12) para o campo de observações. Utilizar `Button` (Task 12) para a ação de envio.",
+            "status": "done",
+            "testStrategy": "Snapshot testing do layout inicial.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T11:23:33.130Z"
+          },
+          {
+            "id": 4,
+            "title": "Integração de Lógica de Envio e Tratamento de Erros",
+            "description": "Conectar o formulário ao hook de mutação e gerenciar os estados de feedback (loading, erro, sucesso).",
+            "dependencies": [1, 3],
+            "details": "No `onSubmit` do formulário, invocar a função `mutate` do hook criado. Vincular a prop `isLoading` do hook ao estado de loading do Botão. Implementar o `onError` do hook para capturar exceções do domínio e exibir alertas ou mensagens de erro amigáveis ao usuário (mapeando erros de domínio para mensagens de UI).",
+            "status": "done",
+            "testStrategy": "Simular erro de API e verificar se a mensagem de erro é exibida na tela.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T11:23:33.132Z"
+          },
+          {
+            "id": 5,
+            "title": "Implementar Testes de Componente (RNTL)",
+            "description": "Criar testes automatizados para validar o fluxo de preenchimento e submissão do formulário.",
+            "dependencies": [4],
+            "details": "Utilizar React Native Testing Library. Cenários: 1. Renderização correta dos campos. 2. Validação de campos obrigatórios (tentar enviar vazio). 3. Preenchimento de datas e envio com sucesso (mockando `useRequestVacation`). Verificar se o mock de mutação foi chamado com os dados corretos.",
+            "status": "done",
+            "testStrategy": "RNTL integration test cobrindo o happy path e error path.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T11:23:33.133Z"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Create `useRequestVacation` mutation hook. Build `RequestVacationScreen` with Date Pickers. Validate date logic (start < end) via schema or domain error catching. Handle success feedback and navigation.",
+        "updatedAt": "2025-12-24T11:23:33.133Z"
+      },
+      {
+        "id": "18",
+        "title": "Presentation: Telas de Histórico e Detalhes",
+        "description": "Listagem de férias e visualização detalhada.",
+        "details": "1. Hooks useVacationHistory e useVacationDetails (React Query -> Repo/UseCase). 2. Tela History: FlatList com VacationCard. 3. Tela Details: Exibir status, datas e motivo de rejeição (se houver).",
+        "testStrategy": "Verificar renderização de lista vazia (EmptyState) e lista preenchida.",
+        "priority": "medium",
+        "dependencies": ["10", "13"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implementar Custom Hooks de Férias (useVacationHistory, useVacationDetails)",
+            "description": "Criar hooks no layer de Presentation para consumir os UseCases de listagem e detalhamento de férias via React Query.",
+            "dependencies": [],
+            "details": "Implementar `useVacationHistory` chamando `GetVacationHistoryUseCase` e `useVacationDetails` chamando `GetVacationDetailsUseCase`. Configurar chaves do React Query e tratamento de erros (ex: retry policies). Tipar retornos estritamente conforme as entidades do domínio.",
+            "status": "pending",
+            "testStrategy": "Testar hooks com `renderHook` e wrapper do QueryClient, mockando as respostas dos UseCases.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Desenvolver Componente VacationListItem",
+            "description": "Criar o componente de item de lista para exibir o resumo de uma solicitação de férias.",
+            "dependencies": [1],
+            "details": "Componente deve receber a entidade `Vacation` como prop. Deve exibir datas formatadas, usar o componente `Badge` (criado na task 13) para o status e garantir acessibilidade. Deve ter prop `onPress` para navegação.",
+            "status": "pending",
+            "testStrategy": "Snapshot tests e verificação de renderização correta das props (datas, status) via RNTL.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implementar Tela de Histórico (VacationHistoryScreen)",
+            "description": "Construir a tela principal de listagem de férias utilizando FlatList e tratamento de estados.",
+            "dependencies": [1, 2],
+            "details": "Utilizar `useVacationHistory`. Renderizar `FlatList` com `VacationListItem`. Implementar estados de Loading (Skeleton ou Spinner), Error (mensagem com retry) e Empty (componente EmptyState). Não aplicar filtros no lado do cliente.",
+            "status": "pending",
+            "testStrategy": "RNTL: Verificar se exibe lista quando sucesso, mensagem de erro quando falha e EmptyState quando array vazio.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implementar Tela de Detalhes (VacationDetailsScreen)",
+            "description": "Construir tela de detalhes exibindo todas as informações da solicitação de férias.",
+            "dependencies": [1, 3],
+            "details": "Receber ID via route params. Utilizar `useVacationDetails`. Exibir status, período completo, e motivo de rejeição (se houver/status for rejected). Reutilizar componentes de Card e Typography do Design System.",
+            "status": "pending",
+            "testStrategy": "RNTL: Verificar se exibe motivo de rejeição apenas quando aplicável e se os dados carregam corretamente baseados no ID.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Integrar Navegação e Fluxo de Histórico para Detalhes",
+            "description": "Configurar a rota de detalhes no Navigator e conectar o evento de toque da lista.",
+            "dependencies": [3, 4],
+            "details": "Adicionar rota `VacationDetails` na stack de navegação autenticada. No `VacationHistoryScreen`, passar a função de navegação para o `onPress` do `VacationListItem`, enviando o ID da solicitação como parâmetro.",
+            "status": "pending",
+            "testStrategy": "Teste manual ou E2E simples verificando se clicar no item abre a tela correta com os dados esperados.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Build `VacationHistoryScreen` using `FlatList`. Create `VacationDetailsScreen`. Implement `useVacationHistory` query hook. Handle 'Empty', 'Loading', and 'Error' states gracefully in the UI.",
+        "updatedAt": "2025-12-24T13:10:35.807Z"
+      },
+      {
+        "id": "19",
+        "title": "Presentation: Dashboard do Gestor e Aprovação",
+        "description": "Funcionalidades exclusivas do perfil Manager.",
+        "details": "1. Hook usePendingVacations (Smart Query via UseCase). 2. Tela ManagerDashboard listando pendências. 3. Tela ReviewVacation com ações de Aprovar/Reprovar (usando mutations). Modal para motivo de reprovação.",
+        "testStrategy": "Testar fluxo: Gestor acessa dashboard, abre solicitação, reprova sem motivo (erro), reprova com motivo (sucesso).",
+        "priority": "high",
+        "dependencies": ["10", "18"],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implementar Hook usePendingVacations",
+            "description": "Criar o hook customizado usePendingVacations que utiliza o UseCase de listagem de pendências.",
+            "dependencies": [],
+            "details": "O hook deve encapsular useQuery do TanStack Query. Deve chamar o UseCase 'GetPendingVacations'. Deve tratar estados de loading e error e tipar o retorno conforme a entidade VacationRequest. Local: src/presentation/hooks/vacations/usePendingVacations.ts.",
+            "status": "done",
+            "testStrategy": "Unit test do hook mockando o UseCase e verificando os estados de data, isLoading e error.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T13:50:07.603Z"
+          },
+          {
+            "id": 2,
+            "title": "Implementar Hooks de Ação (Aprovar/Reprovar)",
+            "description": "Criar os hooks de mutação useApproveVacation e useRejectVacation.",
+            "dependencies": [1],
+            "details": "Implementar useApproveVacation e useRejectVacation usando useMutation. Ambos devem invalidar a query 'pendingVacations' após sucesso. O hook de rejeição deve aceitar 'reason' como parâmetro. Local: src/presentation/hooks/vacations/useVacationActions.ts.",
+            "status": "done",
+            "testStrategy": "Unit tests verificando se as funções de mutação chamam os métodos corretos do repositório/serviço.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T13:50:08.242Z"
+          },
+          {
+            "id": 3,
+            "title": "Desenvolver Tela ManagerDashboardScreen",
+            "description": "Criar a tela principal do dashboard do gestor listando as solicitações pendentes.",
+            "dependencies": [1],
+            "details": "Utilizar o hook usePendingVacations. Renderizar uma FlatList com componentes Card (criados na Task 12) adaptados para exibir resumo da solicitação (nome, datas). Ao clicar no card, navegar para ReviewVacation. Tratar estados de loading (Skeleton) e vazio (EmptyState). Local: src/presentation/screens/ManagerDashboard/index.tsx.",
+            "status": "done",
+            "testStrategy": "RNTL test: Verificar se a lista é renderizada corretamente com os dados mockados e se o loading state aparece.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T13:50:46.303Z"
+          },
+          {
+            "id": 4,
+            "title": "Desenvolver Modal de Reprovação (RejectionModal)",
+            "description": "Criar componente de modal para input do motivo da reprovação.",
+            "dependencies": [],
+            "details": "Componente controlado contendo um TextInput (multiline) e botões 'Confirmar' e 'Cancelar'. Deve validar se o motivo foi preenchido antes de permitir confirmar. Deve ser usado pela tela de revisão. Local: src/presentation/components/vacations/RejectionModal.tsx.",
+            "status": "done",
+            "testStrategy": "RNTL test: Verificar se o botão de confirmar fica desabilitado quando o input está vazio e se dispara a ação correta ao confirmar.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T13:50:08.954Z"
+          },
+          {
+            "id": 5,
+            "title": "Desenvolver Tela ReviewVacationScreen e Integração",
+            "description": "Criar a tela de detalhes para revisão e integrar os fluxos de aprovação e reprovação.",
+            "dependencies": [2, 3, 4],
+            "details": "Exibir detalhes completos da solicitação. Botões 'Aprovar' (chama useApproveVacation direto) e 'Reprovar' (abre RejectionModal, que chama useRejectVacation ao confirmar). Tratar feedback de sucesso/erro (Toast/Alert) e navegação de volta após ação. Local: src/presentation/screens/ReviewVacation/index.tsx.",
+            "status": "done",
+            "testStrategy": "E2E test: Simular fluxo completo de entrar na tela, clicar em reprovar, preencher motivo e confirmar.",
+            "parentId": "undefined",
+            "updatedAt": "2025-12-24T13:50:46.987Z"
+          }
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Build `ManagerDashboardScreen`. Implement approval/rejection logic with `useVacationActions` hooks. Create a Modal for rejection reason. Ensure the list updates optimistically or via invalidation after action.",
+        "updatedAt": "2025-12-24T13:50:46.987Z"
+      },
+      {
+        "id": "20",
+        "title": "Configuração de CI/CD e Documentação Final",
+        "description": "Automatização de pipeline e documentação do projeto.",
+        "details": "1. Configurar Fastlane para build Android/iOS. 3. Escrever README.md completo e docs de arquitetura.",
+        "testStrategy": "Verificar execução bem sucedida do pipeline no Fastlane.",
+        "priority": "low",
+        "dependencies": ["16", "17", "19"],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configuração Inicial do Fastlane e Lane Android",
+            "description": "Inicializar o Fastlane no projeto e configurar a lane de build para Android, gerando um APK de debug/release localmente.",
+            "dependencies": [],
+            "details": "Executar 'fastlane init'. Configurar o arquivo 'fastlane/Fastfile' e 'fastlane/Appfile'. Criar uma lane 'build_android' que execute './gradlew clean assembleRelease'. Garantir que o output (APK) seja gerado na pasta correta. Não incluir upload para lojas.",
+            "status": "pending",
+            "testStrategy": "Executar 'bundle exec fastlane build_android' e verificar se o arquivo .apk foi gerado na pasta de output sem erros.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Configuração da Lane de Build iOS no Fastlane",
+            "description": "Configurar a lane de build para iOS no Fastlane visando a geração de um arquivo .ipa ou build verificável para simulador.",
+            "dependencies": [1],
+            "details": "Atualizar 'fastlane/Fastfile' para incluir a plataforma :ios. Criar a lane 'build_ios'. Utilizar a action 'gym' (ou 'build_app') para compilar o projeto. Configurar para build sem code signing complexo (export_method: 'ad-hoc' ou similar para MVP) ou focar em build bem sucedido.",
+            "status": "pending",
+            "testStrategy": "Executar 'bundle exec fastlane build_ios' em ambiente macOS e verificar se o build completa com sucesso.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Integração de Testes e Linting (Quality Gate)",
+            "description": "Criar lanes de verificação de qualidade e integrá-las aos processos de build para garantir a integridade do código.",
+            "dependencies": [1, 2],
+            "details": "Adicionar lane 'run_tests' no Fastlane que execute 'yarn lint' e 'yarn test' (Jest). Configurar as lanes 'build_android' e 'build_ios' para executarem 'run_tests' antes de iniciar a compilação (before_all).",
+            "status": "pending",
+            "testStrategy": "Falhar intencionalmente um teste unitário e verificar se o comando do fastlane aborta o processo de build.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Elaboração do README.md Técnico e Operacional",
+            "description": "Escrever a documentação principal do projeto focada na experiência do desenvolvedor (DX) e setup local.",
+            "dependencies": [3],
+            "details": "Atualizar README.md na raiz. Seções obrigatórias: 'Pré-requisitos' (Node, Ruby, JDK), 'Instalação' (yarn, pod install), 'Rodando o projeto' (iOS/Android), 'Rodando Testes' e 'Comandos Fastlane' (documentar as lanes criadas).",
+            "status": "pending",
+            "testStrategy": null,
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Documentação da Clean Architecture e Fluxo de Dados",
+            "description": "Criar documento detalhando as decisões arquiteturais para facilitar o onboarding de novos desenvolvedores.",
+            "dependencies": [4],
+            "details": "Criar arquivo 'docs/ARCHITECTURE.md'. Explicar a separação em camadas (Domain, Data, Infra, Presentation). Incluir diagrama textual ou descrição do fluxo: UI -> UseCase -> Repository -> Entity. Documentar a estratégia de tratamento de erros e a fila offline.",
+            "status": "pending",
+            "testStrategy": null,
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Set up `Fastlane` for local builds (check environment). Write `README.md` with setup instructions. Document the architecture decisions. Configure a simple lint/test pipeline script."
+      },
+      {
+        "id": "21",
+        "title": "Configuração do Composition Root (Singleton) e Adaptadores Baseados em Hooks",
+        "description": "Criação de um Composition Root único (singleton) para injetar dependências de Infraestrutura nos Casos de Uso e expô-los à camada de Apresentação exclusivamente através de hooks.",
+        "details": "DECISÕES ARQUITETURAIS (NÃO NEGOCIÁVEIS):\n- O Composition Root DEVE ser implementado como um singleton em nível de módulo (ex: 'src/main/container.ts').\n- O Composition Root NÃO DEVE usar React Context.\n- A Injeção de Dependência DEVE ocorrer apenas uma vez no bootstrap, não em tempo de execução.\n- Os Use Cases SÃO a única fronteira da Aplicação.\n- Não deve existir camada de 'application/services' ou facades.\n- A camada de Apresentação consome Use Cases apenas através de hooks.\n\nRESPONSABILIDADES:\n\n1) Composition Root (Módulo Singleton)\n- Criar um arquivo único responsável por conectar as dependências.\n- Instanciar repositórios de Infraestrutura (ex: VacationRepositoryImpl baseada no AxiosClient da Task 6).\n- Instanciar Use Cases da Aplicação (Task 9) injetando os repositórios.\n- Exportar instâncias de Use Case prontas para uso.\n- O container deve ser stateless e livre de side-effects.\n- Proibido importar React neste arquivo.\n\n2) Adaptadores Baseados em Hooks (Camada de Apresentação)\n- Criar hooks (ex: useRequestVacation, useApproveVacation).\n- Os hooks devem importar as instâncias dos Use Cases diretamente do Composition Root.\n- Os hooks devem chamar 'UseCase.execute()'.\n- Os hooks tratam apenas preocupações de UI (loading, erro, cache/state local).\n- Os hooks NÃO DEVEM instanciar repositórios ou Use Cases.\n- Os hooks NÃO DEVEM conter regras de negócio, RBAC ou filtragem.\n\nRESTRIÇÕES ESTRITAS:\n- NÃO use React Context para injeção de dependência.\n- NÃO crie ou mantenha 'application/services'.\n- NÃO instancie Use Cases dentro de hooks ou componentes.\n- NÃO permita que a UI decida implementações.\n- Use Cases devem depender apenas de interfaces de Domínio.\n- Infraestrutura deve depender do Domínio, nunca o contrário.\n\nARQUIVOS A CRIAR / MODIFICAR:\n- src/main/container.ts (ou src/main/di.ts) — Composition Root (singleton)\n- src/presentation/hooks/* — Adaptadores baseados em hook\n\nFORA DO ESCOPO:\n- Novas regras de negócio.\n- Orquestração de fluxo além dos Use Cases existentes.\n- Troca de dependência em tempo de execução (runtime dependency swapping).\n- Camadas de abstração adicionais.",
+        "testStrategy": "1. Testes unitários no 'src/main/container.ts' verificando se as instâncias exportadas contêm as dependências corretas (mocks de repositórios injetados corretamente nos Use Cases). Estes testes NÃO devem envolver React ou Context.\n2. Testes de integração dos Hooks (usando React Hooks Testing Library) validando que o hook chama o método execute() do Use Case mockado e propaga o resultado/erro corretamente para o estado do componente.",
+        "status": "done",
+        "dependencies": ["6", "9"],
+        "priority": "medium",
+        "subtasks": [],
+        "updatedAt": "2025-12-24T06:28:14.933Z"
+      },
+      {
+        "id": "22",
+        "title": "Refatoração de Error Handling no ROP e Hooks",
+        "description": "Refatorar a estrutura do Result<T> e DomainError para garantir mensagens de erro prontas para UI, eliminando interpretação semântica na camada de apresentação.",
+        "details": "1. Refatorar a classe/tipo `Result<T>` no Core: Garantir que o valor de falha (Failure) exponha estritamente um contrato de erro contendo uma propriedade `message` estável (ex: `interface AppError { message: string; code?: string }`).\n2. Atualizar `DomainError` (criado na Task 3): Assegurar que todas as subclasses (ValidationError, etc.) populam essa propriedade `message` com texto amigável para exibição.\n3. Revisar Use Cases existentes (Task 9): Garantir que retornam `Result.fail()` com instâncias que respeitem o novo contrato, sem lançar exceções (throw) e sem retornar tipos 'unknown'.\n4. Definir padrão para Hooks: Os hooks devem apenas executar `setError(result.error.message)` ou similar, sendo proibido o uso de `instanceof` ou checagem de tipos na camada de view.",
+        "testStrategy": "1. Testes Unitários no `Result`: Verificar se `result.getError().message` é acessível diretamente sem type casting.\n2. Testes de Regressão nos Use Cases (Task 9): Garantir que continuam passando com a nova estrutura de erro.\n3. Teste de Lint/Arquitetura (opcional): Criar regra ou teste que falhe se um arquivo na pasta /hooks usar `instanceof Error`.",
+        "status": "done",
+        "dependencies": ["3", "9"],
+        "priority": "medium",
+        "subtasks": [],
+        "updatedAt": "2025-12-24T06:39:24.940Z"
+      },
+      {
+        "id": "23",
+        "title": "Presentation: Error Boundary Global e Fallback UI",
+        "description": "Implementar um componente Global Error Boundary para capturar exceções não tratadas (crashes) e falhas de renderização, prevenindo o fechamento abrupto do app.",
+        "details": "Criar um componente `ErrorBoundary` (classe ou via biblioteca 'react-error-boundary') que envolva toda a aplicação no nível mais alto (Entry Point). \n\nDetalhes de Implementação:\n1. Criar `src/presentation/components/templates/GlobalErrorFallback.tsx`: Uma tela amigável exibida quando ocorre um erro fatal. Deve utilizar os componentes do Design System (Task 12) como `Text` para a mensagem e `Button` para a ação de 'Tentar Novamente' ou 'Reiniciar'.\n2. Configurar o Error Boundary em `App.tsx` (ou arquivo de entry point equivalente em `src/main/`), envolvendo as rotas/providers.\n3. O componente deve capturar erros de ciclo de vida do React (componentDidCatch) e promessas não tratadas (opcionalmente, configurar listeners globais para 'unhandledRejection' se necessário para logging, embora o ErrorBoundary foque em renderização).\n4. Integrar um mecanismo de reset: Ao clicar em 'Tentar Novamente', o estado do erro deve ser limpo para tentar remontar a árvore de componentes.\n5. (Opcional) Adicionar log de erro para serviço externo (apenas stub/console por enquanto) dentro do método `onError`.",
+        "testStrategy": "1. Teste Manual: Inserir propositalmente um `throw new Error()` em um componente filho e verificar se a tela de Fallback é exibida em vez do app fechar (Red Screen of Death em dev, crash em prod).\n2. Teste de Integração (RNTL): Criar um teste que renderiza o `ErrorBoundary` envolvendo um componente 'Bomb' (que lança erro) e afirmar que o texto da Fallback UI é renderizado e o botão de reset funciona.",
+        "status": "done",
+        "dependencies": ["12", "21"],
+        "priority": "medium",
+        "subtasks": [],
+        "updatedAt": "2025-12-24T13:55:31.287Z"
+      },
+      {
+        "id": "24",
+        "title": "Presentation: Implementação de Error Boundary Global e Tela de Fallback",
+        "description": "Implementar um mecanismo global de captura de erros (JS crashes e unhandled rejections) e uma interface de fallback amigável para evitar o fechamento abrupto do aplicativo.",
+        "details": "1. **Configuração da Biblioteca**: Verificar se `react-error-boundary` está instalado. Caso contrário, instalar. Esta biblioteca simplifica a implementação de boundaries funcionais.\n2. **Componente de Fallback (`GlobalErrorFallback.tsx`)**:\n   - Criar em `src/presentation/components/templates/GlobalErrorFallback.tsx`.\n   - Deve receber props `error` e `resetErrorBoundary`.\n   - Utilizar componentes do Design System (Task 12): `Box` (ou equivalente de layout), `Text` (para título 'Ops, algo deu errado' e mensagem de erro técnica em ambiente de dev), e `Button` (para ação 'Tentar Novamente').\n   - Estilizar de forma limpa, não alarmista.\n3. **Componente Container (`AppErrorBoundary.tsx`)**:\n   - Criar em `src/presentation/providers/AppErrorBoundary.tsx`.\n   - Envolver o componente `ErrorBoundary` da biblioteca.\n   - Implementar função `handleError` para logar o erro em serviços de monitoramento (preparar hook para integração futura com Sentry/Crashlytics).\n   - Implementar `handleReset` para limpar estados globais ou navegar para a Home, se necessário, ao tentar recuperar.\n4. **Integração no Root**:\n   - Alterar `App.tsx` (ou o entry point principal) para envolver toda a árvore de navegação/providers com o `AppErrorBoundary`.\n   - Garantir que ele esteja acima dos Providers de Contexto se a recuperação exigir re-renderização desses providers, ou logo abaixo se os providers forem resilientes.\n5. **Tratamento de Promises (Opcional/Avançado)**:\n   - Adicionar listener global para `unhandledrejection` se o framework (React Native/Expo) não capturar automaticamente via Error Boundary padrão, redirecionando para o estado de erro visual.",
+        "testStrategy": "1. **Teste de Componente (RNTL)**: Criar um teste unitário para `GlobalErrorFallback` verificando se exibe a mensagem de erro e se o botão chama a função de reset.\n2. **Teste de Integração**: Criar um componente 'Bomb' de teste que lança um erro (`throw new Error('Test Crash')`) quando renderizado. Envolvê-lo no `AppErrorBoundary` dentro de um teste e afirmar que a tela de Fallback é renderizada ao invés de quebrar o teste.\n3. **Teste Manual (Simulação)**: Adicionar temporariamente um botão 'Crash App' nas configurações de dev que lança uma exceção, verificando se o app exibe a tela de fallback e se o botão 'Tentar Novamente' recarrega a aplicação corretamente.",
+        "status": "done",
+        "dependencies": ["12", "21"],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Verificar e instalar dependências do Error Boundary",
+            "description": "Verificar se a biblioteca 'react-error-boundary' está instalada no 'package.json'. Caso contrário, realizar a instalação para permitir a criação de boundaries funcionais.",
+            "dependencies": [],
+            "details": "Verificar o arquivo 'package.json' na raiz. Se 'react-error-boundary' não estiver listado em dependencies, executar 'npm install react-error-boundary' ou 'yarn add react-error-boundary'. Esta biblioteca será a base para a captura de erros na árvore de componentes.",
+            "status": "pending",
+            "testStrategy": null,
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Criar componente visual GlobalErrorFallback",
+            "description": "Implementar a interface de fallback que será exibida ao usuário quando um erro ocorrer, utilizando os componentes do Design System existentes.",
+            "dependencies": [12],
+            "details": "Criar 'src/presentation/components/templates/GlobalErrorFallback.tsx'. O componente deve receber as props 'error' e 'resetErrorBoundary' da biblioteca. Utilizar componentes 'Box', 'Text' e 'Button' (do Task 12) para exibir uma mensagem amigável ('Ops, algo deu errado') e um botão 'Tentar Novamente' que chama 'resetErrorBoundary'. Em ambiente de dev, exibir detalhes do 'error.message'.",
+            "status": "pending",
+            "testStrategy": "Criar teste unitário renderizando o componente e simulando o clique no botão de reset.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implementar provider AppErrorBoundary",
+            "description": "Criar o componente wrapper que configura o ErrorBoundary da biblioteca, definindo a lógica de log e reset.",
+            "dependencies": [1, 2],
+            "details": "Criar 'src/presentation/providers/AppErrorBoundary.tsx'. Este componente deve envolver o 'ErrorBoundary' da biblioteca 'react-error-boundary', passando o 'GlobalErrorFallback' como 'FallbackComponent'. Implementar a prop 'onError' para logar o erro no console (e futuramente em serviços como Sentry) e 'onReset' para limpar estados globais ou navegação se necessário.",
+            "status": "pending",
+            "testStrategy": null,
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Integrar AppErrorBoundary na raiz da aplicação",
+            "description": "Envolver a árvore de componentes principal da aplicação com o AppErrorBoundary para garantir a captura global de erros.",
+            "dependencies": [3],
+            "details": "Editar o arquivo 'App.tsx' (ou o entry point equivalente). Importar 'AppErrorBoundary' e envolver os componentes principais. Posicionar o Boundary preferencialmente acima dos Navigators e Context Providers críticos, para garantir que falhas nesses níveis também sejam capturadas ou, se preferir recuperar o estado, logo abaixo dos providers globais resilientes.",
+            "status": "pending",
+            "testStrategy": "Teste manual: Inserir um 'throw new Error()' temporário em um componente filho e verificar se a tela de fallback é exibida.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Adicionar tratamento global de Promises não tratadas",
+            "description": "Configurar listeners globais para capturar 'unhandled rejection' que podem não ser pegos automaticamente pelo Error Boundary de renderização.",
+            "dependencies": [4],
+            "details": "No arquivo de entrada (ex: 'index.js' ou 'App.tsx'), adicionar listeners para 'unhandledrejection' (se suportado pelo ambiente/Hermes) ou utilizar utilitários de tratamento global de erros do framework (como 'ErrorUtils' no React Native) para logar ou forçar a exibição de feedback visual em falhas assíncronas críticas.",
+            "status": "pending",
+            "testStrategy": "Simular uma Promise rejeitada sem catch e verificar se o erro é logado/tratado conforme esperado.",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2025-12-24T14:23:29.295Z"
+      },
+      {
+        "id": "25",
+        "title": "Auditoria de Acessibilidade (a11y) e Conformidade de Componentes UI",
+        "description": "Realizar auditoria completa e refatoração dos componentes fundamentais e de feedback para garantir suporte a leitores de tela, contraste adequado e conformidade WCAG.",
+        "details": "Esta tarefa foca em elevar a maturidade dos componentes de UI criados nas Tasks 12 e 13 para padrões de produção acessíveis.\n\n1. **Padronização de Props de Acessibilidade**:\n   - Revisar interfaces dos componentes base (`Button`, `Input`, `Card`, `Text`) para expor e tratar corretamente as props nativas: `accessibilityRole`, `accessibilityLabel`, `accessibilityHint` e `accessibilityState`.\n\n2. **Implementação por Componente**:\n   - **Button**: Garantir que o estado `disabled` visual seja refletido em `accessibilityState={{ disabled: true }}` e que o role seja explícito.\n   - **Input**: Assegurar que o `Label` visual esteja associado semanticamente ao campo de entrada para leitores de tela.\n   - **Skeleton (Task 13)**: Deve ser ignorado por leitores de tela ou anunciado genericamente como 'Carregando conteúdo' (`accessibilityLiveRegion`).\n   - **Badge (Task 13)**: O texto do badge deve ser legível semanticamente (ex: não apenas cor vermelha, mas anunciar 'Status: Erro').\n\n3. **Auditoria de Contraste e Tema**:\n   - Verificar se os tokens de cor definidos no Design System (Task 12) atendem ao contraste mínimo (4.5:1 para texto normal) em ambos os temas (Light/Dark).\n   - Ajustar a paleta de cores se falhas de contraste forem detectadas.\n\n4. **Dynamic Type**:\n   - Verificar se todos os componentes de texto respeitam as configurações de tamanho de fonte do sistema operacional (`allowFontScaling`).",
+        "testStrategy": "1. **Testes Unitários (RNTL)**: Adicionar asserções para propriedades de acessibilidade. Exemplo: `expect(getByRole('button', { name: /salvar/i })).toBeOnTheScreen()` e verificação de `accessibilityState`.\n2. **Teste Manual com Leitores de Tela**: Navegar pelos componentes utilizando VoiceOver (iOS Sim) e TalkBack (Android Emulator) para validar a ordem de foco e clareza dos anúncios.\n3. **Verificação de Fonte**: Testar a interface com o tamanho da fonte do dispositivo configurado para o máximo para garantir que o layout flui e não corta textos.",
+        "status": "pending",
+        "dependencies": ["12", "13"],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": "26",
+        "title": "Documentação do Projeto: README, Arquitetura e Templates GitHub",
+        "description": "Criação e padronização da documentação do repositório, cobrindo guias de instalação, explicação arquitetural, processos de contribuição e templates para issues e PRs.",
+        "details": "Esta tarefa visa preencher a lacuna de documentação identificada, consolidando o conhecimento técnico e facilitando o onboarding. Os arquivos devem ser criados na raiz ou na pasta `.github` conforme padrão.\n\n1. **README.md Principal**:\n   - **Overview**: Descrição do propósito do app.\n   - **Tech Stack**: Listar React Native, TypeScript, Jest, RNTL, Clean Architecture.\n   - **Setup & Running**: Instruções passo-a-passo (Node, Java/JDK, Ruby, Cocoapods) para rodar `npm install`, `npm run ios/android`.\n   - **Scripts**: Explicar scripts do `package.json` (lint, test, commit).\n\n2. **Arquitetura e Decisões Técnicas (`docs/ARCHITECTURE.md`)**:\n   - Documentar a estrutura de pastas (Clean Architecture).\n   - Explicar o padrão **Composition Root (Singleton)** implementado na Task 21 (Injeção de dependência manual no bootstrap).\n   - Explicar o padrão **ROP (Result Oriented Programming)** para tratamento de erros (Task 22).\n   - **Trade-offs**: Listar decisões conscientes, como a não utilização de Context API para injeção de dependências e o uso de Error Boundaries globais (Task 23/24).\n\n3. **Guias de Qualidade e Testes (`docs/TESTING.md`)**:\n   - Como rodar testes unitários e de integração.\n   - Explicação sobre a estratégia de testes (foco em comportamento vs implementação).\n\n4. **Padronização GitHub (`.github/`)**:\n   - **PULL_REQUEST_TEMPLATE.md**: Checklist obrigatório (Testes passaram? Lint rodou? Screenshots anexados? Commitlint respeitado?).\n   - **ISSUE_TEMPLATE/**: Templates para `bug_report.md` e `feature_request.md`.\n   - **CONTRIBUTING.md**: Explicar o fluxo de Git Flow ou Trunk Based (se aplicável), e reforçar o uso do **Conventional Commits** configurado na Task 1.\n\n5. **Arquivos Meta**:\n   - **CHANGELOG.md**: Inicializar arquivo (ou configurar ferramenta como `standard-version` se desejado) para rastrear versões.\n   - **AUTHORS**: Listar mantenedores e contatos.\n   - **Next Steps**: Seção no README listando débitos técnicos conhecidos ou roadmap futuro.",
+        "testStrategy": "1. **Teste de Onboarding**: Um desenvolvedor (ou o próprio autor simulando um ambiente limpo) deve conseguir clonar o repo e rodar o app apenas seguindo o novo README.md.\n2. **Validação de Links**: Verificar se todos os links internos (entre README e docs/) funcionam.\n3. **Validação de Templates**: Criar um PR e uma Issue de teste (draft) no GitHub para verificar se os templates são carregados corretamente.\n4. **Lint de Markdown**: Garantir que a formatação dos arquivos .md esteja correta.",
+        "status": "pending",
+        "dependencies": ["1", "21"],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": "27",
+        "title": "Infraestrutura de Testes E2E com Detox e Cucumber",
+        "description": "Configurar o ambiente de testes end-to-end utilizando Detox integrado ao Cucumber (Gherkin), definindo estrutura de pastas, configurações iniciais e cobertura dos fluxos críticos.",
+        "details": "1. **Instalação e Configuração**:\n   - Instalar `detox`, `@cucumber/cucumber`, `ts-node` e tipos (`@types/detox`).\n   - Configurar `.detoxrc.js` definindo configurações para iOS e Android (devices, build commands).\n   - Criar `cucumber.js` na raiz para definir profiles, paths de features/steps e formatadores.\n\n2. **Estrutura de Pastas** (Deve seguir exatamente):\n   - `e2e/features/`: Criar arquivos `.feature` baseados no PRD (Login, Solicitação de Férias, Aprovação).\n   - `e2e/steps/`: Implementar definições de passos (`login.steps.ts`, `vacation.steps.ts`) mapeando Gherkin para ações do Detox (`element(by.id(...)).tap()`).\n   - `e2e/support/`: Criar `world.ts` (contexto compartilhado), `hooks.ts` (init/cleanup do Detox via `BeforeAll`/`AfterAll` e `Before`/`After` para reload do app) e `detox.ts`.\n\n3. **Cenários Críticos (.feature)**:\n   - **Login:** Sucesso (usuário válido), Falha (credenciais inválidas).\n   - **Request Vacation:** Preencher formulário de datas e submeter.\n   - **Approve/Reject:** Fluxo de Manager visualizando e agindo sobre uma solicitação.\n\n4. **Scripts NPM**:\n   - Adicionar ao `package.json`: `\"test:e2e\": \"cucumber-js\"`, `\"build:e2e:ios\": \"detox build -c ios.sim.debug\"`, etc.",
+        "testStrategy": "Executar `npm run test:e2e` e verificar se: 1. O build do aplicativo é gerado corretamente. 2. O simulador abre automaticamente. 3. Os cenários de Login e Férias são executados visualmente. 4. O output do terminal mostra os cenários do Gherkin passando (verde).",
+        "status": "pending",
+        "dependencies": ["14", "16"],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Instalação e Configuração Inicial do Detox e Cucumber",
+            "description": "Instalar dependências (detox, @cucumber/cucumber, ts-node), configurar `.detoxrc.js` para iOS/Android e criar `cucumber.js` na raiz do projeto com profiles e paths.",
+            "dependencies": [],
+            "details": "Executar `npm install -D detox @cucumber/cucumber ts-node @types/detox @types/cucumber`. Criar arquivo `.detoxrc.js` definindo configurations para 'ios.sim.debug' e 'android.emu.debug' (apontando para o binaryPath correto do build nativo). Criar `cucumber.js` exportando a configuração padrão: `module.exports = { default: { require: ['e2e/steps/*.ts', 'e2e/support/*.ts'], format: ['progress-bar', 'json:e2e/report.json'], paths: ['e2e/features/*.feature'] } };`. Adicionar scripts ao package.json: `test:e2e`, `build:e2e:ios`, `build:e2e:android`.",
+            "status": "pending",
+            "testStrategy": "Verificar se `npm run build:e2e:ios` (ou android) inicia o processo de build do Detox sem erros de configuração e se os arquivos de config existem na raiz.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Configuração do Ambiente de Teste (Support & Hooks)",
+            "description": "Implementar a infraestrutura de suporte do Cucumber/Detox, incluindo hooks de ciclo de vida (init/cleanup) e configuração do contexto compartilhado (World).",
+            "dependencies": [1],
+            "details": "Criar diretório `e2e/support`. Criar `e2e/support/detox.ts` para importar e inicializar o detox. Criar `e2e/support/hooks.ts` configurando `BeforeAll` (init do detox), `AfterAll` (cleanup do detox), `Before` (device.launchApp({ newInstance: true })) e `After` (cleanup de estado se necessário). Configurar timeouts padrão do Cucumber usando `setDefaultTimeout` se necessário para evitar falhas em builds lentos.",
+            "status": "pending",
+            "testStrategy": "Executar um teste dummy do Cucumber para garantir que o Detox inicializa o simulador e encerra corretamente via hooks.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implementação do Cenário de Login (Feature e Steps)",
+            "description": "Criar o arquivo `.feature` para Login e implementar os step definitions correspondentes mapeando para ações do Detox.",
+            "dependencies": [2],
+            "details": "Criar `e2e/features/login.feature` com cenários: 'Login com sucesso' e 'Login com falha'. Escrever `e2e/steps/login.steps.ts` usando `Given`, `When`, `Then`. Mapear passos como 'Given que estou na tela de login' (verificar elemento visível), 'When preencho email com {string}' (usar `element(by.id('email-input')).typeText()`), 'And clico em entrar' (`element(by.id('login-button')).tap()`) e validações de sucesso/erro (verificar toast ou navegação). Garantir que os IDs usados existam no app (Task 16).",
+            "status": "pending",
+            "testStrategy": "Executar `npm run test:e2e -- --name 'Login'` e verificar se os dois cenários (sucesso e falha) passam no simulador.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implementação do Cenário de Solicitação de Férias",
+            "description": "Criar arquivo `.feature` e steps para o fluxo de solicitação de férias, cobrindo preenchimento de formulário e submissão.",
+            "dependencies": [2],
+            "details": "Criar `e2e/features/vacation_request.feature`. Cenário: 'Solicitar férias com sucesso'. Implementar `e2e/steps/vacation.steps.ts`. Passos devem incluir navegação até a tela de férias, seleção de datas (interação com datepicker ou input de texto conforme implementado), inserção de motivo e clique em solicitar. Validar a mensagem de sucesso ou redirecionamento para lista de solicitações.",
+            "status": "pending",
+            "testStrategy": "Executar `npm run test:e2e -- --name 'Solicitar férias'` e verificar execução visual do preenchimento e assertiva de sucesso.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Implementação do Cenário de Aprovação de Férias (Manager)",
+            "description": "Criar arquivo `.feature` e steps para o fluxo de aprovação/rejeição de férias por um gestor.",
+            "dependencies": [4],
+            "details": "Criar `e2e/features/vacation_approval.feature`. Cenários: 'Aprovar solicitação' e 'Rejeitar solicitação'. Expandir `e2e/steps/vacation.steps.ts` ou criar `approval.steps.ts`. Os passos devem cobrir login como manager (se diferente), navegação para lista de pendências, seleção de um item e ação de aprovar/rejeitar, validando a atualização do status na UI.",
+            "status": "pending",
+            "testStrategy": "Executar suite completa `npm run test:e2e` e garantir que todos os cenários (Login, Request, Approval) estejam passando (verde) no relatório.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "28",
+        "title": "Configuração de CI/CD com Fastlane (Android + iOS) e Versionamento Automático",
+        "description": "Implementação do Fastlane para automação de builds locais e incremento de versão sincronizado entre package.json e nativos.",
+        "details": "Seguindo rigorosamente os requisitos de engenharia mobile sênior, a implementação deve:\n\n1. **Estrutura de Pastas**:\n   - Criar `fastlane/Fastfile`, `fastlane/Appfile` (Root) para orquestração geral.\n   - Criar `android/fastlane/Fastfile`, `android/fastlane/Appfile` para tarefas específicas Android.\n   - Criar `ios/fastlane/Fastfile`, `ios/fastlane/Appfile` para tarefas específicas iOS.\n\n2. **Root Fastlane (Orquestração de Versão)**:\n   - Implementar lane `version` com opções `bump_patch`, `bump_minor`, `bump_major`.\n   - Lógica: Ler/Incrementar versão no `package.json` (usando plugin `json` ou script ruby), extrair nova versão e chamar lanes de plataforma passando os valores.\n   - Scripts NPM: Adicionar `build:android`, `build:ios`, `bump:patch`, etc., no `package.json` chamando `bundle exec fastlane ...`.\n\n3. **Configuração Android (`android/fastlane/Fastfile`)**:\n   - Lane `build_debug` e `build_release`: Usar action `gradle` (tasks: 'assembleDebug' / 'bundleRelease').\n   - Lane `increment_version`: Receber versão via options. Atualizar `versionName` no `build.gradle` e incrementar `versionCode` automaticamente.\n\n4. **Configuração iOS (`ios/fastlane/Fastfile`)**:\n   - Lane `build_debug` e `build_release`: Usar `build_app` (gym).\n   - Lane `increment_version`: Receber versão via options. Usar `increment_version_number` (CFBundleShortVersionString) e `increment_build_number` (CFBundleVersion).\n\n5. **Documentação**:\n   - Criar `fastlane/README.md` detalhando setup (Ruby, Bundler, Gemfile) e uso dos comandos.\n\nObservação: O foco é geração de binários (APK/AAB/IPA) e versionamento, sem publicação automática em lojas neste momento.",
+        "testStrategy": "1. **Teste de Versionamento**: Executar `npm run bump:patch` e verificar se `package.json`, `android/app/build.gradle` e `ios/App/Info.plist` refletem a nova versão.\n2. **Teste de Build Android**: Executar `npm run build:android` e verificar existência de `.apk` ou `.aab` na pasta de output.\n3. **Teste de Build iOS**: Executar `npm run build:ios` e verificar existência do `.ipa`.\n4. **Validação de CI**: Garantir que os comandos executam sem interatividade (modo headless).",
+        "status": "done",
+        "dependencies": ["1"],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configuração de Ambiente e Estrutura Base do Fastlane",
+            "description": "Inicializar o ambiente Ruby, configurar o Gemfile e criar a estrutura de diretórios para orquestração do Fastlane.",
+            "dependencies": [],
+            "details": "1. Criar `Gemfile` na raiz com as gems `fastlane` e `cocoapods`. 2. Executar `bundle install`. 3. Criar a estrutura de diretórios: `fastlane/` (root), `android/fastlane/` e `ios/fastlane/`. 4. Criar os arquivos `Fastfile` e `Appfile` em cada um desses diretórios com configurações iniciais vazias ou básicas.",
+            "status": "pending",
+            "testStrategy": "Executar `bundle exec fastlane lanes` em cada diretório para garantir que o Fastlane inicializa sem erros.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implementação de Lanes Android (Build e Versionamento)",
+            "description": "Configurar o Fastfile do Android para realizar builds (Debug/Release) e manipular versões via Gradle.",
+            "dependencies": [1],
+            "details": "No arquivo `android/fastlane/Fastfile`: 1. Criar lane `build_debug` chamando a task Gradle `assembleDebug`. 2. Criar lane `build_release` chamando a task Gradle `bundleRelease`. 3. Criar lane `increment_version` que aceita parâmetros (version_name, version_code) e atualiza o `build.gradle` ou `gradle.properties`.",
+            "status": "pending",
+            "testStrategy": "Executar `bundle exec fastlane android build_debug` e verificar a geração do APK.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implementação de Lanes iOS (Build e Versionamento)",
+            "description": "Configurar o Fastfile do iOS para realizar builds (Debug/Release) e manipular versões via agvtool/plist.",
+            "dependencies": [1],
+            "details": "No arquivo `ios/fastlane/Fastfile`: 1. Criar lane `build_debug` e `build_release` utilizando a action `build_app` (gym). 2. Criar lane `increment_version` que utiliza `increment_version_number` (marketing version) e `increment_build_number` (build number) baseado nos parâmetros recebidos.",
+            "status": "pending",
+            "testStrategy": "Executar `bundle exec fastlane ios build_debug` (em macOS) e verificar a geração do arquivo IPA/App.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Orquestração de Versionamento Sincronizado (Root Lane)",
+            "description": "Implementar a lógica central no Root Fastfile para sincronizar versões entre package.json e plataformas nativas.",
+            "dependencies": [2, 3],
+            "details": "No `fastlane/Fastfile` (raiz): 1. Implementar lane `version` que aceita options (`bump_type`: patch, minor, major). 2. Utilizar plugin ou script para incrementar a versão no `package.json`. 3. Ler a nova versão. 4. Chamar as lanes `android increment_version` e `ios increment_version` passando a nova versão extraída.",
+            "status": "pending",
+            "testStrategy": "Executar `bundle exec fastlane version bump_type:patch` e verificar se package.json, build.gradle e Info.plist foram atualizados.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Integração NPM Scripts e Documentação",
+            "description": "Adicionar scripts de conveniência no package.json e documentar o processo de build.",
+            "dependencies": [4],
+            "details": "1. Adicionar scripts no `package.json`: `bump:patch`, `bump:minor`, `build:android`, `build:ios` mapeando para os comandos `bundle exec fastlane ...`. 2. Criar `fastlane/README.md` documentando os pré-requisitos (Ruby, Bundler), setup inicial e como utilizar os novos comandos.",
+            "status": "pending",
+            "testStrategy": "Executar `npm run bump:patch` seguido de `npm run build:android` para validar o fluxo completo via NPM.",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2025-12-24T14:06:25.640Z"
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2025-12-24T14:23:29.296Z",
+      "taskCount": 28,
+      "completedCount": 24,
+      "tags": ["master"]
+    }
+  }
+}
