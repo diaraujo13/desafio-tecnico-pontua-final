@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { requestVacationUseCase } from '../../../main/container';
 import { RequestVacationDTO } from '../../../application/dtos/VacationRequestDTO';
 import { Result } from '../../../domain/shared/Result';
-import { UnexpectedDomainError } from '../../../domain/errors/UnexpectedDomainError';
+import { DomainError } from '../../../domain/errors/DomainError';
 
 /**
  * Hook for requesting a vacation using TanStack Query Mutation
@@ -40,21 +40,22 @@ export function useRequestVacation () {
 
   const requestVacation = async (dto: RequestVacationDTO): Promise<Result<void>> => {
     try {
+      // Call mutation.mutateAsync - it will throw DomainError on failure
+      // TanStack Query captures it and stores in mutation.error
       await mutation.mutateAsync(dto);
-      // Success - return Result.ok() for void
+      
+      // If we reach here, mutation succeeded
       return Result.ok();
     } catch (error) {
-      // Hooks MUST NOT use instanceof or interpret errors
-      // Extract error message without type checking
-      const errorMessage =
-        error && typeof error === 'object' && 'message' in error
-          ? String((error as { message: unknown }).message)
-          : 'An unexpected error occurred';
-
-      // Wrap all errors as UnexpectedDomainError
-      // Note: This should never happen if Use Cases are correct and throw DomainErrors
-      // But we handle it defensively without using instanceof
-      return Result.fail(new UnexpectedDomainError(errorMessage));
+      // The error thrown is the DomainError from the UseCase (result.getError())
+      // TanStack Query already stores it in mutation.error (exposed via hook's error property)
+      // We return Result.fail with the original error (not wrapped)
+      // This allows the screen to check result.isFailure if needed
+      // The error message is also available via the hook's error property
+      // 
+      // Since mutationFn throws result.getError() which is a DomainError,
+      // we can safely assert the error as DomainError
+      return Result.fail(error as DomainError);
     }
   };
 
@@ -65,5 +66,6 @@ export function useRequestVacation () {
       mutation.error && typeof mutation.error === 'object' && 'message' in mutation.error
         ? String(mutation.error.message)
         : null,
+    reset: () => mutation.reset(),
   };
 }
