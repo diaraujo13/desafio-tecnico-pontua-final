@@ -29,6 +29,35 @@ Domain → Application → Infrastructure → Presentation
 
 - **Infrastructure is replaceable without changing Domain or Application.**
 
+
+```
+  src/
+  ├── domain/
+  │   ├── entities/        # Business objects (VacationRequest, User, etc.)
+  │   ├── value-objects/   # Immutable values (DateRange, Email, etc.)
+  │   ├── errors/          # DomainError subclasses (NotFoundError, UnauthorizedError)
+  │   ├── enums/           # Domain enumerations (VacationStatus, UserRole)
+  │   ├── repositories/    # Repository interfaces (IVacationRepository, IUserRepository) - PORTS
+  │   └── shared/          # Result, Entity base, primitives
+  ├── application/
+  │   ├── use-cases/       # Use Case implementations 
+  │   ├── dtos/            # Data Transfer Objects - Input and Output 
+  │   └── mappers/         # Domain ↔ DTO mappers  
+  ├── infrastructure/
+  │   ├── api/             # HTTP clients 
+  │   ├── storage/         # Persistence adapters 
+  │   ├── database/        # Database adapters 
+  │   ├── repositories/    # Repository implementations 
+  │   └── services/        # External services integrations
+  └── presentation/
+    ├── components/      # UI elements
+    ├── screens/         # Screen containers
+    └── hooks/           # UI adapters (TanStack Query)
+    
+  
+```
+
+
 ### 1.2 Domain First
 
 - **Business rules live in Domain and Application only.**
@@ -57,8 +86,6 @@ Domain → Application → Infrastructure → Presentation
 
 ### 2.1 Presentation Layer
 
-Responsibility
-
 **Responsibility:**
 
 - Render UI
@@ -67,9 +94,12 @@ Responsibility
 - Translate UI events into Use Case execution
 
 **Contains:**
-
 - Components (UI + domain-aware)
-- Screens
+- Dumb Screens
+- Hooks
+- Navigation 
+- Context Providers
+- 
 
 ### 2.2 Hooks
 
@@ -131,12 +161,19 @@ Use instanceof on errors
 
 **Contains:**
 
-- Entities
-- Value Objects
-- Domain Errors
-- Enums
-- Repository interfaces (ports)
-- Shared primitives (Result, Entity)
+### Entities
+✅ Always create domain entities with behavior, not just data
+
+### Value Objects
+✅ Validations occurs in value objects, not in use cases
+
+### Domain Errors
+
+### Enums
+
+### Repository interfaces (ports)
+
+### Shared primitives (Result, Entity)
 
 Rules (Strict)
 ❌ NO React
@@ -147,7 +184,7 @@ Rules (Strict)
 
 **Errors:**
 
-- All domain errors extend DomainError
+- All domain errors extend `DomainError`
   DomainError MUST provide:
   message: string
   code?: string
@@ -167,11 +204,90 @@ Rules (Strict)
 - Orchestrate business rules through Use Cases
 - Enforce permissions, visibility, state transitions
 - Coordinate repositories
-  **Contains:**
-- Use Cases (implementation) - Use Cases MUST delegate authorization decisions to entities - Use Cases MUST call semantic permission methods (e.g. canViewAllVacations) - Permission methods MUST express intent, not role comparison
 
-- DTOs
-- Mappers
+| Camada         | DTOs?              | Mappers?            ​    | Razão Principal                          |
+| -------------- | ------------------ | ----------------------- | ---------------------------------------- |
+| Domínio (Core) | Não                | Não                     | Mantém pureza, sem dependências externas |
+| Application    | Sim (input/output) | Raros (entre use cases) | Orquestração de fluxos                   |
+| Infrastructure | Não (usa internos) | Sim (Data → Domain)     | Abstrai persistência                     |
+| Presentation   | Sim (UI-specific)  | Sim (Domain → UI)       | Adapta para exibição                     |
+
+#### 2.4.1 Use Cases implementation
+
+**Use Cases (implementation)** 
+- Use Cases MUST delegate authorization decisions to entities - Use Cases MUST call semantic permission methods (e.g. canViewAllVacations) - Permission methods MUST express intent, not role comparison
+
+#### 2.4.2 DTO - Data Transfer Object
+
+**Core Concept**
+- ✅ Single source of truth (DTOs define API contracts)
+- They avoid exposing entities from Domain directly to external frameworks, like APIs or UI, and are specifics per adapter
+
+Clear **Examples** of what NOT to do with DTOs:
+
+- ❌ DTO with validation logic
+- ❌ DTO with business behavior
+- ❌ DTO containing domain entities
+- ✅ DTO as pure data only
+
+**DTO Checklist**:
+Before creating a DTO, verify:
+- Used for boundary crossing? ✅
+- Only primitives/serializable? ✅
+- Zero business logic? ✅
+- Represents external contract? ✅
+
+Three Types of DTOs Clearly Defined:
+
+**InputDTO** - Presentation → Application Layer
+- Raw form/API input data
+- No validation logic
+
+Example:
+```typescript
+export interface LoginInputDTO {
+  email: string;
+  password: string;
+}
+```
+
+**OutputDTO** - Application → Presentation Layer
+
+- Result from use case execution
+- Primitives only (no entities)
+
+Example:
+```typescript
+export interface LoginOutputDTO {
+  userId: string;
+  userEmail: string;
+  token: string;
+  expiresAt: string;
+}
+```
+
+**RemoteDTO** - Infrastructure ↔ API Contract
+- Represents backend API structure
+- May differ from domain (snake_case, timestamps as strings)
+
+Example:
+```typescript
+export interface UserRemoteDTO {
+  email_address: string;
+  created_at: string;
+}
+```
+
+#### 2.4.3 Mapper
+-  Map between DTOs and Domain Entities, connecting Domain -> Presentation, validating and converting data before sending them to the Domain
+- They are used by the Use Cases to convert DTOs to Domain Entities and vice-versa
+- For dados de persistência, repositórios (Infrastructure) mapeiam DTOs de banco → Domain Entities
+- Essa separação evita vazamento de infraestrutura para o domínio e facilita testes
+
+- `.toDomain()` - Domain → DTO 
+- `.toDTO()` - DTO → Domain
+
+---
 
 **Error Handling Rules:**
 Use Cases return Result<T, DomainError>: fail or ok
@@ -270,6 +386,7 @@ Test Pyramid
     Domain Tests (Entities, Rules)
 ```
 
+
 **What to test :**
 **Domain:**
 
@@ -363,13 +480,25 @@ Core Architecture Directories
 
 ./src/application/use-cases/
 
+./src/application/dtos/
+
+./src/application/mappers/
+
 ./src/infrastructure/api/
 
 ./src/infrastructure/storage/
 
 ./src/infrastructure/database/
 
-./src/presentation/
+./src/infrastructure/repositories/
+
+./src/infrastructure/services/
+
+./src/presentation/components/
+
+./src/presentation/screens/
+
+./src/presentation/hooks/
 
 9. Final Enforcement Rule
 

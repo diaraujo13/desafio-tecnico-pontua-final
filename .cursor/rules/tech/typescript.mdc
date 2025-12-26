@@ -456,59 +456,6 @@ function useApi<T>(endpoint: string): UseApiReturn<T> {
 }
 ```
 
-### 11. Error Handling Types
-```typescript
-// Custom error classes
-class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public code: string,
-    public details?: unknown
-  ) {
-    super(message)
-    this.name = 'ApiError'
-  }
-}
-
-class ValidationError extends Error {
-  constructor(
-    message: string,
-    public errors: Record<string, string[]>
-  ) {
-    super(message)
-    this.name = 'ValidationError'
-  }
-}
-
-// Error handling with types
-async function tryCatch<T, E = Error>(
-  promise: Promise<T>
-): Promise<Result<T, E>> {
-  try {
-    const data = await promise
-    return { success: true, data }
-  } catch (error) {
-    return { 
-      success: false, 
-      error: error as E 
-    }
-  }
-}
-
-// Type-safe error boundaries
-interface ErrorBoundaryState {
-  hasError: boolean
-  error: Error | null
-}
-
-class ErrorBoundary extends Component<
-  { children: ReactNode; fallback: ComponentType<{ error: Error }> },
-  ErrorBoundaryState
-> {
-  // Implementation
-}
-```
 
 ### 12. Performance Types
 ```typescript

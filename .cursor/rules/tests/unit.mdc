@@ -1,17 +1,26 @@
 ---
 description: Unit tests decisions for the project
-globs: __tests__/unit/**/*.spec.ts
+globs: __tests__/unit/**/*.*
 alwaysApply: true
 ---
 
 # Unit Tests
 São testes que verificam o comportamento de uma função ou componente isoladamente.
 
+Supporting documentation:
+- [Testing Patterns](mdc:.cursor/rules/tests/patterns.mdc)
+- [Architecture Rules](mdc:.cursor/rules/core/architecture.mdc)
+
+## Test Structure
+
+Tests must mirror architectural layers, not convenience or feature grouping.
+
 ## Definição Formal
 Um **Teste Unitário** valida **uma única unidade lógica**, de forma:
 - Determinística
 - Isolada
 - Independente de UI, navegação ou infraestrutura real
+
 
 **Teste unitário NÃO renderiza telas.**
 

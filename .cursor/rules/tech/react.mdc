@@ -1,9 +1,6 @@
 ---
 description: 'React Development Best Practices'
-globs:
-  - '**/*.{tsx,jsx}'
-  - '**/components/**/*'
-  - '**/hooks/**/*'
+globs: **/*
 alwaysApply: true
 ---
 

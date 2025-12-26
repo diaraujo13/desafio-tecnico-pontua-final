@@ -1,9 +1,6 @@
 ---
 description: "React Native Development Best Practices"
-globs: 
-  - "**/*.{tsx,jsx}"
-  - "**/components/**/*"
-  - "**/hooks/**/*"
+globs: **/*
 alwaysApply: true
 ---
 # React Native Development Guidelines
@@ -368,7 +365,7 @@ const UserListScreen = () => {
 - Enable new architecture in `android/gradle.properties`: `newArchEnabled=true`
 - Enable on iOS in Podfile: `RCT_NEW_ARCH_ENABLED=1`
 - Use `requireNativeComponent` for Fabric native components
-- Implement TurboModules with proper type safety
+- Implement `TurboModules` with proper type safety
 - Test thoroughly; some libraries may not be compatible yet
 
 ### Core APIs
@@ -571,6 +568,11 @@ export const lightTheme = tokens;
 - Import from `@/presentation/theme/tokens` or use theme context
 
 ## Testing
+
+For test rules, see:  
+[**Unit Testing**](.cursor/rules/tests/unit.mdc): for testing business rules, domain layer, etc.
+[**Integration Testing**](.cursor/rules/tests/integration.mdc): for testing complex components and screens
+[**E2E Testing**](.cursor/rules/tests/e2e.mdc): for automated testing with Gerkhin cucumber files and Detox
 
 ### @testing-library/react-native
 ```typescript

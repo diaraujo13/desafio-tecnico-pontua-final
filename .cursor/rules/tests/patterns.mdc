@@ -1,0 +1,482 @@
+---
+description: Testing patterns for the project
+globs: __tests__/**/*.*
+alwaysApply: true
+---
+# Testing Architecture
+
+This document defines the official testing strategy for the project. It is mandatory and aligned with [Architecture Rules](mdc:.cursor/rules/core/architecture.mdc) and Clean Architecture principles guidelines.
+
+Testing is done using Jest and React Testing Library (RNTL) and Detox for E2E testing. 
+
+Supporting documentation:
+- [Unit Tests](mdc:.cursor/rules/tests/unit.mdc)
+- [Integration Tests](mdc:.cursor/rules/tests/integration.mdc)
+- [E2E Tests](mdc:.cursor/rules/tests/e2e.mdc)
+
+
+The goal is to ensure:
+	•	Stable, predictable tests
+	•	Clear boundaries between layers
+	•	Zero test-driven architectural drift
+
+⸻
+
+1. Test Structure
+
+Tests must mirror architectural layers, not convenience or feature grouping.
+ 
+```
+
+│ 
+├── e2e/              # E2E test dedicated folder, avoid jest and rntl tests here
+│   ├── features/      # Gherkin feature in natural-like language
+│   ├── steps/         # Translate Gherkin features to technical steps
+│   ├── support/       # Support files for the tests
+│   ├── page-objects/  # Page objects for the tests
+│   ├── support/              # Test support files
+│   │   ├── init.ts           # Detox + Cucumber bootstrap
+│   │   ├── world.ts          # Shared World (test state)
+│   │   └── hooks.ts          # BeforeAll / AfterAll hooks
+│   └── config/               # Configuration files
+│        ├── detox.config.js   # Detox configuration
+│        ├── cucumber.config.js    # Cucumber configuration
+│        ├── jest.config.js    # Jest configuration for Cucumber
+│        ├── setup.js          # Global setup
+│        └── teardown.js       # Global teardown
+│
+│
+└── __tests__/         # Jest and RNTL tests folder
+    ├── unit/          # Unit tests folder
+    │   ├── domain/
+    │   │   ├── entities/
+    │   │   └── value-objects/
+    │   │
+    │   ├── application/
+    │   │   └── use-cases/
+    │   │
+    │   ├── main/
+    │   │   └── container.spec.ts
+    │   │
+    │   └── presentation/
+    │       ├── hooks/
+    │       └── screens/
+    ├── integration/ # Integration tests folder
+    ├── helpers/       # Helper files for the tests
+    │   ├── factories/ # Factory files for the tests
+    │   ├── mocks/     # Mock files for the tests
+    │   └── render/    # Render files for the tests
+    │
+    └── setup/         # Setup files for the tests
+        └── jest.setup.ts # Jest setup file
+```
+--
+
+## Layer Responsibilities
+
+
+| Layer                | What to test                                 | What NOT to test              |
+| -------------------- | -------------------------------------------- | ----------------------------- |
+| **Domain**           | Invariants, permissions, pure business rules | Repositories, async IO, mocks |
+| **Application**      | Orchestration, error paths, permissions      | UI, hooks, navigation         |
+| **Main (container)** | Dependency wiring only                       | Business logic, mocks         |
+| **Presentation**     | Rendering, user interaction, UI states       | Use case internals            |
+
+⸻
+
+## 2. Test Utilities
+
+### 2.1 Custom Render with Providers (Mandatory)
+
+**Screen tests must never call render() directly.**
+
+**Location:**
+__tests__/helpers/render/renderWithProviders.tsx
+
+```typescript
+
+import { ReactElement } from 'react';
+import { render, RenderOptions } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ThemeProvider } from '@/presentation/theme/ThemeProvider';
+
+export function renderWithProviders(
+  ui: ReactElement,
+  options?: RenderOptions & {
+    queryClient?: QueryClient;
+    includeNavigation?: boolean;
+    includeSafeArea?: boolean;
+  }
+) {
+  // Default: NO AuthProvider
+  // Authentication must be mocked via useAuth hook
+  // Includes: Theme, Navigation, QueryClient, SafeArea
+  // ...
+}
+```
+
+Rules
+	•	❌ Never use render() directly in screen tests
+	•	✅ Always use renderWithProviders
+	•	❌ Do NOT include AuthProvider in screen tests
+	•	✅ Mock useAuth hook instead
+	•	❌ Do not mock Theme or Navigation per test
+	•	✅ One canonical provider setup
+
+⸻
+
+## 6. Authentication Setup
+
+Authentication must be handled **differently per test strategy**, according to scope and cost. The goal is to validate behavior without leaking authentication complexity into inappropriate layers.
+
+---
+
+### 6.1 Unit & Application Tests (Domain / Application)
+
+**Authentication is NOT part of these tests.**
+
+Rules:
+
+* ❌ Do not authenticate users
+* ❌ Do not mock auth providers
+* ❌ Do not assert roles via tokens
+* ✅ Pass already-validated identifiers or domain objects
+
+Rationale:
+
+* Domain and Application layers must be agnostic to authentication mechanisms
+* Permissions are expressed via **domain semantics**, not auth state
+
+Example:
+
+```ts
+const manager = makeUser({ role: 'MANAGER' });
+const result = await approveVacationUseCase.execute({
+  vacationId: 'id',
+  approvedBy: manager,
+});
+```
+
+---
+
+### 6.2 Presentation Tests (Screens & Hooks)
+
+Authentication is **simulated**, never real.
+
+Rules:
+
+* ✅ Mock `useAuth` hook (standard pattern)
+* ❌ Do NOT use `AuthProvider` in screen tests
+* ❌ Do NOT mock `container.ts` in screen tests
+* ❌ Never hit real auth providers
+* ❌ Never mock Use Cases for auth
+
+Pattern:
+
+```ts
+// Mock useAuth before imports
+jest.mock('@/presentation/hooks/useAuth');
+
+import { useAuth } from '@/presentation/hooks/useAuth';
+
+const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+
+// In test:
+mockUseAuth.mockReturnValue({
+  user: mockUser,
+  isAuthLoading: false,
+  login: jest.fn(),
+  logout: jest.fn(),
+});
+
+// Use renderWithProviders (NO AuthProvider)
+renderWithProviders(<LoginScreen />);
+```
+
+**AuthProvider Tests:**
+* AuthProvider is tested in isolation: `__tests__/integration/presentation/auth/AuthProvider.spec.tsx`
+* Only there: container mocking is allowed
+* Only there: AuthProvider is rendered
+
+Rationale:
+
+* Presentation tests validate UI behavior
+* Auth is just another UI input
+* Tests must remain deterministic
+* AuthProvider bootstrap causes async delays - avoid in screen tests
+
+---
+
+### 6.3 E2E Tests (Detox + Cucumber)
+
+Authentication is **realistic but optimized**.
+
+Allowed strategies (choose ONE):
+
+#### Option A — Programmatic Login (Recommended)
+
+* Call backend login endpoint directly
+* Inject token/session into app storage before launch
+
+Benefits:
+
+* Fast
+* Stable
+* No UI flakiness
+
+---
+
+#### Option B — UI Login (Critical flows only)
+
+* Used only for login-related scenarios
+* Never reused for other features
+
+Rules:
+
+* ❌ Do not chain UI login for unrelated flows
+* ✅ One feature = one purpose
+
+---
+
+## 7. Page Object Model (POM)
+
+E2E tests must follow **Page Object Model** strictly.
+
+### 7.1 Responsibilities
+
+| Layer              | Responsibility             |
+| ------------------ | -------------------------- |
+| Feature (.feature) | Business-readable behavior |
+| Step Definitions   | Glue only (no logic)       |
+| Page Objects       | UI interaction logic       |
+
+---
+
+### 7.2 Page Object Rules
+
+* ❌ No assertions inside Page Objects
+* ❌ No business logic
+* ❌ No Cucumber steps
+* ✅ Only UI actions + queries
+
+Example:
+
+```ts
+export class LoginScreen {
+  async login(email: string, password: string) {
+    await element(by.id('email-input')).typeText(email);
+    await element(by.id('password-input')).typeText(password);
+    await element(by.id('login-button')).tap();
+  }
+}
+```
+
+---
+
+## 8. User Flow Tests (E2E)
+
+User Flow tests validate **end-to-end behavior across layers**.
+
+### 8.1 Rules
+
+* One flow per feature file
+* No branching logic in steps
+* Assertions only at user-observable boundaries
+
+Example flows:
+
+* Employee requests vacation
+* Manager approves vacation
+* Employee views vacation history
+
+---
+
+### 8.2 What User Flow Tests MUST NOT Do
+
+* ❌ Assert internal state
+* ❌ Know about repositories or use cases
+* ❌ Depend on unit-test data
+* ❌ Share state across scenarios
+
+
+## 9. Mock Strategy (Critical)
+
+Mocking rules are strict. Violations cause unstable tests and DI failures.
+
+### 3.1 What Can Be Mocked
+
+- Layer under test	Allowed mocks
+- Presentation	Hooks, container exports
+- Application	Repository interfaces
+- Domain	Nothing
+- Container tests	Nothing
+
+
+⸻
+
+### 3.2 What Must NEVER Be Mocked
+- ❌ Use Case classes
+- ❌ Domain entities
+- ❌ Domain errors
+- ❌ container.ts globally
+- ❌ Anything inside __tests__/unit/main
+
+Mocking any of the above breaks constructor contracts and DI.
+
+⸻
+
+### 3.3 Mocking External Dependencies
+
+External dependencies are anything outside the architecture:
+- API clients
+- AsyncStorage
+- Date/time
+- UUID
+- Native modules
+
+**Location:**
+
+__tests__/helpers/mocks/
+
+**Example:**
+```typescript
+export const mockAsyncStorage = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+};
+```
+External mocks must be:
+- Explicit
+- Local
+- Scoped to the test
+
+⸻
+
+### 3.4 Mock Factories (Required for Domain Entities)
+
+**Never use object literals for domain entities in tests.**
+
+**Location:**
+
+__tests__/helpers/factories/
+
+**Example:**
+
+```typescript
+import { VacationRequest } from '@/domain/entities/VacationRequest';
+
+export function makeVacation(overrides = {}) {
+  return new VacationRequest({
+    id: 'vacation-1',
+    startDate: new Date('2024-01-01'),
+    endDate: new Date('2024-01-10'),
+    status: 'APPROVED',
+    ...overrides,
+  });
+}
+```
+**Rules:**
+- ❌ No domain entity object literals
+- ✅ Factories create real instances
+- ✅ Overrides allowed
+
+This ensures:
+- Domain invariants are respected
+- Tests do not lie
+- Refactors remain safe
+
+⸻
+
+## 4. Container vs Screen Test Boundary
+
+**Screen Tests:**
+- Mock container exports locally if needed
+- Never mock Use Case classes
+
+**Example:**
+```typescript
+
+jest.mock('@/main/container', () => ({
+  getManagerDashboardUseCase: {
+    execute: jest.fn(),
+  },
+}));
+``` 
+
+⸻
+
+Container Tests (container.spec.ts)
+	•	❌ No mocks
+	•	❌ No global jest.setup interference
+	•	✅ Real constructors
+	•	✅ Real dependency wiring
+
+These tests exist to catch:
+	•	Empty files
+	•	Missing exports
+	•	Broken DI
+
+⸻
+
+## 5. Snapshot Policy
+
+
+User Flow tests validate **end-to-end behavior across layers**.
+
+### Rules
+
+* One flow per feature file
+* No branching logic in steps
+* Assertions only at user-observable boundaries
+
+Example flows:
+
+* Employee requests vacation
+* Manager approves vacation
+* Employee views vacation history
+
+---
+
+### What User Flow Tests MUST NOT Do
+
+* ❌ Assert internal state
+* ❌ Know about repositories or use cases
+* ❌ Depend on unit-test data
+* ❌ Share state across scenarios
+
+
+
+Snapshots are **discouraged**.
+
+Allowed:
+	•	Very small, pure UI components (optional)
+
+Preferred:
+	•	Functional assertions
+	•	Text presence
+	•	User interaction
+	•	Navigation calls
+
+Snapshots are forbidden for screens.
+
+⸻
+
+6. Golden Rules
+	1.	Tests define contracts — do not change tests to make code pass
+	2.	Fix architecture violations, not symptoms
+	3.	If a test fails unexpectedly, stop and verify:
+	•	File existence
+	•	Exports
+	•	Constructor signatures
+	•	Mock scope
+
+⸻
+
+7. Enforcement
+	•	All new tests must follow this document
+	•	Violations are architectural errors
+	•	PRs may be blocked for non-compliance
+
+

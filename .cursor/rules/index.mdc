@@ -1,0 +1,39 @@
+---
+alwaysApply: true
+---
+This directory contains modular rule files for the system platform. Each file focuses on specific aspects of development, making it easy to find and update relevant guidelines.
+
+
+## 📋 Table of Contents
+
+### 🎯 Core Principles
+| File | Description | Key Topics |
+|------|-------------|------------|
+| [core/architecture.mdc](./core/architecture.mdc) | System design patterns | Clean architecture domain-centric architecture |
+| [core/performance.mdc](./core/performance.mdc) | Performance optimization | Metrics, caching, optimization |
+
+
+### 🧪 Testing Standards
+| File | Description | Key Topics |
+|------|-------------|------------|
+| [testing/unit.mdc](./tests/unit.mdc) | Unit testing | Jest, RTL, coverage |
+| [testing/integration.mdc](./tests/integration.mdc) | Integration testing | API, database, mocks |
+| [testing/e2e.mdc](./tests/e2e.mdc) | E2E testing | Playwright, scenarios |
+
+### 📊 Quality Assurance
+| File | Description | Key Topics |
+|------|-------------|------------|
+| [qa/code-review.mdc](./qa/code-review.mdc) | Review process | Checklists, standards |
+| [qa/code-style.mdc](./qa/code-style.mdc) | Code styles | Naming conventions, style |
+| [qa/quality.mdc](./core/qa.mdc) | Code quality standards | SOLID, DRY, clean code |
+| [qa/documentation.mdc](./qa/documentation.mdc) | Documentation standards | README, API docs, ADRs |
+| [qa/metrics.mdc](./qa/metrics.mdc) | Metrics & monitoring | KPIs, dashboards, alerts |
+
+
+## 🔍 Quick Reference
+
+### By Technology
+- **React**: [react.mdc](./tech/react.mdc)
+- **React Native**: [react-native.mdc](./tech/react-native.mdc)
+- **TypeScript**: [typescript.mdc](./tech/typescript.mdc)
+

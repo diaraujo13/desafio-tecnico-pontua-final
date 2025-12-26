@@ -1,10 +1,15 @@
 ---
 description: Integration tests decisions for the project
-globs: __tests__/integration/**/*.spec.ts
+globs: __tests__/**/*.*
 alwaysApply: true
 ---
 
 # Integration Tests
+
+Supporting documentation:
+- [Testing Patterns](mdc:.cursor/rules/tests/patterns.mdc)
+- [Architecture Rules](mdc:.cursor/rules/core/architecture.mdc)
+
 
 ### Definição Formal
 Um **Teste de Integração** valida o **comportamento de uma Screen ou fluxo de UI**, incluindo:

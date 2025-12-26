@@ -1,6 +1,6 @@
 ---
 description: "Application Global Development Rules"
-alwaysApply: true
+alwaysApply: false
 scope: "global"
 agent_capabilities:
   - terminal_access: true
@@ -191,7 +191,6 @@ Todas as regras devem estar no Domain
     - **DateRange**: Value Object para intervalo de datas, com validação de datas válidas.
 - `errors/`: **Errors**: 
     - DomainError: Erro genérico de domínio, base para todos os outros erros.
-    - ValidationError: Erro de validação de dados, base para todos os outros erros de validação.
     - InvalidUserRoleError: Erro de papel de usuário inválido.
     - InvalidEmailFormatError: Erro de formato de email inválido.
     - WeakPasswordError: Erro de senha fraca.
@@ -371,6 +370,7 @@ passagem de props.
 4. Configurar Commitlint (conventional commits)
 5. Configurar Jest para testes unitários
 6. Criar estrutura de pastas Clean Architecture:
+
 ```
 src/
 ├── domain/
@@ -384,7 +384,6 @@ src/
 │   │   └── DateRange.ts
 │   ├── errors/
 │   │   ├── DomainError.ts
-│   │   ├── ValidationError.ts
 │   │   ├── InvalidEmailError.ts
 │   │   ├── WeakPasswordError.ts
 │   │   ├── InvalidDateRangeError.ts
@@ -392,10 +391,10 @@ src/
 │   │   ├── VacationStatus.ts
 │   │   ├── UserRole.ts
 │   │   └── UserStatus.ts
-│   └── repositories/
-│       ├── IAuthRepository.ts
-│       ├── IVacationRepository.ts
-│       └── IUserRepository.ts
+│   └── shared/
+│       ├── Entity.ts
+│       ├── Result.ts
+│       └── ValueObject.ts
 ├── application/
 │   ├── use-cases/
 │   │   ├── auth/
@@ -415,14 +414,18 @@ src/
 │   │   ├── UserDTO.ts
 │   │   ├── VacationRequestDTO.ts
 │   │   └── LoginDTO.ts
+│   └── mappers/
+│       ├── UserMapper.ts
+│       └── VacationMapper.ts
+│   └── repositories/
+│       ├── IAuthRepository.ts
+│       ├── IVacationRepository.ts
+│       └── IUserRepository.ts
+├── infrastructure/
 │   ├── repositories/
 │   │   ├── AuthRepositoryImpl.ts
 │   │   ├── VacationRepositoryImpl.ts
 │   │   └── UserRepositoryImpl.ts
-│   └── mappers/
-│       ├── UserMapper.ts
-│       └── VacationMapper.ts
-├── infrastructure/
 │   ├── api/
 │   │   ├── client.ts
 │   │   └── mock-server/

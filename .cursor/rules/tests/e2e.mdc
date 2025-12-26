@@ -1,6 +1,11 @@
 ---
 alwaysApply: true
 ---
+
+Supporting documentation:
+- [Testing Patterns](mdc:.cursor/rules/tests/patterns.mdc)
+- [Architecture Rules](mdc:.cursor/rules/core/architecture.mdc)
+
 ---
 id: ADR-E2E-001
 title: End-to-End Testing Strategy with Detox + Cucumber
