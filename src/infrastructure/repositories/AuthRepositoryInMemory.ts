@@ -5,7 +5,7 @@ import { Password } from '../../domain/value-objects/Password';
 import { Result } from '../../domain/shared/Result';
 import { UnauthorizedError } from '../../domain/errors/UnauthorizedError';
 import { UnexpectedDomainError } from '../../domain/errors/UnexpectedDomainError';
-import { usersSeed } from '../seed/seedData';
+import { usersSeed } from '../database/in-memory-db';
 import { simulateRequest } from '../utils/simulation';
 
 /**
@@ -17,7 +17,7 @@ export class AuthRepositoryInMemory implements IAuthRepository {
    * Authenticates a user with email and password
    * Simulates network delay and validates against seed data
    */
-  async login (email: Email, password: Password): Promise<Result<User>> {
+  async login(email: Email, password: Password): Promise<Result<User>> {
     try {
       // Find user in seed data by email
       const userSeed = usersSeed.find((u) => u.email.toLowerCase() === email.value.toLowerCase());
@@ -68,7 +68,7 @@ export class AuthRepositoryInMemory implements IAuthRepository {
    * Logs out the current user
    * In a real implementation, this would invalidate the session token
    */
-  async logout (): Promise<void> {
+  async logout(): Promise<void> {
     // Simulate network delay
     await simulateRequest(undefined, 300);
   }

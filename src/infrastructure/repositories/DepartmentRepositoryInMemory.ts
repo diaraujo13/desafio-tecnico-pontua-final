@@ -3,7 +3,7 @@ import { Department } from '../../domain/entities/Department';
 import { Result } from '../../domain/shared/Result';
 import { NotFoundError } from '../../domain/errors/NotFoundError';
 import { InfrastructureFailureError } from '../../domain/errors/InfrastructureFailureError';
-import { departmentsSeed } from '../seed/seedData';
+import { departmentsSeed } from '../database/in-memory-db';
 import { simulateRequest } from '../utils/simulation';
 
 /**
@@ -17,7 +17,7 @@ export class DepartmentRepositoryInMemory implements IDepartmentRepository {
    */
   async findById(id: string): Promise<Result<Department>> {
     try {
-      const departmentSeed = departmentsSeed.find(d => d.id === id);
+      const departmentSeed = departmentsSeed.find((d) => d.id === id);
 
       if (!departmentSeed) {
         return await simulateRequest(Result.fail(new NotFoundError('Department', id)), 800);
@@ -36,8 +36,8 @@ export class DepartmentRepositoryInMemory implements IDepartmentRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch department',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -48,14 +48,14 @@ export class DepartmentRepositoryInMemory implements IDepartmentRepository {
    */
   async listAll(): Promise<Result<Department[]>> {
     try {
-      const departments = departmentsSeed.map(departmentSeed =>
+      const departments = departmentsSeed.map((departmentSeed) =>
         Department.create({
           id: departmentSeed.id,
           name: departmentSeed.name,
           managerId: departmentSeed.managerId,
           createdAt: departmentSeed.createdAt,
           updatedAt: departmentSeed.updatedAt,
-        })
+        }),
       );
 
       return await simulateRequest(Result.ok(departments), 800);
@@ -63,8 +63,8 @@ export class DepartmentRepositoryInMemory implements IDepartmentRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch departments',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -83,8 +83,8 @@ export class DepartmentRepositoryInMemory implements IDepartmentRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to save department',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }

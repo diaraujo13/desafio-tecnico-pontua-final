@@ -20,7 +20,7 @@ import {
   DepartmentRepositoryInMemory,
 } from '../infrastructure/repositories';
 
-// Domain: Repository Interfaces
+// Application: Repository Interfaces
 import { IAuthRepository } from '../domain/repositories/IAuthRepository';
 import { IUserRepository } from '../domain/repositories/IUserRepository';
 import { IVacationRepository } from '../domain/repositories/IVacationRepository';

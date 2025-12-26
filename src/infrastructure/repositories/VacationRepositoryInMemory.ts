@@ -4,7 +4,7 @@ import { Result } from '../../domain/shared/Result';
 import { VacationStatus } from '../../domain/enums/VacationStatus';
 import { NotFoundError } from '../../domain/errors/NotFoundError';
 import { InfrastructureFailureError } from '../../domain/errors/InfrastructureFailureError';
-import { vacationsSeed } from '../seed/seedData';
+import { vacationsSeed } from '../database/in-memory-db';
 import { simulateRequest } from '../utils/simulation';
 
 /**
@@ -29,7 +29,7 @@ export class VacationRepositoryInMemory implements IVacationRepository {
 
   constructor() {
     // Initialize from seed data (deep clone to allow mutations)
-    this.vacations = vacationsSeed.map(v => ({
+    this.vacations = vacationsSeed.map((v) => ({
       id: v.id,
       requesterId: v.requesterId,
       reviewerId: v.reviewerId,
@@ -50,7 +50,7 @@ export class VacationRepositoryInMemory implements IVacationRepository {
    */
   async save(vacationRequest: VacationRequest): Promise<Result<void>> {
     try {
-      const existingIndex = this.vacations.findIndex(v => v.id === vacationRequest.id);
+      const existingIndex = this.vacations.findIndex((v) => v.id === vacationRequest.id);
 
       const vacationData = {
         id: vacationRequest.id,
@@ -80,8 +80,8 @@ export class VacationRepositoryInMemory implements IVacationRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to save vacation request',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -92,7 +92,7 @@ export class VacationRepositoryInMemory implements IVacationRepository {
    */
   async findById(id: string): Promise<Result<VacationRequest>> {
     try {
-      const vacationData = this.vacations.find(v => v.id === id);
+      const vacationData = this.vacations.find((v) => v.id === id);
 
       if (!vacationData) {
         return await simulateRequest(Result.fail(new NotFoundError('Vacation request', id)), 800);
@@ -117,8 +117,8 @@ export class VacationRepositoryInMemory implements IVacationRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch vacation request',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -130,8 +130,8 @@ export class VacationRepositoryInMemory implements IVacationRepository {
   async findByRequesterId(userId: string): Promise<Result<VacationRequest[]>> {
     try {
       const userVacations = this.vacations
-        .filter(v => v.requesterId === userId)
-        .map(vacationData =>
+        .filter((v) => v.requesterId === userId)
+        .map((vacationData) =>
           VacationRequest.reconstruct({
             id: vacationData.id,
             requesterId: vacationData.requesterId,
@@ -144,7 +144,7 @@ export class VacationRepositoryInMemory implements IVacationRepository {
             reviewerId: vacationData.reviewerId,
             reviewedAt: vacationData.reviewedAt,
             rejectionReason: vacationData.rejectionReason,
-          })
+          }),
         );
 
       return await simulateRequest(Result.ok(userVacations), 800);
@@ -152,8 +152,8 @@ export class VacationRepositoryInMemory implements IVacationRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch vacation requests',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -165,8 +165,8 @@ export class VacationRepositoryInMemory implements IVacationRepository {
   async findPendingByManagerId(_managerId: string): Promise<Result<VacationRequest[]>> {
     try {
       const pendingVacations = this.vacations
-        .filter(v => v.status === VacationStatus.PENDING_APPROVAL)
-        .map(vacationData =>
+        .filter((v) => v.status === VacationStatus.PENDING_APPROVAL)
+        .map((vacationData) =>
           VacationRequest.reconstruct({
             id: vacationData.id,
             requesterId: vacationData.requesterId,
@@ -179,7 +179,7 @@ export class VacationRepositoryInMemory implements IVacationRepository {
             reviewerId: vacationData.reviewerId,
             reviewedAt: vacationData.reviewedAt,
             rejectionReason: vacationData.rejectionReason,
-          })
+          }),
         );
 
       return await simulateRequest(Result.ok(pendingVacations), 800);
@@ -187,8 +187,8 @@ export class VacationRepositoryInMemory implements IVacationRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch pending vacation requests',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -198,12 +198,12 @@ export class VacationRepositoryInMemory implements IVacationRepository {
    */
   async findByRequesterIdAndStatus(
     userId: string,
-    status: VacationStatus
+    status: VacationStatus,
   ): Promise<Result<VacationRequest[]>> {
     try {
       const filteredVacations = this.vacations
-        .filter(v => v.requesterId === userId && v.status === status)
-        .map(vacationData =>
+        .filter((v) => v.requesterId === userId && v.status === status)
+        .map((vacationData) =>
           VacationRequest.reconstruct({
             id: vacationData.id,
             requesterId: vacationData.requesterId,
@@ -216,7 +216,7 @@ export class VacationRepositoryInMemory implements IVacationRepository {
             reviewerId: vacationData.reviewerId,
             reviewedAt: vacationData.reviewedAt,
             rejectionReason: vacationData.rejectionReason,
-          })
+          }),
         );
 
       return await simulateRequest(Result.ok(filteredVacations), 800);
@@ -224,8 +224,8 @@ export class VacationRepositoryInMemory implements IVacationRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch vacation requests',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -235,7 +235,7 @@ export class VacationRepositoryInMemory implements IVacationRepository {
    */
   async findAll(): Promise<Result<VacationRequest[]>> {
     try {
-      const allVacations = this.vacations.map(vacationData =>
+      const allVacations = this.vacations.map((vacationData) =>
         VacationRequest.reconstruct({
           id: vacationData.id,
           requesterId: vacationData.requesterId,
@@ -248,7 +248,7 @@ export class VacationRepositoryInMemory implements IVacationRepository {
           reviewerId: vacationData.reviewerId,
           reviewedAt: vacationData.reviewedAt,
           rejectionReason: vacationData.rejectionReason,
-        })
+        }),
       );
 
       return await simulateRequest(Result.ok(allVacations), 800);
@@ -256,8 +256,8 @@ export class VacationRepositoryInMemory implements IVacationRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch all vacation requests',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }

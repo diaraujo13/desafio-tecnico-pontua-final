@@ -3,7 +3,7 @@ import { User } from '../../domain/entities/User';
 import { Result } from '../../domain/shared/Result';
 import { NotFoundError } from '../../domain/errors/NotFoundError';
 import { InfrastructureFailureError } from '../../domain/errors/InfrastructureFailureError';
-import { usersSeed } from '../seed/seedData';
+import { usersSeed } from '../database/in-memory-db';
 import { simulateRequest } from '../utils/simulation';
 
 /**
@@ -17,7 +17,7 @@ export class UserRepositoryInMemory implements IUserRepository {
    */
   async findById(id: string): Promise<Result<User>> {
     try {
-      const userSeed = usersSeed.find(u => u.id === id);
+      const userSeed = usersSeed.find((u) => u.id === id);
 
       if (!userSeed) {
         return await simulateRequest(Result.fail(new NotFoundError('User', id)), 800);
@@ -41,8 +41,8 @@ export class UserRepositoryInMemory implements IUserRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch user',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -52,7 +52,7 @@ export class UserRepositoryInMemory implements IUserRepository {
    */
   async findByEmail(email: string): Promise<Result<User>> {
     try {
-      const userSeed = usersSeed.find(u => u.email.toLowerCase() === email.toLowerCase());
+      const userSeed = usersSeed.find((u) => u.email.toLowerCase() === email.toLowerCase());
 
       if (!userSeed) {
         return await simulateRequest(Result.fail(new NotFoundError('User', email)), 800);
@@ -76,8 +76,8 @@ export class UserRepositoryInMemory implements IUserRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch user',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -96,8 +96,8 @@ export class UserRepositoryInMemory implements IUserRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to save user',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -109,8 +109,8 @@ export class UserRepositoryInMemory implements IUserRepository {
   async findByDepartmentId(departmentId: string): Promise<Result<User[]>> {
     try {
       const departmentUsers = usersSeed
-        .filter(u => u.departmentId === departmentId)
-        .map(userSeed =>
+        .filter((u) => u.departmentId === departmentId)
+        .map((userSeed) =>
           User.create({
             id: userSeed.id,
             registrationNumber: userSeed.registrationNumber,
@@ -122,7 +122,7 @@ export class UserRepositoryInMemory implements IUserRepository {
             managerId: userSeed.managerId,
             createdAt: userSeed.createdAt,
             updatedAt: userSeed.updatedAt,
-          })
+          }),
         );
 
       return await simulateRequest(Result.ok(departmentUsers), 800);
@@ -130,8 +130,8 @@ export class UserRepositoryInMemory implements IUserRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch users',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -143,8 +143,8 @@ export class UserRepositoryInMemory implements IUserRepository {
   async findByManagerId(managerId: string): Promise<Result<User[]>> {
     try {
       const managedUsers = usersSeed
-        .filter(u => u.managerId === managerId)
-        .map(userSeed =>
+        .filter((u) => u.managerId === managerId)
+        .map((userSeed) =>
           User.create({
             id: userSeed.id,
             registrationNumber: userSeed.registrationNumber,
@@ -156,7 +156,7 @@ export class UserRepositoryInMemory implements IUserRepository {
             managerId: userSeed.managerId,
             createdAt: userSeed.createdAt,
             updatedAt: userSeed.updatedAt,
-          })
+          }),
         );
 
       return await simulateRequest(Result.ok(managedUsers), 800);
@@ -164,8 +164,8 @@ export class UserRepositoryInMemory implements IUserRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch users',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }

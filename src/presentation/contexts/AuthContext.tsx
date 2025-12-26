@@ -21,10 +21,19 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: PropsWithChildren) {
+interface AuthProviderProps extends PropsWithChildren {
+  /**
+   * Test seam: Skip bootstrap process for testing
+   * When true, AuthProvider immediately renders children without calling restoreSessionUseCase
+   * Default: false (production behavior unchanged)
+   */
+  skipBootstrap?: boolean;
+}
+
+export function AuthProvider({ children, skipBootstrap = false }: AuthProviderProps) {
   const [user, setUser] = useState<UserDTO | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
-  const [hasBootstrapped, setHasBootstrapped] = useState(false);
+  const [hasBootstrapped, setHasBootstrapped] = useState(skipBootstrap);
 
   const handleLogin = useCallback(async (dto: LoginDTO): Promise<Result<UserDTO>> => {
     setIsAuthLoading(true);
@@ -57,6 +66,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
+    // Test seam: Skip bootstrap if skipBootstrap is true
+    if (skipBootstrap) {
+      return;
+    }
+
     let isMounted = true;
 
     async function restoreSession() {
@@ -83,7 +97,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [skipBootstrap]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
