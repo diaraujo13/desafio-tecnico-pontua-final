@@ -1,25 +1,18 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
-import { LoginScreen } from '../../../../src/presentation/screens/LoginScreen';
-import { useAuth } from '../../../../src/presentation/hooks/useAuth';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { Result } from '../../../../src/domain/shared/Result';
 import { UnauthorizedError } from '../../../../src/domain/errors/UnauthorizedError';
 import type { UserDTO } from '../../../../src/application/dtos/UserDTO';
 import { UserRole } from '../../../../src/domain/enums/UserRole';
 import { UserStatus } from '../../../../src/domain/enums/UserStatus';
-import { ThemeProvider } from '../../../../src/presentation/theme/ThemeProvider';
-import { AuthProvider } from '../../../../src/presentation/contexts/AuthContext';
+import { renderWithProviders } from '../../../../src/helpers/render/renderWithProviders';
 
-// Mock useAuth hook
+// Mock useAuth hook - authentication is a mocked UI input
 jest.mock('../../../../src/presentation/hooks/useAuth');
 
-const renderWithProviders = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider>
-      <AuthProvider>{component}</AuthProvider>
-    </ThemeProvider>,
-  );
-};
+// Import components AFTER all mocks are set up
+import { LoginScreen } from '../../../../src/presentation/screens/LoginScreen';
+import { useAuth } from '../../../../src/presentation/hooks/useAuth';
 
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 

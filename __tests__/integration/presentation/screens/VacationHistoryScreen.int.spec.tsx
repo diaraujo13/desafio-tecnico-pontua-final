@@ -1,13 +1,11 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { screen, waitFor, fireEvent } from '@testing-library/react-native';
 import { VacationHistoryScreen } from '../../../../src/presentation/screens/VacationHistoryScreen';
 import { VacationRequest } from '../../../../src/domain/entities/VacationRequest';
 import { VacationStatus } from '../../../../src/domain/enums/VacationStatus';
-import { ThemeProvider } from '../../../../src/presentation/theme/ThemeProvider';
+import { renderWithProviders } from '../../../../src/helpers/render/renderWithProviders';
 
-// Mock do hook useAuth
+// Mock do hook useAuth - authentication is a mocked UI input
 jest.mock('../../../../src/presentation/hooks/useAuth', () => ({
   useAuth: () => ({
     user: {
@@ -17,6 +15,9 @@ jest.mock('../../../../src/presentation/hooks/useAuth', () => ({
       role: 'COLLABORATOR',
       departmentId: 'dept-1',
     },
+    isAuthLoading: false,
+    login: jest.fn(),
+    logout: jest.fn(),
   }),
 }));
 
@@ -37,16 +38,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-const renderWithProviders = (component: React.ReactElement) => {
-  return render(
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <NavigationContainer>{component}</NavigationContainer>
-      </ThemeProvider>
-    </SafeAreaProvider>
-  );
-};
 
 describe('VacationHistoryScreen Integration', () => {
   beforeEach(() => {
@@ -197,4 +188,3 @@ describe('VacationHistoryScreen Integration', () => {
     expect(mockRefetch).toBeDefined();
   });
 });
-

@@ -1,52 +1,18 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { QueryClient } from '@tanstack/react-query';
 import { RequestVacationScreen } from '../../../../src/presentation/screens/RequestVacationScreen';
 import { useAuth } from '../../../../src/presentation/hooks/useAuth';
 import { useRequestVacation } from '../../../../src/presentation/hooks/vacations/useRequestVacation';
 import { Result } from '../../../../src/domain/shared/Result';
-import { ThemeProvider } from '../../../../src/presentation/theme/ThemeProvider';
-import { AuthProvider } from '../../../../src/presentation/contexts/AuthContext';
+import { renderWithProviders } from '../../../../src/helpers/render/renderWithProviders';
 
-// Mock hooks
+// Mock hooks - authentication is a mocked UI input
 jest.mock('../../../../src/presentation/hooks/useAuth');
 jest.mock('../../../../src/presentation/hooks/vacations/useRequestVacation');
 
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 const mockUseRequestVacation = useRequestVacation as jest.MockedFunction<typeof useRequestVacation>;
-
-// Mock DateTimePicker
-jest.mock('@react-native-community/datetimepicker', () => {
-  const { View, Text, Pressable } = require('react-native');
-  return function DateTimePicker({ value, onChange, testID }: any) {
-    return (
-      <View testID={testID}>
-        <Pressable
-          onPress={() => {
-            const newDate = new Date(value);
-            newDate.setDate(newDate.getDate() + 1);
-            onChange({ type: 'set' }, newDate);
-          }}
-          testID={`${testID}_Button`}
-        >
-          <Text>Select Date</Text>
-        </Pressable>
-      </View>
-    );
-  };
-});
-
-const renderScreen = (queryClient: QueryClient) => {
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <RequestVacationScreen />
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>,
-  );
-};
 
 describe('RequestVacationScreen Integration', () => {
   let queryClient: QueryClient;
@@ -95,7 +61,7 @@ describe('RequestVacationScreen Integration', () => {
   });
 
   it('should render form container and fields', () => {
-    renderScreen(queryClient);
+    renderWithProviders(<RequestVacationScreen />, { queryClient });
 
     expect(screen.getByTestId('RequestVacationScreen_Container')).toBeTruthy();
     expect(screen.getByTestId('RequestVacationScreen_Title')).toBeTruthy();
@@ -120,7 +86,7 @@ describe('RequestVacationScreen Integration', () => {
       reset: jest.fn(),
     });
 
-    renderScreen(queryClient);
+    renderWithProviders(<RequestVacationScreen />, { queryClient });
 
     const submitButton = screen.getByTestId('RequestVacationScreen_SubmitButton');
     fireEvent.press(submitButton);
@@ -132,7 +98,7 @@ describe('RequestVacationScreen Integration', () => {
   });
 
   it('should call requestVacation with correct data on submit', async () => {
-    renderScreen(queryClient);
+    renderWithProviders(<RequestVacationScreen />, { queryClient });
 
     // Open start date picker
     const startDateButton = screen.getByTestId('RequestVacationScreen_StartDateButton');
@@ -173,14 +139,14 @@ describe('RequestVacationScreen Integration', () => {
       reset: jest.fn(),
     });
 
-    renderScreen(queryClient);
+    renderWithProviders(<RequestVacationScreen />, { queryClient });
 
     expect(screen.getByTestId('RequestVacationScreen_Container')).toBeTruthy();
     expect(screen.getByTestId('RequestVacationScreen_SubmitButton')).toBeTruthy();
   });
 
   it('should show success message after successful submission', async () => {
-    renderScreen(queryClient);
+    renderWithProviders(<RequestVacationScreen />, { queryClient });
 
     const submitButton = screen.getByTestId('RequestVacationScreen_SubmitButton');
     fireEvent.press(submitButton);

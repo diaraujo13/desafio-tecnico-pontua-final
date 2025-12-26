@@ -2,7 +2,7 @@ import {
   usersSeed,
   departmentsSeed,
   vacationsSeed,
-} from '../../../../src/infrastructure/seed/seedData';
+} from '../../../../src/infrastructure/database/in-memory-db';
 import { UserRole } from '../../../../src/domain/enums/UserRole';
 import { UserStatus } from '../../../../src/domain/enums/UserStatus';
 import { VacationStatus } from '../../../../src/domain/enums/VacationStatus';

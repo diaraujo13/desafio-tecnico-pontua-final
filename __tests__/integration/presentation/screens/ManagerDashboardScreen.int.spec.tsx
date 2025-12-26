@@ -1,17 +1,15 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { NavigationContainer } from '@react-navigation/native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { screen, waitFor } from '@testing-library/react-native';
+import { QueryClient } from '@tanstack/react-query';
 import { ManagerDashboardScreen } from '../../../../src/presentation/screens/ManagerDashboardScreen';
 import { useAuth } from '../../../../src/presentation/hooks/useAuth';
 import { usePendingVacations } from '../../../../src/presentation/hooks/vacations/usePendingVacations';
-import { ThemeProvider } from '../../../../src/presentation/theme/ThemeProvider';
 import { VacationRequest } from '../../../../src/domain/entities/VacationRequest';
 import { VacationStatus } from '../../../../src/domain/enums/VacationStatus';
 import { UserRole } from '../../../../src/domain/enums/UserRole';
+import { renderWithProviders } from '../../../../src/helpers/render/renderWithProviders';
 
-// Mock hooks
+// Mock hooks - authentication is a mocked UI input
 jest.mock('../../../../src/presentation/hooks/useAuth');
 jest.mock('../../../../src/presentation/hooks/vacations/usePendingVacations');
 
@@ -19,27 +17,6 @@ const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 const mockUsePendingVacations = usePendingVacations as jest.MockedFunction<
   typeof usePendingVacations
 >;
-
-const createTestWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  });
-
-  const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-    <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <NavigationContainer>{children}</NavigationContainer>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </SafeAreaProvider>
-  );
-
-  return TestWrapper;
-};
 
 describe('ManagerDashboardScreen Integration', () => {
   const mockUser = {
@@ -49,7 +26,16 @@ describe('ManagerDashboardScreen Integration', () => {
     departmentId: 'dept-1',
   };
 
+  let queryClient: QueryClient;
+
   beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
     jest.clearAllMocks();
     mockUseAuth.mockReturnValue({
       user: mockUser as any,
@@ -68,7 +54,7 @@ describe('ManagerDashboardScreen Integration', () => {
       refetch: jest.fn(),
     });
 
-    render(<ManagerDashboardScreen />, { wrapper: createTestWrapper() });
+    renderWithProviders(<ManagerDashboardScreen />, { queryClient });
 
     expect(screen.getByTestId('ManagerDashboardScreen_Container')).toBeTruthy();
     expect(screen.getByTestId('ManagerDashboardScreen_Title')).toBeTruthy();
@@ -84,7 +70,7 @@ describe('ManagerDashboardScreen Integration', () => {
       refetch: jest.fn(),
     });
 
-    render(<ManagerDashboardScreen />, { wrapper: createTestWrapper() });
+    renderWithProviders(<ManagerDashboardScreen />, { queryClient });
 
     await waitFor(() => {
       expect(screen.getByTestId('ManagerDashboardScreen_EmptyState')).toBeTruthy();
@@ -113,7 +99,7 @@ describe('ManagerDashboardScreen Integration', () => {
       refetch: jest.fn(),
     });
 
-    render(<ManagerDashboardScreen />, { wrapper: createTestWrapper() });
+    renderWithProviders(<ManagerDashboardScreen />, { queryClient });
 
     await waitFor(() => {
       expect(screen.getByTestId('ManagerDashboardScreen_Container')).toBeTruthy();
@@ -133,7 +119,7 @@ describe('ManagerDashboardScreen Integration', () => {
       refetch: jest.fn(),
     });
 
-    render(<ManagerDashboardScreen />, { wrapper: createTestWrapper() });
+    renderWithProviders(<ManagerDashboardScreen />, { queryClient });
 
     await waitFor(() => {
       expect(screen.getByTestId('ManagerDashboardScreen_ErrorText')).toBeTruthy();
@@ -141,4 +127,3 @@ describe('ManagerDashboardScreen Integration', () => {
     });
   });
 });
-
