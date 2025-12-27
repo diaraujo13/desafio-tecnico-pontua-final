@@ -42,3 +42,4 @@ When('toco no botão {string}', async (buttonText: string) => {
 
   await element(by.id(testID)).tap();
 });
+
