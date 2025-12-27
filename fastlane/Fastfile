@@ -1,10 +1,8 @@
-# frozen_string_literal: true
-
 Dir[File.join(__dir__, "helpers", "*.rb")].each { |f| require f }
 
-default_platform :ios
 
 XCODEPROJ = "ios/FeriasControlTemp.xcodeproj"
+XCODEWORKSPACE = "./ios/FeriasControlTemp.xcworkspace"
 SCHEME = "FeriasControlTemp"
 
 GRADLE_FILE = "./android/app/build.gradle"
@@ -35,7 +33,7 @@ lane :release_core do
   tag = "v#{Versioning.version}+#{build_number}"
 
   # 4️⃣ Changelog
-  changelog = changelog_from_git_commits(pretty: "- %s (%h)")
+  changelog = changelog_from_git_commits(pretty: "- %s (%h)", merge_commit_filtering: "exclude_merges")
   UI.abort_with_message!("No changes to release") if changelog.strip.empty?
 
   Versioning.update_changelog!(tag: tag, changelog: changelog)
@@ -59,46 +57,34 @@ end
 # -------------------------
 # BUILD LANES
 # -------------------------
-
+platform :ios do
 lane :build_ios do
   build_app(
-    xcodeproj: XCODEPROJ,
+    workspace: XCODEWORKSPACE,
     scheme: SCHEME
   )
 end
+end
 
+platform :android do
 lane :build_android do
   UI.message("--- Building Android 🤖")
+
+  gradle(task: 'clean', project_dir: 'android/')
+
   gradle(
-    task: "assembleRelease",
-    version_name: Versioning.version,
-    version_code: get_build_number(xcodeproj: XCODEPROJ),
-    
+    task: "assemble",
+    ## Necessário pois o Fastfile executa da
+    ## raiz do projeto, e o build.gradle está na pasta android
+
+    project_dir: "./android", 
+    print_command_output: true,
+    print_command: true,
     build_type: "Release"
   )
 
   UI.message("--- Android built successfully 🎉")
 end
-
-# -------------------------
-# PUBLIC ENTRY POINTS
-# -------------------------
-
-lane :release do
-  release_core
-  build_ios
-  build_android
 end
 
-lane :release_ios do
-
-  release_core
-  build_ios
-end
-
-lane :release_android do
-  
-  release_core
-  build_android
-end
 
