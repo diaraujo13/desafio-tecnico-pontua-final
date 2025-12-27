@@ -184,19 +184,27 @@ jest.mock('@react-navigation/native-stack', () => {
   };
 });
 
-// Suppress console warnings in tests (optional - can be removed if you want to see warnings)
-// Only suppress in test environment, keep errors visible
-if (process.env.NODE_ENV === 'test') {
-  const originalWarn = console.warn;
-  console.warn = (...args) => {
-    // Suppress specific warnings that are expected in tests
-    const message = args[0];
-    if (
-      typeof message === 'string' &&
-      (message.includes('act(...)') || message.includes('Warning: ReactDOM.render'))
-    ) {
-      return;
-    }
-    originalWarn(...args);
+// Mock DateTimePicker globally for all tests
+jest.mock('@react-native-community/datetimepicker', () => {
+  const React = require('react');
+  const { View, Text, Pressable } = require('react-native');
+  // eslint-disable-next-line react/prop-types
+  return function DateTimePicker({ value, onChange, testID, mode, display }) {
+    return (
+      <View testID={testID}>
+        <Pressable
+          onPress={() => {
+            const newDate = new Date(value);
+            newDate.setDate(newDate.getDate() + 1);
+            if (onChange) {
+              onChange({ type: 'set' }, newDate);
+            }
+          }}
+          testID={testID ? `${testID}_Button` : 'DateTimePicker_Button'}
+        >
+          <Text>Select Date</Text>
+        </Pressable>
+      </View>
+    );
   };
-}
+});
