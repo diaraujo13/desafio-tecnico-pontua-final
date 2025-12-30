@@ -1,4 +1,4 @@
-package com.feriascontroltemp
+package com.feriascontrol
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

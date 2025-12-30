@@ -31,7 +31,9 @@ export class CancelVacationUseCase {
       // Verify ownership
       if (vacationRequest.requesterId !== dto.requesterId) {
         return Result.fail(
-          new UnauthorizedError('Only the requester can cancel their own vacation request'),
+          new UnauthorizedError(
+            'Apenas o solicitante pode cancelar sua própria solicitação de férias',
+          ),
         );
       }
 

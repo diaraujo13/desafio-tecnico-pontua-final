@@ -31,7 +31,7 @@ export class RejectUserRegistrationUseCase {
     try {
       // Validate rejection reason
       if (!dto.reason || dto.reason.trim().length === 0) {
-        return Result.fail(new InvalidInputError('reason', 'Rejection reason is required'));
+        return Result.fail(new InvalidInputError('reason', 'Motivo da rejeição é obrigatório'));
       }
 
       // Validate rejector exists and has permission
@@ -44,7 +44,9 @@ export class RejectUserRegistrationUseCase {
 
       // Check permission: only ADMIN can reject registrations
       if (!rejector.canRejectUserRegistration()) {
-        return Result.fail(new UnauthorizedError('Only admins can reject user registrations'));
+        return Result.fail(
+          new UnauthorizedError('Apenas administradores podem rejeitar registros de usuários'),
+        );
       }
 
       // Validate user to be rejected exists
@@ -59,7 +61,7 @@ export class RejectUserRegistrationUseCase {
       if (user.status !== UserStatus.PENDING_APPROVAL) {
         return Result.fail(
           new InvalidUserStateError(
-            `User is not in PENDING_APPROVAL status. Current status: ${user.status}`,
+            `Usuário não está com status PENDING_APPROVAL. Status atual: ${user.status}`,
           ),
         );
       }

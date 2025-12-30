@@ -36,6 +36,8 @@ export function useCreateUser() {
     onSuccess: () => {
       // Invalidate user-related queries to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['pendingUserRegistrations'] });
+      queryClient.invalidateQueries({ queryKey: ['userPermissions'] });
     },
   });
 

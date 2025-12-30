@@ -1,4 +1,4 @@
-package com.feriascontroltemp
+package com.feriascontrol
 
 import android.app.Application
 import com.facebook.react.PackageList

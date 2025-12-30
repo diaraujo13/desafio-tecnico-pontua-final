@@ -9,6 +9,6 @@ import { DomainError } from './DomainError';
  */
 export class InvalidVacationDateError extends DomainError {
   constructor() {
-    super('Invalid vacation date format', 'INVALID_VACATION_DATE');
+    super('Formato de data de férias inválido', 'INVALID_VACATION_DATE');
   }
 }

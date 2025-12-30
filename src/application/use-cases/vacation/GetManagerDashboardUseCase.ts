@@ -26,11 +26,13 @@ export class GetManagerDashboardUseCase {
   async execute(managerId: string, departmentId: string): Promise<Result<VacationRequest[]>> {
     try {
       if (!managerId || managerId.trim().length === 0) {
-        return Result.fail(new InvalidInputError('managerId', 'Manager ID is required'));
+        return Result.fail(new InvalidInputError('managerId', 'ID do gestor é obrigatório'));
       }
 
       if (!departmentId || departmentId.trim().length === 0) {
-        return Result.fail(new InvalidInputError('departmentId', 'Department ID is required'));
+        return Result.fail(
+          new InvalidInputError('departmentId', 'ID do departamento é obrigatório'),
+        );
       }
 
       // Fetch all pending requests (repository may filter by status)

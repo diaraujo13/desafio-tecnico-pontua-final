@@ -14,7 +14,7 @@ import { UnexpectedDomainError } from '../../../domain/errors/UnexpectedDomainEr
  * Enforces RBAC: only admins can execute this use case
  */
 export class GetAllVacationsUseCase {
-  constructor (
+  constructor(
     private readonly vacationRepository: IVacationRepository,
     private readonly userRepository: IUserRepository,
   ) {}
@@ -25,7 +25,7 @@ export class GetAllVacationsUseCase {
    * @param filters - Optional filters for the query
    * @returns Result containing an array of VacationRequest entities
    */
-  async execute (
+  async execute(
     callerId: string,
     filters?: {
       departmentId?: string;
@@ -37,7 +37,7 @@ export class GetAllVacationsUseCase {
     try {
       // Validate callerId
       if (!callerId || callerId.trim().length === 0) {
-        return Result.fail(new InvalidInputError('callerId', 'Caller ID is required'));
+        return Result.fail(new InvalidInputError('callerId', 'ID do solicitante é obrigatório'));
       }
 
       // Fetch the caller to verify admin role
@@ -51,7 +51,9 @@ export class GetAllVacationsUseCase {
       // Enforce RBAC: only admins can view all vacation requests
       if (!caller.isAdmin()) {
         return Result.fail(
-          new UnauthorizedError('Only administrators can view all vacation requests'),
+          new UnauthorizedError(
+            'Apenas administradores podem visualizar todas as solicitações de férias',
+          ),
         );
       }
 

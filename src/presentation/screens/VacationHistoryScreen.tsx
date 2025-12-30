@@ -8,7 +8,6 @@ import { Text } from '../components/ui/Text';
 import { Card } from '../components/ui/Card';
 import type { VacationRequest } from '../../domain/entities/VacationRequest';
 import { VacationStatus } from '../../domain/enums/VacationStatus';
-import { UserRole } from '../../domain/enums/UserRole';
 import type { AppStackParamList } from '../navigation/types';
 import { formatDateToPTBR } from '../utils/dateFormatters';
 
@@ -46,13 +45,25 @@ function VacationItem({ vacation }: VacationItemProps) {
     <Pressable onPress={handlePress} testID={`VacationHistoryScreen_VacationItem_${vacation.id}`}>
       <Card style={styles.card}>
         <Card.Content>
-          <Text variant="label" style={styles.cardTitle} testID={`VacationHistoryScreen_VacationItem_${vacation.id}_Period`}>
+          <Text
+            variant="label"
+            style={styles.cardTitle}
+            testID={`VacationHistoryScreen_VacationItem_${vacation.id}_Period`}
+          >
             {period}
           </Text>
-          <Text variant="bodySmall" style={styles.cardSubtitle} testID={`VacationHistoryScreen_VacationItem_${vacation.id}_Status`}>
+          <Text
+            variant="bodySmall"
+            style={styles.cardSubtitle}
+            testID={`VacationHistoryScreen_VacationItem_${vacation.id}_Status`}
+          >
             Status: {statusLabel}
           </Text>
-          <Text variant="caption" style={styles.cardCaption} testID={`VacationHistoryScreen_VacationItem_${vacation.id}_CreatedAt`}>
+          <Text
+            variant="caption"
+            style={styles.cardCaption}
+            testID={`VacationHistoryScreen_VacationItem_${vacation.id}_CreatedAt`}
+          >
             Criada em: {formatDateToPTBR(vacation.createdAt)}
           </Text>
         </Card.Content>
@@ -66,24 +77,13 @@ export function VacationHistoryScreen() {
   const userId = user?.id ?? '';
   const { data, isLoading, error, refetch } = useVacationHistory(userId);
 
-  const isEmpty = useMemo(() => !isLoading && data.length === 0 && !error, [data.length, error, isLoading]);
+  const isEmpty = useMemo(
+    () => !isLoading && data.length === 0 && !error,
+    [data.length, error, isLoading],
+  );
 
-  // Get appropriate empty state message based on user role
   const getEmptyStateMessage = (): string => {
-    if (!user?.role) {
-      return 'Nenhuma solicitação encontrada.';
-    }
-
-    switch (user.role) {
-      case UserRole.COLLABORATOR:
-        return 'Você ainda não solicitou férias.';
-      case UserRole.MANAGER:
-        return 'Nenhuma solicitação de férias encontrada.';
-      case UserRole.ADMIN:
-        return 'Nenhuma solicitação de férias encontrada.';
-      default:
-        return 'Nenhuma solicitação encontrada.';
-    }
+    return 'Nenhuma solicitação encontrada.';
   };
 
   return (
@@ -100,19 +100,19 @@ export function VacationHistoryScreen() {
 
       {isEmpty && (
         <View style={styles.emptyContainer} testID="VacationHistoryScreen_EmptyState">
-          <Text variant="body" testID="VacationHistoryScreen_EmptyStateMessage">{getEmptyStateMessage()}</Text>
+          <Text variant="body" testID="VacationHistoryScreen_EmptyStateMessage">
+            {getEmptyStateMessage()}
+          </Text>
         </View>
       )}
 
       {!isEmpty && (
         <FlatList
           data={data}
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => <VacationItem vacation={item} />}
           contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={isLoading} onRefresh={refetch} />
-          }
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
           testID="VacationHistoryScreen_VacationsList"
         />
       )}
@@ -154,5 +154,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
-

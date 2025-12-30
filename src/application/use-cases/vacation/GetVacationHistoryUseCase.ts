@@ -20,7 +20,7 @@ export class GetVacationHistoryUseCase {
   async execute(userId: string): Promise<Result<VacationRequest[]>> {
     try {
       if (!userId || userId.trim().length === 0) {
-        return Result.fail(new InvalidInputError('userId', 'User ID is required'));
+        return Result.fail(new InvalidInputError('userId', 'ID do usuário é obrigatório'));
       }
 
       const result = await this.vacationRepository.findByRequesterId(userId);

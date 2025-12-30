@@ -36,7 +36,9 @@ export class GetPendingUserRegistrationsUseCase {
       // Check permission: only ADMIN can view pending registrations
       if (!caller.canViewPendingRegistrations()) {
         return Result.fail(
-          new UnauthorizedError('Only admins can view pending user registrations'),
+          new UnauthorizedError(
+            'Apenas administradores podem visualizar registros de usuários pendentes',
+          ),
         );
       }
 

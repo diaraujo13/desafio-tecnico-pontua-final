@@ -6,7 +6,7 @@ import { DomainError } from './DomainError';
  * Represents an authorization failure.
  */
 export class UnauthorizedError extends DomainError {
-  constructor(message: string = 'Unauthorized access') {
+  constructor(message: string = 'Acesso não autorizado') {
     super(message, 'UNAUTHORIZED');
   }
 }

@@ -6,6 +6,6 @@ import { DomainError } from './DomainError';
  */
 export class VacationRequestExpiredError extends DomainError {
   constructor(message?: string) {
-    super(message || 'Vacation request has expired and cannot be edited or cancelled');
+    super(message || 'A solicitação de férias expirou e não pode ser editada ou cancelada');
   }
 }

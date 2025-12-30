@@ -5,7 +5,7 @@ import { DomainError } from './DomainError';
  * Rejection reason is mandatory when status is REJECTED
  */
 export class RejectionReasonRequiredError extends DomainError {
-  constructor () {
-    super('Rejection reason is required when rejecting a vacation request');
+  constructor() {
+    super('Motivo da rejeição é obrigatório ao rejeitar uma solicitação de férias');
   }
 }

@@ -5,6 +5,6 @@ import { DomainError } from './DomainError';
  */
 export class DepartmentNameRequiredError extends DomainError {
   constructor() {
-    super('Department name cannot be empty', 'DEPARTMENT_NAME_REQUIRED');
+    super('O nome do departamento não pode estar vazio', 'DEPARTMENT_NAME_REQUIRED');
   }
 }

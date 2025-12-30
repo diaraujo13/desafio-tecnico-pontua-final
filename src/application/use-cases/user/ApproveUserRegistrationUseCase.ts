@@ -38,7 +38,9 @@ export class ApproveUserRegistrationUseCase {
 
       // Check permission: only ADMIN can approve registrations
       if (!approver.canApproveUserRegistration()) {
-        return Result.fail(new UnauthorizedError('Only admins can approve user registrations'));
+        return Result.fail(
+          new UnauthorizedError('Apenas administradores podem aprovar registros de usuários'),
+        );
       }
 
       // Validate user to be approved exists
@@ -53,7 +55,7 @@ export class ApproveUserRegistrationUseCase {
       if (user.status !== UserStatus.PENDING_APPROVAL) {
         return Result.fail(
           new InvalidUserStateError(
-            `User is not in PENDING_APPROVAL status. Current status: ${user.status}`,
+            `Usuário não está com status PENDING_APPROVAL. Status atual: ${user.status}`,
           ),
         );
       }

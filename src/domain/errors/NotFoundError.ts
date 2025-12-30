@@ -8,8 +8,8 @@ import { DomainError } from './DomainError';
 export class NotFoundError extends DomainError {
   constructor(resource: string, identifier?: string) {
     const message = identifier
-      ? `${resource} with identifier '${identifier}' not found`
-      : `${resource} not found`;
+      ? `${resource} com identificador '${identifier}' não encontrado`
+      : `${resource} não encontrado`;
     super(message, 'NOT_FOUND');
   }
 }

@@ -6,10 +6,11 @@ import { Result } from '../../../domain/shared/Result';
 import { NotFoundError } from '../../../domain/errors/NotFoundError';
 import { InactiveUserCannotRequestVacationError } from '../../../domain/errors/InactiveUserCannotRequestVacationError';
 import { InvalidVacationDateError } from '../../../domain/errors/InvalidVacationDateError';
+import { InvalidDateRangeError } from '../../../domain/errors/InvalidDateRangeError';
 import { UnauthorizedError } from '../../../domain/errors/UnauthorizedError';
 import { DomainError } from '../../../domain/errors/DomainError';
 import { UnexpectedDomainError } from '../../../domain/errors/UnexpectedDomainError';
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '../../../domain/shared/idGenerator';
 
 /**
  * Use Case for creating a new vacation request
@@ -42,7 +43,7 @@ export class RequestVacationUseCase {
       // Check permission: only COLLABORATOR can request vacations
       // Use Case delegates authorization decision to Domain entity
       if (!user.canRequestVacation()) {
-        return Result.fail(new UnauthorizedError('Only employees can request vacations'));
+        return Result.fail(new UnauthorizedError('Apenas funcionários podem solicitar férias'));
       }
 
       // Validate dates are valid
@@ -55,13 +56,29 @@ export class RequestVacationUseCase {
 
       // Create vacation request entity
       // The entity's factory method will validate dates via DateRange
-      const vacationRequest = VacationRequest.create({
-        id: uuidv4(),
-        requesterId: dto.requesterId,
-        startDate,
-        endDate,
-        observation: dto.observation || null,
-      });
+      // This may throw InvalidDateRangeError which is a DomainError
+      let vacationRequest: VacationRequest;
+      try {
+        vacationRequest = VacationRequest.create({
+          id: generateId(),
+          requesterId: dto.requesterId,
+          startDate,
+          endDate,
+          observation: dto.observation || null,
+        });
+      } catch (error) {
+        // DateRange.create() throws InvalidDateRangeError which is a DomainError
+        // Catch it explicitly to ensure proper error propagation
+        if (error instanceof InvalidDateRangeError) {
+          return Result.fail(error);
+        }
+        if (error instanceof DomainError) {
+          return Result.fail(error);
+        }
+        // If it's not a DomainError, wrap it with the original error message if available
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return Result.fail(new UnexpectedDomainError(errorMessage || 'Ocorreu um erro inesperado'));
+      }
 
       // Persist the request
       const saveResult = await this.vacationRepository.save(vacationRequest);

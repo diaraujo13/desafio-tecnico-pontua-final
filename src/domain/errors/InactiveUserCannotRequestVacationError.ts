@@ -6,7 +6,7 @@ import { DomainError } from './DomainError';
 export class InactiveUserCannotRequestVacationError extends DomainError {
   constructor() {
     super(
-      'User is not active and cannot request vacation',
+      'Usuário não está ativo e não pode solicitar férias',
       'INACTIVE_USER_CANNOT_REQUEST_VACATION',
     );
   }

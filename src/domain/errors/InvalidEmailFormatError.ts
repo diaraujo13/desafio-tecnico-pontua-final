@@ -5,7 +5,7 @@ import { DomainError } from './DomainError';
  */
 export class InvalidEmailFormatError extends DomainError {
   constructor(email?: string) {
-    const message = email ? `Invalid email format: ${email}` : 'Invalid email format';
+    const message = email ? `Formato de e-mail inválido: ${email}` : 'Formato de e-mail inválido';
     super(message);
   }
 }

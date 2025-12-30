@@ -4,37 +4,67 @@ import { Result } from '../../domain/shared/Result';
 import { NotFoundError } from '../../domain/errors/NotFoundError';
 import { InfrastructureFailureError } from '../../domain/errors/InfrastructureFailureError';
 import { UserStatus } from '../../domain/enums/UserStatus';
+import { UserRole } from '../../domain/enums/UserRole';
 import { usersSeed } from '../database/in-memory-db';
 import { simulateRequest } from '../utils/simulation';
 
 /**
  * In-memory implementation of IUserRepository
- * Uses seed data to provide user data access
+ * Supports read and write operations (volatile - data persists only during session)
  */
 export class UserRepositoryInMemory implements IUserRepository {
+  // In-memory storage (initialized from seed, can be modified during session)
+  private users: Array<{
+    id: string;
+    registrationNumber: string;
+    name: string;
+    email: string;
+    role: UserRole;
+    status: UserStatus;
+    departmentId: string;
+    managerId: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
+
+  constructor() {
+    // Initialize from seed data (deep clone to allow mutations)
+    this.users = usersSeed.map((u) => ({
+      id: u.id,
+      registrationNumber: u.registrationNumber,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      status: u.status,
+      departmentId: u.departmentId,
+      managerId: u.managerId,
+      createdAt: new Date(u.createdAt),
+      updatedAt: new Date(u.updatedAt),
+    }));
+  }
   /**
    * Finds a user by their ID
    * Returns a clone to ensure immutability
    */
   async findById(id: string): Promise<Result<User>> {
     try {
-      const userSeed = usersSeed.find((u) => u.id === id);
+      const userData = this.users.find((u) => u.id === id);
 
-      if (!userSeed) {
+      if (!userData) {
         return await simulateRequest(Result.fail(new NotFoundError('User', id)), 800);
       }
 
       const user = User.create({
-        id: userSeed.id,
-        registrationNumber: userSeed.registrationNumber,
-        name: userSeed.name,
-        email: userSeed.email,
-        role: userSeed.role,
-        status: userSeed.status,
-        departmentId: userSeed.departmentId,
-        managerId: userSeed.managerId,
-        createdAt: userSeed.createdAt,
-        updatedAt: userSeed.updatedAt,
+        id: userData.id,
+        registrationNumber: userData.registrationNumber,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        status: userData.status,
+        departmentId: userData.departmentId,
+        managerId: userData.managerId,
+        createdAt: userData.createdAt,
+        updatedAt: userData.updatedAt,
       });
 
       return await simulateRequest(Result.ok(user), 800);
@@ -53,23 +83,23 @@ export class UserRepositoryInMemory implements IUserRepository {
    */
   async findByEmail(email: string): Promise<Result<User>> {
     try {
-      const userSeed = usersSeed.find((u) => u.email.toLowerCase() === email.toLowerCase());
+      const userData = this.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
 
-      if (!userSeed) {
+      if (!userData) {
         return await simulateRequest(Result.fail(new NotFoundError('User', email)), 800);
       }
 
       const user = User.create({
-        id: userSeed.id,
-        registrationNumber: userSeed.registrationNumber,
-        name: userSeed.name,
-        email: userSeed.email,
-        role: userSeed.role,
-        status: userSeed.status,
-        departmentId: userSeed.departmentId,
-        managerId: userSeed.managerId,
-        createdAt: userSeed.createdAt,
-        updatedAt: userSeed.updatedAt,
+        id: userData.id,
+        registrationNumber: userData.registrationNumber,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        status: userData.status,
+        departmentId: userData.departmentId,
+        managerId: userData.managerId,
+        createdAt: userData.createdAt,
+        updatedAt: userData.updatedAt,
       });
 
       return await simulateRequest(Result.ok(user), 800);
@@ -85,12 +115,33 @@ export class UserRepositoryInMemory implements IUserRepository {
 
   /**
    * Saves a user (create or update)
-   * Note: In-memory implementation is volatile - changes are lost on app restart
+   * Updates existing item or adds new one to the in-memory array
    */
-  async save(_user: User): Promise<Result<void>> {
+  async save(user: User): Promise<Result<void>> {
     try {
-      // In a real implementation, this would persist to a database
-      // For in-memory, we just simulate the operation
+      const existingIndex = this.users.findIndex((u) => u.id === user.id);
+
+      const userData = {
+        id: user.id,
+        registrationNumber: user.registrationNumber,
+        name: user.name,
+        email: user.email.value,
+        role: user.role,
+        status: user.status,
+        departmentId: user.departmentId,
+        managerId: user.managerId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+
+      if (existingIndex >= 0) {
+        // Update existing
+        this.users[existingIndex] = userData;
+      } else {
+        // Create new
+        this.users.push(userData);
+      }
+
       await simulateRequest(undefined, 800);
       return Result.ok();
     } catch (error) {
@@ -109,20 +160,20 @@ export class UserRepositoryInMemory implements IUserRepository {
    */
   async findByDepartmentId(departmentId: string): Promise<Result<User[]>> {
     try {
-      const departmentUsers = usersSeed
+      const departmentUsers = this.users
         .filter((u) => u.departmentId === departmentId)
-        .map((userSeed) =>
+        .map((userData) =>
           User.create({
-            id: userSeed.id,
-            registrationNumber: userSeed.registrationNumber,
-            name: userSeed.name,
-            email: userSeed.email,
-            role: userSeed.role,
-            status: userSeed.status,
-            departmentId: userSeed.departmentId,
-            managerId: userSeed.managerId,
-            createdAt: userSeed.createdAt,
-            updatedAt: userSeed.updatedAt,
+            id: userData.id,
+            registrationNumber: userData.registrationNumber,
+            name: userData.name,
+            email: userData.email,
+            role: userData.role,
+            status: userData.status,
+            departmentId: userData.departmentId,
+            managerId: userData.managerId,
+            createdAt: userData.createdAt,
+            updatedAt: userData.updatedAt,
           }),
         );
 
@@ -143,20 +194,20 @@ export class UserRepositoryInMemory implements IUserRepository {
    */
   async findByManagerId(managerId: string): Promise<Result<User[]>> {
     try {
-      const managedUsers = usersSeed
+      const managedUsers = this.users
         .filter((u) => u.managerId === managerId)
-        .map((userSeed) =>
+        .map((userData) =>
           User.create({
-            id: userSeed.id,
-            registrationNumber: userSeed.registrationNumber,
-            name: userSeed.name,
-            email: userSeed.email,
-            role: userSeed.role,
-            status: userSeed.status,
-            departmentId: userSeed.departmentId,
-            managerId: userSeed.managerId,
-            createdAt: userSeed.createdAt,
-            updatedAt: userSeed.updatedAt,
+            id: userData.id,
+            registrationNumber: userData.registrationNumber,
+            name: userData.name,
+            email: userData.email,
+            role: userData.role,
+            status: userData.status,
+            departmentId: userData.departmentId,
+            managerId: userData.managerId,
+            createdAt: userData.createdAt,
+            updatedAt: userData.updatedAt,
           }),
         );
 
@@ -177,20 +228,20 @@ export class UserRepositoryInMemory implements IUserRepository {
    */
   async findPendingUsers(): Promise<Result<User[]>> {
     try {
-      const pendingUsers = usersSeed
+      const pendingUsers = this.users
         .filter((u) => u.status === UserStatus.PENDING_APPROVAL)
-        .map((userSeed) =>
+        .map((userData) =>
           User.create({
-            id: userSeed.id,
-            registrationNumber: userSeed.registrationNumber,
-            name: userSeed.name,
-            email: userSeed.email,
-            role: userSeed.role,
-            status: userSeed.status,
-            departmentId: userSeed.departmentId,
-            managerId: userSeed.managerId,
-            createdAt: userSeed.createdAt,
-            updatedAt: userSeed.updatedAt,
+            id: userData.id,
+            registrationNumber: userData.registrationNumber,
+            name: userData.name,
+            email: userData.email,
+            role: userData.role,
+            status: userData.status,
+            departmentId: userData.departmentId,
+            managerId: userData.managerId,
+            createdAt: userData.createdAt,
+            updatedAt: userData.updatedAt,
           }),
         );
 

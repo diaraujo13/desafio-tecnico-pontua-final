@@ -6,8 +6,8 @@ import { DomainError } from './DomainError';
 export class WeakPasswordError extends DomainError {
   constructor(requirements?: string) {
     const message = requirements
-      ? `Password does not meet requirements: ${requirements}`
-      : 'Password does not meet minimum requirements';
+      ? `Senha não atende aos requisitos: ${requirements}`
+      : 'Senha não atende aos requisitos mínimos';
     super(message);
   }
 }

@@ -6,8 +6,8 @@ import { DomainError } from './DomainError';
 export class InvalidStatusTransitionError extends DomainError {
   constructor(currentStatus: string, targetStatus: string, reason?: string) {
     const message = reason
-      ? `Invalid status transition from ${currentStatus} to ${targetStatus}: ${reason}`
-      : `Invalid status transition from ${currentStatus} to ${targetStatus}`;
+      ? `Transição de status inválida de ${currentStatus} para ${targetStatus}: ${reason}`
+      : `Transição de status inválida de ${currentStatus} para ${targetStatus}`;
     super(message);
   }
 }

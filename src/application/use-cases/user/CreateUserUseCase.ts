@@ -8,7 +8,7 @@ import { UnauthorizedError } from '../../../domain/errors/UnauthorizedError';
 import { DomainError } from '../../../domain/errors/DomainError';
 import { UnexpectedDomainError } from '../../../domain/errors/UnexpectedDomainError';
 import { UserStatus } from '../../../domain/enums/UserStatus';
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '../../../domain/shared/idGenerator';
 
 /**
  * Use Case for creating a new user
@@ -43,7 +43,9 @@ export class CreateUserUseCase {
 
       // Check permission: only MANAGER or ADMIN can create users
       if (!creator.canCreateUser()) {
-        return Result.fail(new UnauthorizedError('Only managers and admins can create users'));
+        return Result.fail(
+          new UnauthorizedError('Apenas gestores ou administradores podem criar usuários'),
+        );
       }
 
       // Validate department exists
@@ -55,13 +57,13 @@ export class CreateUserUseCase {
       // Check if email already exists
       const existingUserResult = await this.userRepository.findByEmail(dto.email);
       if (existingUserResult.isSuccess) {
-        return Result.fail(new DomainError('Email already registered', 'EMAIL_ALREADY_EXISTS'));
+        return Result.fail(new DomainError('E-mail já cadastrado', 'EMAIL_ALREADY_EXISTS'));
       }
 
       // Create user entity with PENDING_APPROVAL status
       // The entity's factory method will validate email format via Email VO
       const user = User.create({
-        id: uuidv4(),
+        id: generateId(),
         registrationNumber: dto.registrationNumber,
         name: dto.name,
         email: dto.email,

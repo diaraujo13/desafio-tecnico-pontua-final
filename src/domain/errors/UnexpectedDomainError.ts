@@ -11,7 +11,7 @@ import { DomainError } from './DomainError';
  * - Only truly unexpected, non-domain exceptions should be converted here.
  */
 export class UnexpectedDomainError extends DomainError {
-  constructor(message: string = 'An unexpected error occurred') {
+  constructor(message: string = 'Ocorreu um erro inesperado') {
     super(message, 'UNEXPECTED_DOMAIN_ERROR');
   }
 }

@@ -7,7 +7,7 @@ import { DomainError } from './DomainError';
  */
 export class InvalidInputError extends DomainError {
   constructor(field: string, reason?: string) {
-    const message = reason ? `Invalid ${field}: ${reason}` : `Invalid ${field}`;
+    const message = reason ? `${field} inválido: ${reason}` : `${field} inválido`;
     super(message, 'INVALID_INPUT');
   }
 }

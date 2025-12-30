@@ -26,11 +26,11 @@ export class GetVacationDetailsUseCase {
   async execute(requestId: string, requesterId: string): Promise<Result<VacationRequest>> {
     try {
       if (!requestId || requestId.trim().length === 0) {
-        return Result.fail(new InvalidInputError('requestId', 'Request ID is required'));
+        return Result.fail(new InvalidInputError('requestId', 'ID da solicitação é obrigatório'));
       }
 
       if (!requesterId || requesterId.trim().length === 0) {
-        return Result.fail(new InvalidInputError('requesterId', 'Requester ID is required'));
+        return Result.fail(new InvalidInputError('requesterId', 'ID do solicitante é obrigatório'));
       }
 
       const result = await this.vacationRepository.findById(requestId);
@@ -43,7 +43,9 @@ export class GetVacationDetailsUseCase {
 
       // Verify ownership: only the requester can view their own request
       if (vacationRequest.requesterId !== requesterId) {
-        return Result.fail(new UnauthorizedError('You are not authorized to view this vacation request'));
+        return Result.fail(
+          new UnauthorizedError('Você não está autorizado a visualizar esta solicitação de férias'),
+        );
       }
 
       return Result.ok(vacationRequest);
@@ -56,4 +58,3 @@ export class GetVacationDetailsUseCase {
     }
   }
 }
-

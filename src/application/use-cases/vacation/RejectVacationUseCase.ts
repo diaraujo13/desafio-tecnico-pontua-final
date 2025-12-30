@@ -4,6 +4,7 @@ import { RejectVacationDTO } from '../../dtos/VacationRequestDTO';
 import { Result } from '../../../domain/shared/Result';
 import { NotFoundError } from '../../../domain/errors/NotFoundError';
 import { UnauthorizedError } from '../../../domain/errors/UnauthorizedError';
+import { InvalidStatusTransitionError } from '../../../domain/errors/InvalidStatusTransitionError';
 import { DomainError } from '../../../domain/errors/DomainError';
 import { UnexpectedDomainError } from '../../../domain/errors/UnexpectedDomainError';
 
@@ -39,9 +40,11 @@ export class RejectVacationUseCase {
       }
 
       const reviewer = reviewerResult.getValue();
-      if (!reviewer.isManager() && !reviewer.isAdmin()) {
+      if (!reviewer.canApproveVacations()) {
         return Result.fail(
-          new UnauthorizedError('Only managers or admins can reject vacation requests'),
+          new UnauthorizedError(
+            'Apenas gestores ou administradores podem rejeitar solicitações de férias',
+          ),
         );
       }
 
@@ -56,6 +59,10 @@ export class RejectVacationUseCase {
 
       return Result.ok();
     } catch (error) {
+      if (error instanceof InvalidStatusTransitionError) {
+        return Result.fail(error);
+      }
+
       if (error instanceof DomainError) {
         return Result.fail(error);
       }
