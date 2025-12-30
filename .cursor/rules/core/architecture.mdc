@@ -1195,3 +1195,95 @@ This ADR:
 - Enables AI tools to operate without guessing
 
 This document is the single source of truth for architecture decisions in this project.
+
+
+⸻
+
+# ADR-002 — Permission Model (AI Enforcement Version)
+
+## Core Rule
+
+ALL permissions (read and write) are business rules and MUST live in the Domain layer.
+
+There are no free reads.
+
+## Authoritative Permission Source
+
+	•	Permissions MUST be implemented as semantic methods on Domain entities
+	•	Role comparisons (user.role === …) are FORBIDDEN outside Domain
+	•	UI, hooks, and repositories MUST NOT decide permissions
+
+## Correct
+
+```ts
+user.canRequestVacation()
+user.canApproveVacation(vacation)
+user.canViewVacation(vacation)
+user.canApproveUserRegistration()
+```
+
+Forbidden
+
+```ts
+if (user.role === 'ADMIN') { ... }        // ❌
+if (isManager || isAdmin) { ... }         // ❌
+if (!permissionsFromUI) { ... }           // ❌
+```
+
+
+## Application Layer Rules
+
+-	Use Cases MUST call Domain permission methods
+-	Unauthorized actions MUST return Result.fail(UnauthorizedError)
+-	Read Use Cases MUST:
+-	filter results using Domain permission methods
+-	or explicitly deny access
+
+## Presentation Layer Rules
+
+-	UI and hooks:
+-	MUST NOT check roles
+-	MUST NOT infer permissions
+-	MUST NOT filter data for security
+-	UI receives:
+-	already-authorized data
+-	permission flags as DTOs
+
+## Permission Matrix (Hard Contract)
+
+Vacation Requests
+
+| Action          | COLLABORATOR | MANAGER | ADMIN |
+|----------       |--------|---------|-------|
+| Request Vacation | ✅ | ❌ | ❌ |
+| Approve / Reject | ❌ | ✅ | ✅ |-  
+| View Own | ✅ | ✅ | ✅ |
+| View Team | ❌ | ✅ | ❌ |
+| View all | ❌ | ❌ | ✅ |
+
+User Registration
+
+| Action          | COLLABORATOR | MANAGER | ADMIN |
+|----------       |--------|---------|-------|
+| Register User   | ❌ | ✅ | ✅ |
+| Approve Registration | ❌ | ❌ | ✅ |
+| View Pending Registrations | ❌ | ❌ | ✅ |
+
+
+⸻
+
+Enforcement Rules (AI)
+
+If you need a permission check and it does not exist:
+	1.	STOP
+	2.	Add a semantic method to the Domain entity
+	3.	Enforce it in the Use Case
+	4.	Expose the result as data to the UI
+
+ABSOLUTELY FORBIDDEN
+	•	Permission logic in UI or hooks
+	•	Treating read operations as unprotected
+	•	Role checks outside Domain
+	•	Security filtering in Presentation
+	•	“Quick fixes” to make tests pass
+

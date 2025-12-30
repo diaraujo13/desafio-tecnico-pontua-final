@@ -75,6 +75,7 @@ E2E é o **nível mais alto da pirâmide de testes**.
 ### 3. Legibilidade
 - Cenários devem ser compreensíveis por pessoas não técnicas
 - Steps traduzem intenção em ações técnicas
+- "UI error assertions must check visibility/text, not DOM existence"
 
 ---
 
