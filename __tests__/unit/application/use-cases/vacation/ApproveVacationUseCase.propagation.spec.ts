@@ -9,7 +9,11 @@ describe('ApproveVacationUseCase - DomainError propagation', () => {
   it('should propagate DomainError thrown by entity without wrapping', async () => {
     const vacationRequestMock = {
       approve: jest.fn(() => {
-        throw new InvalidStatusTransitionError(VacationStatus.PENDING_APPROVAL, VacationStatus.APPROVED, 'Não é possível aprovar uma solicitação pendente');
+        throw new InvalidStatusTransitionError(
+          VacationStatus.PENDING_APPROVAL,
+          VacationStatus.APPROVED,
+          'Não é possível aprovar uma solicitação pendente',
+        );
       }),
     } as unknown as VacationRequest;
 
@@ -34,8 +38,7 @@ describe('ApproveVacationUseCase - DomainError propagation', () => {
         isFailure: false,
         isSuccess: true,
         getValue: () => ({
-          isManager: () => true,
-          isAdmin: () => false,
+          canApproveVacations: () => true,
         }),
         getError: () => {
           throw new Error('Should not be called');
@@ -58,6 +61,6 @@ describe('ApproveVacationUseCase - DomainError propagation', () => {
     const received = result.getError();
     expect(received).toBeInstanceOf(InvalidStatusTransitionError);
     expect(received.code).toBe('InvalidStatusTransitionError');
-    expect(received.message).toContain('Invalid status transition');
+    expect(received.message).toContain('Transição de status inválida');
   });
 });

@@ -3,6 +3,7 @@ import { User } from '../../domain/entities/User';
 import { Result } from '../../domain/shared/Result';
 import { NotFoundError } from '../../domain/errors/NotFoundError';
 import { InfrastructureFailureError } from '../../domain/errors/InfrastructureFailureError';
+import { UserStatus } from '../../domain/enums/UserStatus';
 import { usersSeed } from '../database/in-memory-db';
 import { simulateRequest } from '../utils/simulation';
 
@@ -164,6 +165,40 @@ export class UserRepositoryInMemory implements IUserRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch users',
+          error instanceof Error ? error : undefined,
+        ),
+      );
+    }
+  }
+
+  /**
+   * Finds all users with PENDING_APPROVAL status
+   * Returns clones to ensure immutability
+   */
+  async findPendingUsers(): Promise<Result<User[]>> {
+    try {
+      const pendingUsers = usersSeed
+        .filter((u) => u.status === UserStatus.PENDING_APPROVAL)
+        .map((userSeed) =>
+          User.create({
+            id: userSeed.id,
+            registrationNumber: userSeed.registrationNumber,
+            name: userSeed.name,
+            email: userSeed.email,
+            role: userSeed.role,
+            status: userSeed.status,
+            departmentId: userSeed.departmentId,
+            managerId: userSeed.managerId,
+            createdAt: userSeed.createdAt,
+            updatedAt: userSeed.updatedAt,
+          }),
+        );
+
+      return await simulateRequest(Result.ok(pendingUsers), 800);
+    } catch (error) {
+      return Result.fail(
+        new InfrastructureFailureError(
+          'Failed to fetch pending users',
           error instanceof Error ? error : undefined,
         ),
       );

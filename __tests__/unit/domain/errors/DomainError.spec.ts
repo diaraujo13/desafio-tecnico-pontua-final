@@ -25,7 +25,7 @@ describe('Concrete DomainError subclasses', () => {
 
     expect(error).toBeInstanceOf(Error);
     expect(error).toBeInstanceOf(DomainError);
-    expect(error.message).toBe('Invalid field: Validation failed');
+    expect(error.message).toBe('field inválido: Validation failed');
     expect(error.code).toBe('INVALID_INPUT');
   });
 });

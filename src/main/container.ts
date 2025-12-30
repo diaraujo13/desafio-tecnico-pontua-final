@@ -30,6 +30,7 @@ import { IDepartmentRepository } from '../domain/repositories/IDepartmentReposit
 import { LoginUseCase } from '../application/use-cases/auth/LoginUseCase';
 import { LogoutUseCase } from '../application/use-cases/auth/LogoutUseCase';
 import { RestoreSessionUseCase } from '../application/use-cases/auth/RestoreSessionUseCase';
+import { GetUserPermissionsUseCase } from '../application/use-cases/auth/GetUserPermissionsUseCase';
 import { RequestVacationUseCase } from '../application/use-cases/vacation/RequestVacationUseCase';
 import { ApproveVacationUseCase } from '../application/use-cases/vacation/ApproveVacationUseCase';
 import { RejectVacationUseCase } from '../application/use-cases/vacation/RejectVacationUseCase';
@@ -38,6 +39,10 @@ import { GetVacationHistoryUseCase } from '../application/use-cases/vacation/Get
 import { GetVacationDetailsUseCase } from '../application/use-cases/vacation/GetVacationDetailsUseCase';
 import { GetManagerDashboardUseCase } from '../application/use-cases/vacation/GetManagerDashboardUseCase';
 import { GetAllVacationsUseCase } from '../application/use-cases/vacation/GetAllVacationsUseCase';
+import { CreateUserUseCase } from '../application/use-cases/user/CreateUserUseCase';
+import { ApproveUserRegistrationUseCase } from '../application/use-cases/user/ApproveUserRegistrationUseCase';
+import { RejectUserRegistrationUseCase } from '../application/use-cases/user/RejectUserRegistrationUseCase';
+import { GetPendingUserRegistrationsUseCase } from '../application/use-cases/user/GetPendingUserRegistrationsUseCase';
 
 /**
  * Repository Instances
@@ -57,6 +62,8 @@ export const loginUseCase = new LoginUseCase(authRepository);
 export const logoutUseCase = new LogoutUseCase(authRepository);
 
 export const restoreSessionUseCase = new RestoreSessionUseCase(authRepository);
+
+export const getUserPermissionsUseCase = new GetUserPermissionsUseCase(userRepository);
 
 export const requestVacationUseCase = new RequestVacationUseCase(
   vacationRepository,
@@ -83,6 +90,16 @@ export const getManagerDashboardUseCase = new GetManagerDashboardUseCase(
 
 export const getAllVacationsUseCase = new GetAllVacationsUseCase(
   vacationRepository,
+  userRepository,
+);
+
+export const createUserUseCase = new CreateUserUseCase(userRepository, departmentRepository);
+
+export const approveUserRegistrationUseCase = new ApproveUserRegistrationUseCase(userRepository);
+
+export const rejectUserRegistrationUseCase = new RejectUserRegistrationUseCase(userRepository);
+
+export const getPendingUserRegistrationsUseCase = new GetPendingUserRegistrationsUseCase(
   userRepository,
 );
 

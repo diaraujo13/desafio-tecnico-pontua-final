@@ -2,6 +2,7 @@ import { User } from '../../../../src/domain/entities/User';
 import { Email } from '../../../../src/domain/value-objects/Email';
 import { UserRole } from '../../../../src/domain/enums/UserRole';
 import { UserStatus } from '../../../../src/domain/enums/UserStatus';
+import { InvalidStatusTransitionError } from '../../../../src/domain/errors/InvalidStatusTransitionError';
 
 describe('User', () => {
   const validProps = {
@@ -139,6 +140,348 @@ describe('User', () => {
 
       expect(user.isActive()).toBe(false);
       expect(user.canAccessSystem()).toBe(false);
+    });
+  });
+
+  describe('permission checks', () => {
+    describe('canRequestVacation', () => {
+      it('should return true for COLLABORATOR with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.COLLABORATOR,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canRequestVacation()).toBe(true);
+      });
+
+      it('should return false for MANAGER even with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.MANAGER,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canRequestVacation()).toBe(false);
+      });
+
+      it('should return false for ADMIN even with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.ADMIN,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canRequestVacation()).toBe(false);
+      });
+
+      it('should return false for COLLABORATOR with INACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.COLLABORATOR,
+          status: UserStatus.INACTIVE,
+        });
+
+        expect(user.canRequestVacation()).toBe(false);
+      });
+    });
+
+    describe('canApproveVacations', () => {
+      it('should return true for MANAGER with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.MANAGER,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canApproveVacations()).toBe(true);
+      });
+
+      it('should return false for COLLABORATOR even with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.COLLABORATOR,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canApproveVacations()).toBe(false);
+      });
+
+      it('should return true for ADMIN with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.ADMIN,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canApproveVacations()).toBe(true);
+      });
+
+      it('should return false for MANAGER with INACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.MANAGER,
+          status: UserStatus.INACTIVE,
+        });
+
+        expect(user.canApproveVacations()).toBe(false);
+      });
+    });
+
+    describe('canApproveUserRegistration', () => {
+      it('should return true for ADMIN with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.ADMIN,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canApproveUserRegistration()).toBe(true);
+      });
+
+      it('should return false for MANAGER even with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.MANAGER,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canApproveUserRegistration()).toBe(false);
+      });
+
+      it('should return false for COLLABORATOR even with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.COLLABORATOR,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canApproveUserRegistration()).toBe(false);
+      });
+
+      it('should return false for ADMIN with INACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.ADMIN,
+          status: UserStatus.INACTIVE,
+        });
+
+        expect(user.canApproveUserRegistration()).toBe(false);
+      });
+    });
+
+    describe('canRegisterUser', () => {
+      it('should return true for MANAGER with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.MANAGER,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canRegisterUser()).toBe(true);
+      });
+
+      it('should return true for ADMIN with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.ADMIN,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canRegisterUser()).toBe(true);
+      });
+
+      it('should return false for COLLABORATOR even with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.COLLABORATOR,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canRegisterUser()).toBe(false);
+      });
+
+      it('should return false for MANAGER with INACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.MANAGER,
+          status: UserStatus.INACTIVE,
+        });
+
+        expect(user.canRegisterUser()).toBe(false);
+      });
+    });
+
+    describe('canViewPendingRegistrations', () => {
+      it('should return true for ADMIN with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.ADMIN,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canViewPendingRegistrations()).toBe(true);
+      });
+
+      it('should return false for MANAGER even with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.MANAGER,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canViewPendingRegistrations()).toBe(false);
+      });
+
+      it('should return false for COLLABORATOR even with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.COLLABORATOR,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canViewPendingRegistrations()).toBe(false);
+      });
+
+      it('should return false for ADMIN with INACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.ADMIN,
+          status: UserStatus.INACTIVE,
+        });
+
+        expect(user.canViewPendingRegistrations()).toBe(false);
+      });
+    });
+
+    describe('canRejectUserRegistration', () => {
+      it('should return true for ADMIN with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.ADMIN,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canRejectUserRegistration()).toBe(true);
+      });
+
+      it('should return false for MANAGER even with ACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.MANAGER,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canRejectUserRegistration()).toBe(false);
+      });
+
+      it('should return false for ADMIN with INACTIVE status', () => {
+        const user = User.create({
+          ...validProps,
+          role: UserRole.ADMIN,
+          status: UserStatus.INACTIVE,
+        });
+
+        expect(user.canRejectUserRegistration()).toBe(false);
+      });
+    });
+  });
+
+  describe('status transitions', () => {
+    describe('canTransitionTo', () => {
+      it('should allow PENDING_APPROVAL to ACTIVE', () => {
+        const user = User.create({
+          ...validProps,
+          status: UserStatus.PENDING_APPROVAL,
+        });
+
+        expect(user.canTransitionTo(UserStatus.ACTIVE)).toBe(true);
+      });
+
+      it('should allow PENDING_APPROVAL to INACTIVE', () => {
+        const user = User.create({
+          ...validProps,
+          status: UserStatus.PENDING_APPROVAL,
+        });
+
+        expect(user.canTransitionTo(UserStatus.INACTIVE)).toBe(true);
+      });
+
+      it('should not allow PENDING_APPROVAL to PENDING_APPROVAL', () => {
+        const user = User.create({
+          ...validProps,
+          status: UserStatus.PENDING_APPROVAL,
+        });
+
+        expect(user.canTransitionTo(UserStatus.PENDING_APPROVAL)).toBe(false);
+      });
+
+      it('should allow ACTIVE to INACTIVE', () => {
+        const user = User.create({
+          ...validProps,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canTransitionTo(UserStatus.INACTIVE)).toBe(true);
+      });
+
+      it('should allow INACTIVE to ACTIVE', () => {
+        const user = User.create({
+          ...validProps,
+          status: UserStatus.INACTIVE,
+        });
+
+        expect(user.canTransitionTo(UserStatus.ACTIVE)).toBe(true);
+      });
+
+      it('should not allow ACTIVE to PENDING_APPROVAL', () => {
+        const user = User.create({
+          ...validProps,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(user.canTransitionTo(UserStatus.PENDING_APPROVAL)).toBe(false);
+      });
+    });
+
+    describe('transitionTo', () => {
+      it('should create new user with ACTIVE status from PENDING_APPROVAL', () => {
+        const pendingUser = User.create({
+          ...validProps,
+          status: UserStatus.PENDING_APPROVAL,
+        });
+
+        const activeUser = pendingUser.transitionTo(UserStatus.ACTIVE);
+
+        expect(activeUser.status).toBe(UserStatus.ACTIVE);
+        expect(activeUser.id).toBe(pendingUser.id);
+        expect(activeUser.updatedAt.getTime()).toBeGreaterThanOrEqual(
+          pendingUser.updatedAt.getTime(),
+        );
+      });
+
+      it('should create new user with INACTIVE status from PENDING_APPROVAL', () => {
+        const pendingUser = User.create({
+          ...validProps,
+          status: UserStatus.PENDING_APPROVAL,
+        });
+
+        const inactiveUser = pendingUser.transitionTo(UserStatus.INACTIVE);
+
+        expect(inactiveUser.status).toBe(UserStatus.INACTIVE);
+        expect(inactiveUser.id).toBe(pendingUser.id);
+      });
+
+      it('should throw InvalidStatusTransitionError for invalid transition', () => {
+        const activeUser = User.create({
+          ...validProps,
+          status: UserStatus.ACTIVE,
+        });
+
+        expect(() => {
+          activeUser.transitionTo(UserStatus.PENDING_APPROVAL);
+        }).toThrow(InvalidStatusTransitionError);
+      });
     });
   });
 

@@ -46,7 +46,7 @@ describe('GetVacationDetailsUseCase', () => {
 
     expect(result.isFailure).toBe(true);
     expect(result.getError()).toBeInstanceOf(InvalidInputError);
-    expect(result.getError().message).toContain('Request ID is required');
+    expect(result.getError().message).toContain('ID da solicitação é obrigatório');
     expect(vacationRepository.findById).not.toHaveBeenCalled();
   });
 
@@ -55,7 +55,7 @@ describe('GetVacationDetailsUseCase', () => {
 
     expect(result.isFailure).toBe(true);
     expect(result.getError()).toBeInstanceOf(InvalidInputError);
-    expect(result.getError().message).toContain('Requester ID is required');
+    expect(result.getError().message).toContain('ID do solicitante é obrigatório');
     expect(vacationRepository.findById).not.toHaveBeenCalled();
   });
 
@@ -77,6 +77,6 @@ describe('GetVacationDetailsUseCase', () => {
 
     expect(result.isFailure).toBe(true);
     expect(result.getError()).toBeInstanceOf(UnauthorizedError);
-    expect(result.getError().message).toContain('not authorized');
+    expect(result.getError().message).toContain('não está autorizado');
   });
 });

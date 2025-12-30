@@ -47,7 +47,7 @@ describe('Result', () => {
       expect(result.isFailure).toBe(true);
       const domainError = result.getError();
       expect(domainError).toBe(error);
-      expect(domainError.message).toBe('Invalid field: Something went wrong');
+      expect(domainError.message).toBe('field inválido: Something went wrong');
       expect(domainError.code).toBe('INVALID_INPUT');
     });
 
@@ -79,7 +79,7 @@ describe('Result', () => {
       expect(result.isSuccess).toBe(false);
       const domainError = result.getError();
       expect(domainError.code).toBe('INVALID_INPUT');
-      expect(domainError.message).toBe('Invalid field: Something went wrong');
+      expect(domainError.message).toBe('field inválido: Something went wrong');
     });
   });
 
@@ -107,7 +107,7 @@ describe('Result', () => {
       const domainError = result.getError();
 
       expect(domainError).toBe(error);
-      expect(domainError.message).toBe('Invalid field: test error');
+      expect(domainError.message).toBe('field inválido: test error');
       expect(typeof domainError.message).toBe('string');
     });
 
@@ -117,7 +117,7 @@ describe('Result', () => {
       const domainError = result.getError();
 
       // Verify that message is directly accessible without type casting
-      expect(domainError.message).toBe('Invalid field: test error');
+      expect(domainError.message).toBe('field inválido: test error');
     });
 
     it('should throw an error when trying to get error from a successful Result', () => {
@@ -163,7 +163,7 @@ describe('Result', () => {
       expect(domainError).toBe(error);
       expect(domainError).toHaveProperty('message');
       expect(typeof domainError.message).toBe('string');
-      expect(domainError.message).toBe('Invalid field: test error');
+      expect(domainError.message).toBe('field inválido: test error');
     });
 
     it('should accept DomainError instances directly', () => {
@@ -172,7 +172,7 @@ describe('Result', () => {
       const received = result.getError();
 
       expect(received).toBe(domainError);
-      expect(received.message).toBe('Invalid field: Domain validation failed');
+      expect(received.message).toBe('field inválido: Domain validation failed');
       expect(received.code).toBe('INVALID_INPUT');
     });
   });

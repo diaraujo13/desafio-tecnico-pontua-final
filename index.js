@@ -3,8 +3,13 @@
  */
 
 import { AppRegistry, ErrorUtils } from 'react-native';
+import { enableScreens } from 'react-native-screens';
 import App from './App';
 import { name as appName } from './app.json';
+
+// Enable React Native Screens before any navigation is rendered
+// This must be called at the top level, before any component renders
+enableScreens();
 
 // Global error handler for unhandled promise rejections
 // React Native's ErrorUtils can catch these and route them to error boundaries

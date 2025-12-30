@@ -196,4 +196,3 @@ If Detox fails to install:
 - [Detox Documentation](https://wix.github.io/Detox/)
 - [Cucumber.js Documentation](https://github.com/cucumber/cucumber-js)
 - [Gherkin Syntax](https://cucumber.io/docs/gherkin/)
-

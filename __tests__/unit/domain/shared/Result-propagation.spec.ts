@@ -17,7 +17,7 @@ describe('Result Error Propagation', () => {
 
     expect(secondResult.isFailure).toBe(true);
     const propagatedError = secondResult.getError();
-    expect(propagatedError.message).toBe('Invalid field: First error');
+    expect(propagatedError.message).toBe('field inválido: First error');
     expect(propagatedError.code).toBe('INVALID_INPUT');
     // CRITICAL: The same instance should be preserved (reference equality)
     expect(propagatedError).toBe(error);
@@ -32,7 +32,7 @@ describe('Result Error Propagation', () => {
 
     expect(secondResult.isFailure).toBe(true);
     const propagatedError = secondResult.getError();
-    expect(propagatedError.message).toBe('Invalid field: Validation failed');
+    expect(propagatedError.message).toBe('field inválido: Validation failed');
     expect(propagatedError.code).toBe('INVALID_INPUT');
     // CRITICAL: Reference equality - same instance
     expect(propagatedError).toBe(domainError);
@@ -60,7 +60,7 @@ describe('Result Error Propagation', () => {
     const secondResult = Result.fail(firstResult.getError());
 
     expect(secondResult.getError().code).toBe('INVALID_INPUT');
-    expect(secondResult.getError().message).toBe('Invalid field: Test error');
+    expect(secondResult.getError().message).toBe('field inválido: Test error');
     // Reference equality
     expect(secondResult.getError()).toBe(error);
   });
@@ -71,7 +71,7 @@ describe('Result Error Propagation', () => {
     const r2 = Result.fail(r1.getError());
 
     expect(r2.getError()).toBe(error);
-    expect(r2.getError().message).toBe('Invalid field: x');
+    expect(r2.getError().message).toBe('field inválido: x');
     expect(r2.getError().code).toBe('INVALID_INPUT');
   });
 });

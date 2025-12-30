@@ -7,6 +7,8 @@ import { VacationHistoryScreen } from '../screens/VacationHistoryScreen';
 import { VacationDetailsScreen } from '../screens/VacationDetailsScreen';
 import { ManagerDashboardScreen } from '../screens/ManagerDashboardScreen';
 import { ReviewVacationScreen } from '../screens/ReviewVacationScreen';
+import { CreateUserScreen } from '../screens/CreateUserScreen';
+import { ApproveUsersScreen } from '../screens/ApproveUsersScreen';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -38,6 +40,16 @@ export function AppNavigator() {
         name="ReviewVacation"
         component={ReviewVacationScreen}
         options={{ title: 'Revisar Solicitação' }}
+      />
+      <Stack.Screen
+        name="CreateUser"
+        component={CreateUserScreen}
+        options={{ title: 'Criar Usuário' }}
+      />
+      <Stack.Screen
+        name="ApproveUsers"
+        component={ApproveUsersScreen}
+        options={{ title: 'Aprovar Usuários' }}
       />
     </Stack.Navigator>
   );

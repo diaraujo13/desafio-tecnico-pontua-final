@@ -7,7 +7,7 @@ import { usePendingVacations } from '../../../../src/presentation/hooks/vacation
 import { VacationRequest } from '../../../../src/domain/entities/VacationRequest';
 import { VacationStatus } from '../../../../src/domain/enums/VacationStatus';
 import { UserRole } from '../../../../src/domain/enums/UserRole';
-import { renderWithProviders } from '../../../../src/helpers/render/renderWithProviders';
+import { renderWithProviders } from '../../../helpers/render/renderWithProviders';
 
 // Mock hooks - authentication is a mocked UI input
 jest.mock('../../../../src/presentation/hooks/useAuth');

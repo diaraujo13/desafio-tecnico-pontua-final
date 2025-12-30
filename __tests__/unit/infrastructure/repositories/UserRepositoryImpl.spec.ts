@@ -53,7 +53,7 @@ describe('UserRepositoryImpl', () => {
       const result = await repository.findById('non-existent');
 
       expect(result.isFailure).toBe(true);
-      expect(result.getError().message).toBe('User not found');
+      expect(result.getError().message).toBe('User não encontrado');
     });
   });
 
@@ -73,7 +73,7 @@ describe('UserRepositoryImpl', () => {
       const result = await repository.findByEmail('missing@example.com');
 
       expect(result.isFailure).toBe(true);
-      expect(result.getError().message).toBe('User not found');
+      expect(result.getError().message).toBe('User não encontrado');
     });
   });
 

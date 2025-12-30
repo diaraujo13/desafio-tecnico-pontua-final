@@ -96,7 +96,7 @@ describe('GetAllVacationsUseCase', () => {
 
     expect(result.isFailure).toBe(true);
     expect(result.getError()).toBeInstanceOf(InvalidInputError);
-    expect(result.getError().message).toContain('Caller ID is required');
+    expect(result.getError().message).toContain('ID do solicitante é obrigatório');
     expect(userRepository.findById).not.toHaveBeenCalled();
     expect(vacationRepository.findAll).not.toHaveBeenCalled();
   });
@@ -120,7 +120,7 @@ describe('GetAllVacationsUseCase', () => {
 
     expect(result.isFailure).toBe(true);
     expect(result.getError()).toBeInstanceOf(UnauthorizedError);
-    expect(result.getError().message).toContain('Only administrators');
+    expect(result.getError().message).toContain('Apenas administradores');
     expect(vacationRepository.findAll).not.toHaveBeenCalled();
   });
 
@@ -131,7 +131,7 @@ describe('GetAllVacationsUseCase', () => {
 
     expect(result.isFailure).toBe(true);
     expect(result.getError()).toBeInstanceOf(UnauthorizedError);
-    expect(result.getError().message).toContain('Only administrators');
+    expect(result.getError().message).toContain('Apenas administradores');
     expect(vacationRepository.findAll).not.toHaveBeenCalled();
   });
 
@@ -161,4 +161,3 @@ describe('GetAllVacationsUseCase', () => {
     expect(result.getError()).toBeInstanceOf(NotFoundError);
   });
 });
-

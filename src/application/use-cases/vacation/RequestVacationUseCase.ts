@@ -6,6 +6,7 @@ import { Result } from '../../../domain/shared/Result';
 import { NotFoundError } from '../../../domain/errors/NotFoundError';
 import { InactiveUserCannotRequestVacationError } from '../../../domain/errors/InactiveUserCannotRequestVacationError';
 import { InvalidVacationDateError } from '../../../domain/errors/InvalidVacationDateError';
+import { UnauthorizedError } from '../../../domain/errors/UnauthorizedError';
 import { DomainError } from '../../../domain/errors/DomainError';
 import { UnexpectedDomainError } from '../../../domain/errors/UnexpectedDomainError';
 import { v4 as uuidv4 } from 'uuid';
@@ -36,6 +37,12 @@ export class RequestVacationUseCase {
       const user = userResult.getValue();
       if (!user.isActive()) {
         return Result.fail(new InactiveUserCannotRequestVacationError());
+      }
+
+      // Check permission: only COLLABORATOR can request vacations
+      // Use Case delegates authorization decision to Domain entity
+      if (!user.canRequestVacation()) {
+        return Result.fail(new UnauthorizedError('Only employees can request vacations'));
       }
 
       // Validate dates are valid

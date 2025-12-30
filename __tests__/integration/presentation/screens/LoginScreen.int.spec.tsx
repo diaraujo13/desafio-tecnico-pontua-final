@@ -5,7 +5,7 @@ import { UnauthorizedError } from '../../../../src/domain/errors/UnauthorizedErr
 import type { UserDTO } from '../../../../src/application/dtos/UserDTO';
 import { UserRole } from '../../../../src/domain/enums/UserRole';
 import { UserStatus } from '../../../../src/domain/enums/UserStatus';
-import { renderWithProviders } from '../../../../src/helpers/render/renderWithProviders';
+import { renderWithProviders } from '../../../helpers/render/renderWithProviders';
 
 // Mock useAuth hook - authentication is a mocked UI input
 jest.mock('../../../../src/presentation/hooks/useAuth');

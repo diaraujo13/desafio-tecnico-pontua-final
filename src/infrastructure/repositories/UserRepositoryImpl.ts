@@ -41,8 +41,8 @@ export class UserRepositoryImpl implements IUserRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch user',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -75,8 +75,8 @@ export class UserRepositoryImpl implements IUserRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch user',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -119,8 +119,8 @@ export class UserRepositoryImpl implements IUserRepository {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to save user',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -145,14 +145,14 @@ export class UserRepositoryImpl implements IUserRepository {
         }>
       >(`/users?departmentId=${encodeURIComponent(departmentId)}`);
 
-      const users = data.map(item => UserMapper.fromAPI(item));
+      const users = data.map((item) => UserMapper.fromAPI(item));
       return Result.ok(users);
     } catch (error) {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch users',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }
@@ -177,14 +177,46 @@ export class UserRepositoryImpl implements IUserRepository {
         }>
       >(`/users?managerId=${encodeURIComponent(managerId)}`);
 
-      const users = data.map(item => UserMapper.fromAPI(item));
+      const users = data.map((item) => UserMapper.fromAPI(item));
       return Result.ok(users);
     } catch (error) {
       return Result.fail(
         new InfrastructureFailureError(
           'Failed to fetch users',
-          error instanceof Error ? error : undefined
-        )
+          error instanceof Error ? error : undefined,
+        ),
+      );
+    }
+  }
+
+  /**
+   * Finds all users with PENDING_APPROVAL status
+   */
+  async findPendingUsers(): Promise<Result<User[]>> {
+    try {
+      const data = await this.apiClient.get<
+        Array<{
+          id: string;
+          registrationNumber: string;
+          name: string;
+          email: string;
+          role: string;
+          status: string;
+          departmentId: string;
+          managerId?: string | null;
+          createdAt: string;
+          updatedAt: string;
+        }>
+      >('/users?status=PENDING_APPROVAL');
+
+      const users = data.map((item) => UserMapper.fromAPI(item));
+      return Result.ok(users);
+    } catch (error) {
+      return Result.fail(
+        new InfrastructureFailureError(
+          'Failed to fetch pending users',
+          error instanceof Error ? error : undefined,
+        ),
       );
     }
   }

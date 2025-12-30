@@ -5,7 +5,7 @@ import { RequestVacationScreen } from '../../../../src/presentation/screens/Requ
 import { useAuth } from '../../../../src/presentation/hooks/useAuth';
 import { useRequestVacation } from '../../../../src/presentation/hooks/vacations/useRequestVacation';
 import { Result } from '../../../../src/domain/shared/Result';
-import { renderWithProviders } from '../../../../src/helpers/render/renderWithProviders';
+import { renderWithProviders } from '../../../helpers/render/renderWithProviders';
 
 // Mock hooks - authentication is a mocked UI input
 jest.mock('../../../../src/presentation/hooks/useAuth');
@@ -71,7 +71,7 @@ describe('RequestVacationScreen Integration', () => {
   });
 
   it('should show error message when request fails', async () => {
-    const errorMessage = 'Invalid date range';
+    const errorMessage = 'Intervalo de datas inválido';
     mockRequestVacation.mockResolvedValue(
       Result.fail({
         message: errorMessage,

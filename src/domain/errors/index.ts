@@ -19,3 +19,4 @@ export { InvalidInputError } from './InvalidInputError';
 export { InactiveUserCannotRequestVacationError } from './InactiveUserCannotRequestVacationError';
 export { InvalidVacationDateError } from './InvalidVacationDateError';
 export { DepartmentNameRequiredError } from './DepartmentNameRequiredError';
+export { InvalidUserStateError } from './InvalidUserStateError';

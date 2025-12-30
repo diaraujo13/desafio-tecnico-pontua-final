@@ -40,4 +40,10 @@ export interface IUserRepository {
    * @returns A Result containing an array of Users or an error
    */
   findByManagerId(managerId: string): Promise<Result<User[]>>;
+
+  /**
+   * Finds all users with PENDING_APPROVAL status
+   * @returns A Result containing an array of Users with pending approval or an error
+   */
+  findPendingUsers(): Promise<Result<User[]>>;
 }

@@ -14,6 +14,8 @@ export type AppStackParamList = {
   VacationDetails: { requestId: string };
   ManagerDashboard: undefined;
   ReviewVacation: { requestId: string };
+  CreateUser: undefined;
+  ApproveUsers: undefined;
 };
 
 export type RootStackParamList = {

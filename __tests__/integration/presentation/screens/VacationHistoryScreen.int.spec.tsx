@@ -3,7 +3,7 @@ import { screen, waitFor, fireEvent } from '@testing-library/react-native';
 import { VacationHistoryScreen } from '../../../../src/presentation/screens/VacationHistoryScreen';
 import { VacationRequest } from '../../../../src/domain/entities/VacationRequest';
 import { VacationStatus } from '../../../../src/domain/enums/VacationStatus';
-import { renderWithProviders } from '../../../../src/helpers/render/renderWithProviders';
+import { renderWithProviders } from '../../../helpers/render/renderWithProviders';
 
 // Mock do hook useAuth - authentication is a mocked UI input
 jest.mock('../../../../src/presentation/hooks/useAuth', () => ({
